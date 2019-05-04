@@ -1,1 +1,3 @@
 language: java
+script:
+  - mvn clean verify
