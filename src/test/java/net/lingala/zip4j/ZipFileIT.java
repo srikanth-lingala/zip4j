@@ -1,6 +1,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.utils.ZipVerifier;
 import net.lingala.zip4j.zip.AesKeyStrength;
@@ -12,7 +13,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -211,10 +215,39 @@ public class ZipFileIT {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     zipParameters.setEncryptFiles(false);
-    zipParameters.setPassword("test".toCharArray());
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(filesToAdd, zipParameters, true, 70536);
+
+    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+  }
+
+  @Test
+  public void testZipOutputStreamWithoutEncryption() throws IOException, ZipException {
+    FileOutputStream fos = new FileOutputStream(generatedZipFile);
+    ZipOutputStream zos = new ZipOutputStream(fos);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+    zipParameters.setEncryptFiles(false);
+    zipParameters.setSourceExternalStream(true);
+
+    List<String> fileNamesToAddToZip = Arrays.asList("sample_text1.txt");
+    byte[] buff = new byte[4096];
+    int readLen;
+
+    for (String fileNameToAddToZip : fileNamesToAddToZip) {
+      zipParameters.setFileNameInZip(fileNameToAddToZip);
+      zos.putNextEntry(null, zipParameters);
+
+      InputStream inputStream = new FileInputStream(getFileFromResources(fileNameToAddToZip));
+      while ((readLen = inputStream.read(buff)) != -1) {
+        zos.write(buff, 0, readLen);
+      }
+      zos.closeEntry();
+    }
+
+    zos.close();
 
     zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }

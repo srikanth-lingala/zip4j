@@ -40,8 +40,8 @@ public class DeflaterOutputStream extends CipherOutputStream {
     firstBytesRead = false;
   }
 
-  public void putNextEntry(File file, ZipParameters zipParameters) throws ZipException {
-    super.putNextEntry(file, zipParameters);
+  public void putNextEntry(File sourceFile, ZipParameters zipParameters) throws ZipException {
+    super.putNextEntry(sourceFile, zipParameters);
     if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
       deflater.reset();
       deflater.setLevel(zipParameters.getCompressionLevel().getLevel());

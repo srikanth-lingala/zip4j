@@ -3,6 +3,7 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
@@ -40,7 +41,7 @@ public class FileHeaderFactory {
     fileHeader.setFileNameLength(determineFileNameLength(fileName, fileNameCharset));
     fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart: 0);
 
-    byte[] externalFileAttrs = {(byte) getFileAttributes(sourceFile, zipParameters.isSourceExternalStream()), 0, 0, 0};
+    byte[] externalFileAttrs = {(byte) getFileAttributes(zipParameters.isSourceExternalStream(), sourceFile), 0, 0, 0};
     fileHeader.setExternalFileAttr(externalFileAttrs);
 
     fileHeader.setDirectory(isDirectory(fileName, zipParameters.isSourceExternalStream(), sourceFile));
@@ -64,6 +65,24 @@ public class FileHeaderFactory {
         zipParameters, fileName));
 
     return fileHeader;
+  }
+
+  public LocalFileHeader generateLocalFileHeaderFromFileHeader(FileHeader fileHeader) {
+    LocalFileHeader localFileHeader = new LocalFileHeader();
+    localFileHeader.setSignature((int) InternalZipConstants.LOCSIG);
+    localFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
+    localFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
+    localFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
+    localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
+    localFileHeader.setFileNameLength(fileHeader.getFileNameLength());
+    localFileHeader.setFileName(fileHeader.getFileName());
+    localFileHeader.setEncrypted(fileHeader.isEncrypted());
+    localFileHeader.setEncryptionMethod(fileHeader.getEncryptionMethod());
+    localFileHeader.setAesExtraDataRecord(fileHeader.getAesExtraDataRecord());
+    localFileHeader.setCrc32(fileHeader.getCrc32());
+    localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
+    localFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
+    return localFileHeader;
   }
 
   private byte[] determineGeneralPurposeBitFlag(String fileNameCharset, boolean isEncrypted,
@@ -144,8 +163,8 @@ public class FileHeaderFactory {
     return generalPurposeBits;
   }
 
-  private int getFileAttributes(File file, boolean isSourceExternalStream) {
-    if (!file.exists() || isSourceExternalStream) {
+  private int getFileAttributes(boolean isSourceExternalStream, File file) {
+    if (isSourceExternalStream || !file.exists()) {
       return 0;
     }
 

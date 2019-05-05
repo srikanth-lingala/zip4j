@@ -16,38 +16,26 @@
 
 package net.lingala.zip4j.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ZipModel implements Cloneable {
 
-  private List<LocalFileHeader> localFileHeaders;
-
-  private List<DataDescriptor> dataDescriptors;
-
-  private ArchiveExtraDataRecord archiveExtraDataRecord;
-
-  private CentralDirectory centralDirectory;
-
-  private EndOfCentralDirRecord endOfCentralDirRecord;
-
-  private Zip64EndOfCentralDirLocator zip64EndOfCentralDirLocator;
-
-  private Zip64EndOfCentralDirRecord zip64EndOfCentralDirRecord;
+  private List<LocalFileHeader> localFileHeaders = new ArrayList<>();
+  private List<DataDescriptor> dataDescriptors = new ArrayList<>();
+  private ArchiveExtraDataRecord archiveExtraDataRecord = new ArchiveExtraDataRecord();
+  private CentralDirectory centralDirectory = new CentralDirectory();
+  private EndOfCentralDirRecord endOfCentralDirRecord = new EndOfCentralDirRecord();
+  private Zip64EndOfCentralDirLocator zip64EndOfCentralDirLocator = new Zip64EndOfCentralDirLocator();
+  private Zip64EndOfCentralDirRecord zip64EndOfCentralDirRecord = new Zip64EndOfCentralDirRecord();
 
   private boolean splitArchive;
-
   private long splitLength;
-
   private String zipFile;
-
   private boolean isZip64Format;
-
   private boolean isNestedZipFile;
-
   private long start;
-
   private long end;
-
   private String fileNameCharset;
 
   public ZipModel() {
