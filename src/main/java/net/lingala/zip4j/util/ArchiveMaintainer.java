@@ -16,8 +16,8 @@
 
 package net.lingala.zip4j.util;
 
-import net.lingala.zip4j.io.HeaderReader;
-import net.lingala.zip4j.io.HeaderWriter;
+import net.lingala.zip4j.headers.HeaderReader;
+import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;

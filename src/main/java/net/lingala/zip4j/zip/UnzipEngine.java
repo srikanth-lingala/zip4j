@@ -16,7 +16,7 @@
 
 package net.lingala.zip4j.zip;
 
-import net.lingala.zip4j.io.HeaderReader;
+import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.crypto.StandardDecrypter;

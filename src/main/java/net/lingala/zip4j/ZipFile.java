@@ -16,8 +16,7 @@
 
 package net.lingala.zip4j;
 
-import net.lingala.zip4j.exception.ZipExceptionType;
-import net.lingala.zip4j.io.HeaderReader;
+import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
