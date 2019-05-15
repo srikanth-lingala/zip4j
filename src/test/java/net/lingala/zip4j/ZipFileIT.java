@@ -224,7 +224,6 @@ public class ZipFileIT {
   }
 
   @Test
-  @Ignore
   public void testZipOutputStreamWithoutEncryption() throws IOException, ZipException {
     FileOutputStream fos = new FileOutputStream(generatedZipFile);
     ZipOutputStream zos = new ZipOutputStream(fos);
@@ -249,6 +248,7 @@ public class ZipFileIT {
       zos.closeEntry();
     }
 
+    zos.finish();
     zos.close();
 
     zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
