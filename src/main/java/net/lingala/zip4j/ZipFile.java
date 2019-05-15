@@ -422,7 +422,7 @@ public class ZipFile {
       throw new ZipException("zip file does not exist");
     }
 
-    if (!Zip4jUtil.checkFileReadAccess(this.file)) {
+    if (!Zip4jUtil.assertFileReadAccess(this.file)) {
       throw new ZipException("no read access for the input zip file");
     }
 

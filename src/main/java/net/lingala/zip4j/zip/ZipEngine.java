@@ -268,7 +268,7 @@ public class ZipEngine {
       throw new ZipException("input file is not a folder, user addFileToZip method to add files");
     }
 
-    if (!Zip4jUtil.checkFileReadAccess(file.getAbsolutePath())) {
+    if (!Zip4jUtil.assertFileReadAccess(file.getAbsolutePath())) {
       throw new ZipException("cannot read folder: " + file.getAbsolutePath());
     }
 

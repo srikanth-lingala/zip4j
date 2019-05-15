@@ -81,7 +81,7 @@ public class Zip4jUtil {
     return true;
   }
 
-  public static boolean checkFileReadAccess(String path) throws ZipException {
+  public static boolean assertFileReadAccess(String path) throws ZipException {
     if (!isStringNotNullAndNotEmpty(path)) {
       throw new ZipException("path is null");
     }
@@ -94,7 +94,7 @@ public class Zip4jUtil {
       File file = new File(path);
       return file.canRead();
     } catch (Exception e) {
-      throw new ZipException("cannot read zip file");
+      throw new ZipException("cannot read file");
     }
   }
 

@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
 
+import static net.lingala.zip4j.util.Zip4jUtil.assertFileReadAccess;
+
 public class CRCUtil {
 
   private static final int BUF_SIZE = 1 << 14; //16384
@@ -33,30 +35,22 @@ public class CRCUtil {
     return computeFileCRC(inputFile, null);
   }
 
-  /**
-   * Calculates CRC of a file
-   *
-   * @param inputFile - file for which crc has to be calculated
-   * @return crc of the file
-   * @throws ZipException
-   */
   public static long computeFileCRC(String inputFile, ProgressMonitor progressMonitor) throws ZipException {
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(inputFile)) {
       throw new ZipException("input file is null or empty, cannot calculate CRC for the file");
     }
-    InputStream inputStream = null;
-    try {
-      Zip4jUtil.checkFileReadAccess(inputFile);
 
-      inputStream = new FileInputStream(new File(inputFile));
+    assertFileReadAccess(inputFile);
 
-      byte[] buff = new byte[BUF_SIZE];
-      int readLen = -2;
-      CRC32 crc32 = new CRC32();
+    byte[] buff = new byte[BUF_SIZE];
+    CRC32 crc32 = new CRC32();
 
+    try(InputStream inputStream = new FileInputStream(new File(inputFile))) {
+      int readLen;
       while ((readLen = inputStream.read(buff)) != -1) {
         crc32.update(buff, 0, readLen);
+
         if (progressMonitor != null) {
           progressMonitor.updateWorkCompleted(readLen);
           if (progressMonitor.isCancelAllTasks()) {
@@ -66,20 +60,9 @@ public class CRCUtil {
           }
         }
       }
-
       return crc32.getValue();
     } catch (IOException e) {
       throw new ZipException(e);
-    } catch (Exception e) {
-      throw new ZipException(e);
-    } finally {
-      if (inputStream != null) {
-        try {
-          inputStream.close();
-        } catch (IOException e) {
-          throw new ZipException("error while closing the file after calculating crc");
-        }
-      }
     }
   }
 

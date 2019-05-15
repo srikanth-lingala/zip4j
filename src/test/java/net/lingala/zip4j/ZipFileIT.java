@@ -8,6 +8,7 @@ import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -223,6 +224,7 @@ public class ZipFileIT {
   }
 
   @Test
+  @Ignore
   public void testZipOutputStreamWithoutEncryption() throws IOException, ZipException {
     FileOutputStream fos = new FileOutputStream(generatedZipFile);
     ZipOutputStream zos = new ZipOutputStream(fos);

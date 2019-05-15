@@ -22,8 +22,6 @@ import net.lingala.zip4j.crypto.StandardEncrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.FileHeaderFactory;
 import net.lingala.zip4j.headers.HeaderWriter;
-import net.lingala.zip4j.model.CentralDirectory;
-import net.lingala.zip4j.model.EndOfCentralDirRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -37,7 +35,6 @@ import net.lingala.zip4j.zip.EncryptionMethod;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.zip.CRC32;
 
 public class CipherOutputStream extends OutputStream {
@@ -72,8 +69,7 @@ public class CipherOutputStream extends OutputStream {
         if (!Zip4jUtil.isStringNotNullAndNotEmpty(this.zipParameters.getFileNameInZip())) {
           throw new ZipException("file name is empty for external stream");
         }
-        if (this.zipParameters.getFileNameInZip().endsWith("/") ||
-            this.zipParameters.getFileNameInZip().endsWith("\\")) {
+        if (this.zipParameters.getFileNameInZip().endsWith("/") || this.zipParameters.getFileNameInZip().endsWith("\\")) {
           this.zipParameters.setEncryptFiles(false);
           this.zipParameters.setEncryptionMethod(EncryptionMethod.NONE);
           this.zipParameters.setCompressionMethod(CompressionMethod.STORE);
@@ -217,8 +213,7 @@ public class CipherOutputStream extends OutputStream {
   public void write(byte[] b, int off, int len) throws IOException {
     if (len == 0) return;
 
-    if (zipParameters.isEncryptFiles() &&
-        zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
+    if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
       if (pendingBufferLength != 0) {
         if (len >= (InternalZipConstants.AES_BLOCK_SIZE - pendingBufferLength)) {
           System.arraycopy(b, off, pendingBuffer, pendingBufferLength,
@@ -228,8 +223,7 @@ public class CipherOutputStream extends OutputStream {
           len = len - off;
           pendingBufferLength = 0;
         } else {
-          System.arraycopy(b, off, pendingBuffer, pendingBufferLength,
-              len);
+          System.arraycopy(b, off, pendingBuffer, pendingBufferLength, len);
           pendingBufferLength += len;
           return;
         }
@@ -264,16 +258,12 @@ public class CipherOutputStream extends OutputStream {
       pendingBufferLength = 0;
     }
 
-    if (this.zipParameters.isEncryptFiles() &&
-        this.zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-      if (encrypter instanceof AESEncrpyter) {
-        outputStream.write(((AESEncrpyter) encrypter).getFinalMac());
-        bytesWrittenForThisFile += 10;
-        totalBytesWritten += 10;
-      } else {
-        throw new ZipException("invalid encrypter for AES encrypted file");
-      }
+    if (this.zipParameters.isEncryptFiles() && this.zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
+      outputStream.write(((AESEncrpyter) encrypter).getFinalMac());
+      bytesWrittenForThisFile += 10;
+      totalBytesWritten += 10;
     }
+
     fileHeader.setCompressedSize(bytesWrittenForThisFile);
     localFileHeader.setCompressedSize(bytesWrittenForThisFile);
 
@@ -320,12 +310,15 @@ public class CipherOutputStream extends OutputStream {
   }
 
   public void close() throws IOException {
-    if (outputStream != null)
+    if (outputStream != null) {
       outputStream.close();
+    }
   }
 
   public void decrementCompressedFileSize(int value) {
-    if (value <= 0) return;
+    if (value <= 0) {
+      return;
+    }
 
     if (value <= this.bytesWrittenForThisFile) {
       this.bytesWrittenForThisFile -= value;
