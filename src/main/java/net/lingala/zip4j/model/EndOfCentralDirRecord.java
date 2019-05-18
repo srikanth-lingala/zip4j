@@ -16,9 +16,11 @@
 
 package net.lingala.zip4j.model;
 
+import net.lingala.zip4j.util.InternalZipConstants;
+
 public class EndOfCentralDirRecord {
 
-  private long signature;
+  private long signature = InternalZipConstants.ENDSIG;
 
   private int noOfThisDisk;
 

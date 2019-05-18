@@ -28,11 +28,7 @@ public class StandardEncrypter implements Encrypter {
   private byte[] headerBytes;
 
   public StandardEncrypter(char[] password, int crc) throws ZipException {
-    if (password == null || password.length <= 0) {
-      throw new ZipException("input password is null or empty in standard encrpyter constructor");
-    }
-
-    this.zipCryptoEngine = new ZipCryptoEngine();
+   this.zipCryptoEngine = new ZipCryptoEngine();
 
     this.headerBytes = new byte[InternalZipConstants.STD_DEC_HDR_SIZE];
     init(password, crc);
@@ -97,32 +93,9 @@ public class StandardEncrypter implements Encrypter {
     Random rand = new Random();
 
     for (int i = 0; i < buff.length; i++) {
-      // Encrypted to get less predictability for poorly implemented
-      // rand functions.
+      // Encrypted to get less predictability for poorly implemented rand functions.
       buff[i] = encryptByte((byte) rand.nextInt(256));
     }
-
-//		buff[0] = (byte)87;
-//		buff[1] = (byte)176;
-//		buff[2] = (byte)-49;
-//		buff[3] = (byte)-43;
-//		buff[4] = (byte)93;
-//		buff[5] = (byte)-204;
-//		buff[6] = (byte)-105;
-//		buff[7] = (byte)213;
-//		buff[8] = (byte)-80;
-//		buff[9] = (byte)-8;
-//		buff[10] = (byte)21;
-//		buff[11] = (byte)242;
-
-//		for( int j=0; j<2; j++ ) {
-//			Random rand = new Random();
-//			int i = rand.nextInt();
-//			buff[0+j*4] = (byte)(i>>24);
-//			buff[1+j*4] = (byte)(i>>16);
-//			buff[2+j*4] = (byte)(i>>8);
-//			buff[3+j*4] = (byte)i;
-//		}
     return buff;
   }
 

@@ -25,7 +25,7 @@ import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.util.TimeZone;
 
-public class ZipParameters implements Cloneable {
+public class ZipParameters {
 
   private CompressionMethod compressionMethod = CompressionMethod.DEFLATE;
   private CompressionLevel compressionLevel = CompressionLevel.NORMAL;
@@ -41,6 +41,28 @@ public class ZipParameters implements Cloneable {
   private String defaultFolderPath;
   private String fileNameInZip;
   private boolean isSourceExternalStream;
+  private int lastModifiedFileTime;
+
+  public ZipParameters() {
+  }
+
+  public ZipParameters(ZipParameters zipParameters) {
+    this.compressionMethod = zipParameters.getCompressionMethod();
+    this.compressionLevel = zipParameters.getCompressionLevel();
+    this.encryptFiles = zipParameters.isEncryptFiles();
+    this.encryptionMethod = zipParameters.getEncryptionMethod();
+    this.readHiddenFiles = zipParameters.isReadHiddenFiles();
+    this.password = zipParameters.getPassword();
+    this.aesKeyStrength = zipParameters.getAesKeyStrength();
+    this.includeRootFolder = zipParameters.isIncludeRootFolder();
+    this.rootFolderInZip = zipParameters.getRootFolderInZip();
+    this.timeZone = zipParameters.getTimeZone();
+    this.sourceFileCRC = zipParameters.getSourceFileCRC();
+    this.defaultFolderPath = zipParameters.getDefaultFolderPath();
+    this.fileNameInZip = zipParameters.getFileNameInZip();
+    this.isSourceExternalStream = zipParameters.isSourceExternalStream();
+    this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
+  }
 
   public CompressionMethod getCompressionMethod() {
     return compressionMethod;
@@ -186,4 +208,11 @@ public class ZipParameters implements Cloneable {
     this.isSourceExternalStream = isSourceExternalStream;
   }
 
+  public int getLastModifiedFileTime() {
+    return lastModifiedFileTime;
+  }
+
+  public void setLastModifiedFileTime(int lastModifiedFileTime) {
+    this.lastModifiedFileTime = lastModifiedFileTime;
+  }
 }

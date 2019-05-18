@@ -736,4 +736,8 @@ public class Zip4jUtil {
 
     return allSigs;
   }
+
+  public static boolean isZipEntryDirectory(String fileNameInZip) {
+    return fileNameInZip.endsWith("/") || fileNameInZip.endsWith("\\");
+  }
 }

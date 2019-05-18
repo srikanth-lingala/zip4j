@@ -16,11 +16,11 @@
 
 package net.lingala.zip4j.zip;
 
-import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.crypto.StandardDecrypter;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.io.InflaterInputStream;
 import net.lingala.zip4j.io.PartInputStream;
 import net.lingala.zip4j.io.ZipInputStream;
@@ -94,6 +94,7 @@ public class UnzipEngine {
     } catch (IOException e) {
       throw new ZipException(e);
     } catch (Exception e) {
+      e.printStackTrace();
       throw new ZipException(e);
     } finally {
       closeStreams(is, os);
@@ -116,7 +117,7 @@ public class UnzipEngine {
 
       init(raf);
 
-      long comprSize = localFileHeader.getCompressedSize();
+      long comprSize = fileHeader.getCompressedSize();
       long offsetStartOfData = localFileHeader.getOffsetStartOfData();
 
       if (localFileHeader.isEncrypted()) {

@@ -17,8 +17,8 @@
 package net.lingala.zip4j.zip;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.SplitOutputStream;
-import net.lingala.zip4j.io.ZipOutputStream;
+import net.lingala.zip4j.io.outputstreams.SplitOutputStream;
+import net.lingala.zip4j.io.outputstreams.ZipOutputStream;
 import net.lingala.zip4j.model.EndOfCentralDirRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -129,7 +129,11 @@ public class ZipEngine {
           return;
         }
 
-        ZipParameters fileParameters = (ZipParameters) parameters.clone();
+        ZipParameters fileParameters = new ZipParameters(parameters);
+        fileParameters.setLastModifiedFileTime((int) Zip4jUtil.javaToDosTime((Zip4jUtil.getLastModifiedFileTime(
+            filesToAdd.get(i), parameters.getTimeZone()))));
+        fileParameters.setSourceExternalStream(true);
+        fileParameters.setFileNameInZip(Zip4jUtil.getFileNameFromFilePath(filesToAdd.get(i)));
 
         progressMonitor.setFileName(filesToAdd.get(i).getAbsolutePath());
 
@@ -151,7 +155,7 @@ public class ZipEngine {
           }
         }
 
-        outputStream.putNextEntry((File) filesToAdd.get(i), fileParameters);
+        outputStream.putNextEntry(fileParameters);
         if (((File) filesToAdd.get(i)).isDirectory()) {
           outputStream.closeEntry();
           continue;
@@ -177,7 +181,6 @@ public class ZipEngine {
         }
       }
 
-      outputStream.finish();
       progressMonitor.endProgressMonitorSuccess();
     } catch (ZipException e) {
       progressMonitor.endProgressMonitorError(e);
@@ -227,7 +230,7 @@ public class ZipEngine {
       byte[] readBuff = new byte[InternalZipConstants.BUFF_SIZE];
       int readLen = -1;
 
-      outputStream.putNextEntry(null, parameters);
+      outputStream.putNextEntry(parameters);
 
       if (!parameters.getFileNameInZip().endsWith("/") &&
           !parameters.getFileNameInZip().endsWith("\\")) {
@@ -237,8 +240,6 @@ public class ZipEngine {
       }
 
       outputStream.closeEntry();
-      outputStream.finish();
-
     } catch (ZipException e) {
       throw e;
     } catch (Exception e) {

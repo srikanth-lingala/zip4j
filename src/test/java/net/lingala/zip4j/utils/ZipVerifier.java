@@ -8,7 +8,9 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
+import static net.lingala.zip4j.TestUtils.getFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipVerifier {
@@ -21,7 +23,28 @@ public class ZipVerifier {
     if (zipParameters.isEncryptFiles()) {
       zipFile.setPassword(zipParameters.getPassword());
     }
-    zipFile.extractAll(temporaryFolder.newFolder().getAbsolutePath(), new UnzipParameters());
+
+    File folderToExtractTo = temporaryFolder.newFolder();
+    zipFile.extractAll(folderToExtractTo.getAbsolutePath(), new UnzipParameters());
+
+    verifyAllFiles(folderToExtractTo);
+  }
+
+  private void verifyAllFiles(File folderContainingExtractedFiles) throws IOException {
+    File[] allFiles = folderContainingExtractedFiles.listFiles();
+
+    for (File fileToVerify : allFiles) {
+      verifyFileContent(getFileFromResources(fileToVerify.getName()), fileToVerify);
+    }
+  }
+
+  private void verifyFileContent(File sourceFile, File extractedFile) throws IOException {
+    assertThat(extractedFile.length()).isEqualTo(sourceFile.length());
+
+    byte[] sourceFileContent = Files.readAllBytes(sourceFile.toPath());
+    byte[] extractedFileContent = Files.readAllBytes(extractedFile.toPath());
+
+    assertThat(extractedFileContent).as("Files do not match for file name: " + extractedFile.getName()).isEqualTo(sourceFileContent);
   }
 
 }

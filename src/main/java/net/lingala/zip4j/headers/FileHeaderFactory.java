@@ -12,12 +12,10 @@ import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
 
-import java.io.File;
-
 public class FileHeaderFactory {
 
   public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart,
-                                       String fileNameCharset, File sourceFile) throws ZipException {
+                                       String fileNameCharset) throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setSignature((int) InternalZipConstants.CENSIG);
@@ -36,26 +34,20 @@ public class FileHeaderFactory {
       fileHeader.setEncryptionMethod(zipParameters.getEncryptionMethod());
     }
 
-    String fileName = getFileName(zipParameters, fileHeader, sourceFile);
+    String fileName = validateAndGetFileName(zipParameters.getFileNameInZip());
     fileHeader.setFileName(fileName);
     fileHeader.setFileNameLength(determineFileNameLength(fileName, fileNameCharset));
-    fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart: 0);
+    fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart : 0);
 
-    byte[] externalFileAttrs = {(byte) getFileAttributes(zipParameters.isSourceExternalStream(), sourceFile), 0, 0, 0};
-    fileHeader.setExternalFileAttr(externalFileAttrs);
-
-    fileHeader.setDirectory(isDirectory(fileName, zipParameters.isSourceExternalStream(), sourceFile));
-
-    if (fileHeader.isDirectory()) {
-      fileHeader.setCompressedSize(0);
-      fileHeader.setUncompressedSize(0);
+    if (zipParameters.getLastModifiedFileTime() > 0) {
+      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime()));
     } else {
-      if (!zipParameters.isSourceExternalStream()) {
-        long fileSize = Zip4jUtil.getFileLengh(sourceFile);
-        fileHeader.setCompressedSize(calculateCompressedSize(zipParameters, fileSize));
-        fileHeader.setUncompressedSize(fileSize);
-      }
+      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
     }
+
+    //TODO add file atttributes for interally added files
+    fileHeader.setExternalFileAttr(new byte[] {0, 0, 0, 0});
+    fileHeader.setDirectory(Zip4jUtil.isZipEntryDirectory(fileName));
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
       fileHeader.setCrc32(zipParameters.getSourceFileCRC());
@@ -101,23 +93,11 @@ public class FileHeaderFactory {
     return generalPurposeBitFlag;
   }
 
-  private String getFileName(ZipParameters zipParameters, FileHeader fileHeader, File sourceFile) throws ZipException {
-    String fileName;
-    if (zipParameters.isSourceExternalStream()) {
-      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
-      if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
-        throw new ZipException("fileNameInZip is null or empty");
-      }
-      fileName = zipParameters.getFileNameInZip();
-    } else {
-      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime((Zip4jUtil.getLastModifiedFileTime(
-          sourceFile, zipParameters.getTimeZone()))));
-      fileHeader.setUncompressedSize(sourceFile.length());
-      fileName = Zip4jUtil.getRelativeFileName(
-          sourceFile.getAbsolutePath(), zipParameters.getRootFolderInZip(), zipParameters.getDefaultFolderPath());
+  private String validateAndGetFileName(String fileNameInZip) throws ZipException {
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileNameInZip)) {
+      throw new ZipException("fileNameInZip is null or empty");
     }
-
-    return fileName;
+    return fileNameInZip;
   }
 
   private AESExtraDataRecord generateAESExtraDataRecord(ZipParameters parameters) throws ZipException {
@@ -163,54 +143,10 @@ public class FileHeaderFactory {
     return generalPurposeBits;
   }
 
-  private int getFileAttributes(boolean isSourceExternalStream, File file) {
-    if (isSourceExternalStream || !file.exists()) {
-      return 0;
-    }
-
-    if (file.isDirectory()) {
-      if (file.isHidden()) {
-        return InternalZipConstants.FOLDER_MODE_HIDDEN;
-      } else {
-        return InternalZipConstants.FOLDER_MODE_NONE;
-      }
-    } else {
-      if (!file.canWrite() && file.isHidden()) {
-        return InternalZipConstants.FILE_MODE_READ_ONLY_HIDDEN;
-      } else if (!file.canWrite()) {
-        return InternalZipConstants.FILE_MODE_READ_ONLY;
-      } else if (file.isHidden()) {
-        return InternalZipConstants.FILE_MODE_HIDDEN;
-      } else {
-        return InternalZipConstants.FILE_MODE_NONE;
-      }
-    }
-  }
-
-  private long calculateCompressedSize(ZipParameters zipParameters, long fileSize) {
-    if (zipParameters.getCompressionMethod() == CompressionMethod.STORE) {
-      if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-        return fileSize + InternalZipConstants.STD_DEC_HDR_SIZE;
-      } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-        return fileSize + zipParameters.getAesKeyStrength().getSaltLength()
-            + InternalZipConstants.AES_AUTH_LENGTH + 2; //2 is password verifier
-      }
-    }
-    return 0;
-  }
-
   private int determineFileNameLength(String fileName, String fileNameCharset) throws ZipException {
     if (Zip4jUtil.isStringNotNullAndNotEmpty(fileNameCharset)) {
       return Zip4jUtil.getEncodedStringLength(fileName, fileNameCharset);
     }
     return Zip4jUtil.getEncodedStringLength(fileName);
-  }
-
-  private boolean isDirectory(String fileName, boolean isSourceExternalStream, File sourceFile) {
-    if (isSourceExternalStream) {
-      return fileName.endsWith("/") || fileName.endsWith("\\");
-    } else {
-      return sourceFile.isDirectory();
-    }
   }
 }

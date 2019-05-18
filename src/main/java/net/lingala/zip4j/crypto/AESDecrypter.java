@@ -51,8 +51,7 @@ public class AESDecrypter implements Decrypter {
   private byte[] counterBlock;
   private int loopCount = 0;
 
-  public AESDecrypter(LocalFileHeader localFileHeader,
-                      byte[] salt, byte[] passwordVerifier) throws ZipException {
+  public AESDecrypter(LocalFileHeader localFileHeader, byte[] salt, byte[] passwordVerifier) throws ZipException {
 
     if (localFileHeader == null) {
       throw new ZipException("one of the input parameters is null in AESDecryptor Constructor");

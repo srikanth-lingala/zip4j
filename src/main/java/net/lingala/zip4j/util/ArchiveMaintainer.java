@@ -16,10 +16,11 @@
 
 package net.lingala.zip4j.util;
 
+import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderWriter;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.SplitOutputStream;
+import net.lingala.zip4j.io.outputstreams.CountingOutputStream;
+import net.lingala.zip4j.io.outputstreams.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirLocator;
@@ -187,7 +188,7 @@ public class ArchiveMaintainer {
       }
 
       HeaderWriter headerWriter = new HeaderWriter();
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, (CountingOutputStream) outputStream);
 
       successFlag = true;
 

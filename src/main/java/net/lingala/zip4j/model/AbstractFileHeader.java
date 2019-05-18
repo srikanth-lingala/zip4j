@@ -8,43 +8,24 @@ import java.util.List;
 public abstract class AbstractFileHeader {
 
   private int signature;
-
   private int versionNeededToExtract;
-
   private byte[] generalPurposeFlag;
-
   private CompressionMethod compressionMethod;
-
   private int lastModifiedTime;
-
   private long crc32 = 0;
-
   private byte[] crcRawData;
-
-  private long compressedSize;
-
+  private long compressedSize = 0;
   private long uncompressedSize = 0;
-
   private int fileNameLength;
-
   private int extraFieldLength;
-
   private String fileName;
-
   private boolean isEncrypted;
-
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
-
   private char[] password;
-
   private boolean dataDescriptorExists;
-
   private Zip64ExtendedInfo zip64ExtendedInfo;
-
   private AESExtraDataRecord aesExtraDataRecord;
-
   private boolean fileNameUTF8Encoded;
-
   private List<ExtraDataRecord> extraDataRecords;
 
   public int getSignature() {

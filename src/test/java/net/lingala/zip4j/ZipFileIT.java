@@ -1,14 +1,13 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.ZipOutputStream;
+import net.lingala.zip4j.io.outputstreams.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.utils.ZipVerifier;
 import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -21,6 +20,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.lingala.zip4j.TestUtils.getFileFromResources;
+
 public class ZipFileIT {
 
   @Rule
@@ -32,6 +33,7 @@ public class ZipFileIT {
   @Before
   public void before() throws IOException {
     generatedZipFile = temporaryFolder.newFile("output.zip");
+    System.out.println("Generating zip file at location:" + generatedZipFile);
 
     File[] allTempFiles = temporaryFolder.getRoot().listFiles();
     Arrays.stream(allTempFiles).forEach(File::delete);
@@ -239,7 +241,7 @@ public class ZipFileIT {
 
     for (String fileNameToAddToZip : fileNamesToAddToZip) {
       zipParameters.setFileNameInZip(fileNameToAddToZip);
-      zos.putNextEntry(null, zipParameters);
+      zos.putNextEntry(zipParameters);
 
       InputStream inputStream = new FileInputStream(getFileFromResources(fileNameToAddToZip));
       while ((readLen = inputStream.read(buff)) != -1) {
@@ -248,14 +250,11 @@ public class ZipFileIT {
       zos.closeEntry();
     }
 
-    zos.finish();
     zos.close();
 
     zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
-  private File getFileFromResources(String fileName) {
-    return new File(this.getClass().getResource(System.getProperty("file.separator") + fileName).getFile());
-  }
+
 
 }

@@ -24,19 +24,12 @@ import net.lingala.zip4j.zip.Unzip;
 public class FileHeader extends AbstractFileHeader {
 
   private int versionMadeBy;
-
   private int fileCommentLength;
-
   private int diskNumberStart;
-
   private byte[] internalFileAttr;
-
   private byte[] externalFileAttr;
-
   private long offsetLocalHeader;
-
   private String fileComment;
-
   private boolean isDirectory;
 
   /**
