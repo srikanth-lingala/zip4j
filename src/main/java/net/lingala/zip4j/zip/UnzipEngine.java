@@ -31,6 +31,7 @@ import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -108,7 +109,7 @@ public class UnzipEngine {
 
     RandomAccessFile raf = null;
     try {
-      raf = createFileHandler(InternalZipConstants.READ_MODE);
+      raf = createFileHandler(RandomAccessFileMode.READ.getCode());
       String errMsg = "local header and file header do not match";
       //checkSplitFile();
 
@@ -198,7 +199,7 @@ public class UnzipEngine {
 
     if (localFileHeader.isEncrypted()) {
       if (localFileHeader.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-        decrypter = new StandardDecrypter(fileHeader, getStandardDecrypterHeaderBytes(raf));
+        decrypter = new StandardDecrypter(localFileHeader, getStandardDecrypterHeaderBytes(raf));
       } else if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
         decrypter = new AESDecrypter(localFileHeader, getAESSalt(raf), getAESPasswordVerifier(raf));
       } else {
@@ -311,11 +312,11 @@ public class UnzipEngine {
       rafForLH = checkSplitFile();
 
       if (rafForLH == null) {
-        rafForLH = new RandomAccessFile(new File(this.zipModel.getZipFile()), InternalZipConstants.READ_MODE);
+        rafForLH = new RandomAccessFile(new File(this.zipModel.getZipFile()), RandomAccessFileMode.READ.getCode());
       }
 
-      HeaderReader headerReader = new HeaderReader(rafForLH);
-      this.localFileHeader = headerReader.readLocalFileHeader(fileHeader);
+      HeaderReader headerReader = new HeaderReader();
+      this.localFileHeader = headerReader.readLocalFileHeader(rafForLH, fileHeader);
 
       if (localFileHeader == null) {
         throw new ZipException("error reading local file header. Is this a valid zip file?");
@@ -359,7 +360,7 @@ public class UnzipEngine {
       }
 
       try {
-        RandomAccessFile raf = new RandomAccessFile(partFile, InternalZipConstants.READ_MODE);
+        RandomAccessFile raf = new RandomAccessFile(partFile, RandomAccessFileMode.READ.getCode());
 
         if (currSplitFileCounter == 1) {
           byte[] splitSig = new byte[4];
@@ -444,14 +445,10 @@ public class UnzipEngine {
       }
     }
     currSplitFileCounter++;
-    try {
-      if (!Zip4jUtil.checkFileExists(partFile)) {
-        throw new IOException("zip split file does not exist: " + partFile);
-      }
-    } catch (ZipException e) {
-      throw new IOException(e.getMessage());
+    if (!Zip4jUtil.checkFileExists(partFile)) {
+      throw new IOException("zip split file does not exist: " + partFile);
     }
-    return new RandomAccessFile(partFile, InternalZipConstants.READ_MODE);
+    return new RandomAccessFile(partFile, RandomAccessFileMode.READ.getCode());
   }
 
   private void closeStreams(InputStream is, OutputStream os) throws ZipException {

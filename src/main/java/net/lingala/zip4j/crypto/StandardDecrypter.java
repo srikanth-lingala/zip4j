@@ -19,21 +19,21 @@ package net.lingala.zip4j.crypto;
 import net.lingala.zip4j.crypto.engine.ZipCryptoEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
-import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.util.InternalZipConstants;
 
 public class StandardDecrypter implements Decrypter {
 
-  private FileHeader fileHeader;
+  private LocalFileHeader localFileHeader;
   private byte[] crc = new byte[4];
   private ZipCryptoEngine zipCryptoEngine;
 
-  public StandardDecrypter(FileHeader fileHeader, byte[] headerBytes) throws ZipException {
-    if (fileHeader == null) {
-      throw new ZipException("one of more of the input parameters were null in StandardDecryptor");
+  public StandardDecrypter(LocalFileHeader localFileHeader, byte[] headerBytes) throws ZipException {
+    if (localFileHeader == null) {
+      throw new ZipException("one of more of the input parameters were null in StandardDecrypter");
     }
 
-    this.fileHeader = fileHeader;
+    this.localFileHeader = localFileHeader;
     this.zipCryptoEngine = new ZipCryptoEngine();
     init(headerBytes);
   }
@@ -44,7 +44,7 @@ public class StandardDecrypter implements Decrypter {
 
   public int decryptData(byte[] buff, int start, int len) throws ZipException {
     if (start < 0 || len < 0) {
-      throw new ZipException("one of the input parameters were null in standard decrpyt data");
+      throw new ZipException("one of the input parameters were null in standard decrypt data");
     }
 
     try {
@@ -61,7 +61,7 @@ public class StandardDecrypter implements Decrypter {
   }
 
   public void init(byte[] headerBytes) throws ZipException {
-    byte[] crcBuff = fileHeader.getCrcRawData();
+    byte[] crcBuff = localFileHeader.getCrcRawData();
     crc[3] = (byte) (crcBuff[3] & 0xFF);
     crc[2] = (byte) ((crcBuff[3] >> 8) & 0xFF);
     crc[1] = (byte) ((crcBuff[3] >> 16) & 0xFF);
@@ -70,11 +70,11 @@ public class StandardDecrypter implements Decrypter {
     if (crc[2] > 0 || crc[1] > 0 || crc[0] > 0)
       throw new IllegalStateException("Invalid CRC in File Header");
 
-    if (fileHeader.getPassword() == null || fileHeader.getPassword().length <= 0) {
+    if (localFileHeader.getPassword() == null || localFileHeader.getPassword().length <= 0) {
       throw new ZipException("Wrong password!", ZipExceptionType.WRONG_PASSWORD);
     }
 
-    zipCryptoEngine.initKeys(fileHeader.getPassword());
+    zipCryptoEngine.initKeys(localFileHeader.getPassword());
 
     try {
       int result = headerBytes[0];

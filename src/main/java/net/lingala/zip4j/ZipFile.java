@@ -16,18 +16,19 @@
 
 package net.lingala.zip4j;
 
-import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.io.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.zip.Unzip;
 import net.lingala.zip4j.util.ArchiveMaintainer;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.zip.Unzip;
 import net.lingala.zip4j.zip.ZipEngine;
 
 import java.io.File;
@@ -432,12 +433,12 @@ public class ZipFile {
 
     RandomAccessFile raf = null;
     try {
-      raf = new RandomAccessFile(new File(file), InternalZipConstants.READ_MODE);
+      raf = new RandomAccessFile(new File(file), RandomAccessFileMode.READ.getCode());
 
       if (zipModel == null) {
 
-        HeaderReader headerReader = new HeaderReader(raf);
-        zipModel = headerReader.readAllHeaders(this.fileNameCharset);
+        HeaderReader headerReader = new HeaderReader();
+        zipModel = headerReader.readAllHeaders(raf, this.fileNameCharset);
         if (zipModel != null) {
           zipModel.setZipFile(file);
         }

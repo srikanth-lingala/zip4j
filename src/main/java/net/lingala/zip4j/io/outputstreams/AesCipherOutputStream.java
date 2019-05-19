@@ -3,14 +3,15 @@ package net.lingala.zip4j.io.outputstreams;
 import net.lingala.zip4j.crypto.AESEncrpyter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
+
 class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
 
-  private byte[] pendingBuffer = new byte[InternalZipConstants.AES_BLOCK_SIZE];
+  private byte[] pendingBuffer = new byte[AES_BLOCK_SIZE];
   private int pendingBufferLength = 0;
 
   public AesCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters) throws IOException, ZipException {
@@ -41,11 +42,10 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (len >= (InternalZipConstants.AES_BLOCK_SIZE - pendingBufferLength)) {
-      System.arraycopy(b, off, pendingBuffer, pendingBufferLength,
-          (InternalZipConstants.AES_BLOCK_SIZE - pendingBufferLength));
+    if (len >= (AES_BLOCK_SIZE - pendingBufferLength)) {
+      System.arraycopy(b, off, pendingBuffer, pendingBufferLength, (AES_BLOCK_SIZE - pendingBufferLength));
       encryptAndWrite(pendingBuffer, 0, pendingBuffer.length);
-      off = (InternalZipConstants.AES_BLOCK_SIZE - pendingBufferLength);
+      off = (AES_BLOCK_SIZE - pendingBufferLength);
       len = len - off;
       pendingBufferLength = 0;
     } else {

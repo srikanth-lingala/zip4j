@@ -27,6 +27,7 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.ArchiveMaintainer;
 import net.lingala.zip4j.util.CRCUtil;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
@@ -134,6 +135,10 @@ public class ZipEngine {
             filesToAdd.get(i), parameters.getTimeZone()))));
         fileParameters.setSourceExternalStream(true);
         fileParameters.setFileNameInZip(Zip4jUtil.getFileNameFromFilePath(filesToAdd.get(i)));
+
+        if (parameters.getCompressionMethod() == CompressionMethod.STORE) {
+          fileParameters.setUncompressedSize(Zip4jUtil.getFileLengh(filesToAdd.get(i)));
+        }
 
         progressMonitor.setFileName(filesToAdd.get(i).getAbsolutePath());
 
@@ -415,7 +420,7 @@ public class ZipEngine {
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs();
       }
-      return new RandomAccessFile(outFile, InternalZipConstants.WRITE_MODE);
+      return new RandomAccessFile(outFile, RandomAccessFileMode.WRITE.getCode());
     } catch (FileNotFoundException e) {
       throw new ZipException(e);
     }

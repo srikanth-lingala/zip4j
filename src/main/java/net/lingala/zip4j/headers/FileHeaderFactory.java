@@ -45,9 +45,10 @@ public class FileHeaderFactory {
       fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
     }
 
-    //TODO add file atttributes for interally added files
+    //TODO add file attributes for internally added files
     fileHeader.setExternalFileAttr(new byte[] {0, 0, 0, 0});
     fileHeader.setDirectory(Zip4jUtil.isZipEntryDirectory(fileName));
+    fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
       fileHeader.setCrc32(zipParameters.getSourceFileCRC());
@@ -112,6 +113,8 @@ public class FileHeaderFactory {
 
     if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
       aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
+    } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_192) {
+      aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_192);
     } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_256) {
       aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
     } else {

@@ -109,10 +109,6 @@ public interface InternalZipConstants {
 
   public static final int MODE_UNZIP = 2;
 
-  public static final String WRITE_MODE = "rw";
-
-  public static final String READ_MODE = "r";
-
   public static final int BUFF_SIZE = 1024 * 4;
 
   public static final int FILE_MODE_NONE = 0;

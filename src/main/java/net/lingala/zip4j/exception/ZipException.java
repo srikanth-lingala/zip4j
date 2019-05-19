@@ -38,4 +38,8 @@ public class ZipException extends Exception {
     super(message);
     this.exceptionType = exceptionType;
   }
+
+  public ZipExceptionType getExceptionType() {
+    return exceptionType;
+  }
 }

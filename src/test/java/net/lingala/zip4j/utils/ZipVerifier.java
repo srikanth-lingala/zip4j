@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipVerifier {
 
-  public void verifyZipFile(File generatedZipFile, ZipParameters zipParameters,
+  public static void verifyZipFile(File generatedZipFile, ZipParameters zipParameters,
                             TemporaryFolder temporaryFolder) throws ZipException, IOException {
     assertThat(generatedZipFile).isNotNull();
 
@@ -30,21 +30,21 @@ public class ZipVerifier {
     verifyAllFiles(folderToExtractTo);
   }
 
-  private void verifyAllFiles(File folderContainingExtractedFiles) throws IOException {
-    File[] allFiles = folderContainingExtractedFiles.listFiles();
-
-    for (File fileToVerify : allFiles) {
-      verifyFileContent(getFileFromResources(fileToVerify.getName()), fileToVerify);
-    }
-  }
-
-  private void verifyFileContent(File sourceFile, File extractedFile) throws IOException {
+  public static void verifyFileContent(File sourceFile, File extractedFile) throws IOException {
     assertThat(extractedFile.length()).isEqualTo(sourceFile.length());
 
     byte[] sourceFileContent = Files.readAllBytes(sourceFile.toPath());
     byte[] extractedFileContent = Files.readAllBytes(extractedFile.toPath());
 
     assertThat(extractedFileContent).as("Files do not match for file name: " + extractedFile.getName()).isEqualTo(sourceFileContent);
+  }
+
+  private static void verifyAllFiles(File folderContainingExtractedFiles) throws IOException {
+    File[] allFiles = folderContainingExtractedFiles.listFiles();
+
+    for (File fileToVerify : allFiles) {
+      verifyFileContent(getFileFromResources(fileToVerify.getName()), fileToVerify);
+    }
   }
 
 }

@@ -107,10 +107,10 @@ public class ArchiveMaintainer {
 
       zipFile = new File(zipModel.getZipFile());
 
-      inputStream = createFileHandler(zipModel, InternalZipConstants.READ_MODE);
+      inputStream = createFileHandler(zipModel, RandomAccessFileMode.READ.getCode());
 
-      HeaderReader headerReader = new HeaderReader(inputStream);
-      LocalFileHeader localFileHeader = headerReader.readLocalFileHeader(fileHeader);
+      HeaderReader headerReader = new HeaderReader();
+      LocalFileHeader localFileHeader = headerReader.readLocalFileHeader(inputStream, fileHeader);
       if (localFileHeader == null) {
         throw new ZipException("invalid local file header, cannot remove file from archive");
       }
@@ -474,7 +474,7 @@ public class ArchiveMaintainer {
         throw new ZipException("split file does not exist: " + partFile);
       }
 
-      return new RandomAccessFile(tmpFile, InternalZipConstants.READ_MODE);
+      return new RandomAccessFile(tmpFile, RandomAccessFileMode.READ.getCode());
     } catch (FileNotFoundException e) {
       throw new ZipException(e);
     } catch (Exception e) {

@@ -115,20 +115,13 @@ public class Zip4jUtil {
     }
   }
 
-  public static boolean checkFileExists(String path) throws ZipException {
-    if (!isStringNotNullAndNotEmpty(path)) {
-      throw new ZipException("path is null");
-    }
-
+  public static boolean checkFileExists(String path) {
     File file = new File(path);
     return checkFileExists(file);
   }
 
-  public static boolean checkFileExists(File file) throws ZipException {
-    if (file == null) {
-      throw new ZipException("cannot check if file exists: input file is null");
-    }
-    return file.exists();
+  public static boolean checkFileExists(File file) {
+   return file.exists();
   }
 
   public static boolean isWindows() {

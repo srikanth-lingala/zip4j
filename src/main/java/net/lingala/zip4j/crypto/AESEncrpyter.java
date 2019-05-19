@@ -70,17 +70,9 @@ public class AESEncrpyter implements Encrypter {
   }
 
   private void init() throws ZipException {
-    if (aesKeyStrength == AesKeyStrength.KEY_STRENGTH_128) {
-      KEY_LENGTH = 16;
-      MAC_LENGTH = 16;
-      SALT_LENGTH = 8;
-    } else if (aesKeyStrength == AesKeyStrength.KEY_STRENGTH_256) {
-      KEY_LENGTH = 32;
-      MAC_LENGTH = 32;
-      SALT_LENGTH = 16;
-    } else {
-      throw new ZipException("invalid aes key strength, cannot determine key sizes");
-    }
+    KEY_LENGTH = aesKeyStrength.getKeyLength();
+    MAC_LENGTH = aesKeyStrength.getMacLength();
+    SALT_LENGTH = aesKeyStrength.getSaltLength();
 
     saltBytes = generateSalt(SALT_LENGTH);
     byte[] keyBytes = deriveKey(saltBytes, password);

@@ -3,7 +3,6 @@ package net.lingala.zip4j;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstreams.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.utils.ZipVerifier;
 import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
@@ -21,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.lingala.zip4j.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.ZipVerifier.verifyZipFile;
 
 public class ZipFileIT {
 
@@ -28,7 +28,6 @@ public class ZipFileIT {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private File generatedZipFile;
-  private ZipVerifier zipVerifier = new ZipVerifier();
 
   @Before
   public void before() throws IOException {
@@ -47,7 +46,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -62,7 +61,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -77,7 +76,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -93,7 +92,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -109,7 +108,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -121,7 +120,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -137,7 +136,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -153,7 +152,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -170,7 +169,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -187,7 +186,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(fileToCompress, zipParameters);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -206,7 +205,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(filesToAdd, zipParameters, true, 65536);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -222,7 +221,7 @@ public class ZipFileIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createZipFile(filesToAdd, zipParameters, true, 70536);
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
   @Test
@@ -252,7 +251,7 @@ public class ZipFileIT {
 
     zos.close();
 
-    zipVerifier.verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
+    verifyZipFile(generatedZipFile, zipParameters, temporaryFolder);
   }
 
 

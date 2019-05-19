@@ -18,6 +18,7 @@ package net.lingala.zip4j.io.outputstreams;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -48,7 +49,7 @@ public class SplitOutputStream extends OutputStream {
     if (splitLength >= 0 && splitLength < InternalZipConstants.MIN_SPLIT_LENGTH) {
       throw new ZipException("split length less than minimum allowed split length of " + InternalZipConstants.MIN_SPLIT_LENGTH + " Bytes");
     }
-    this.raf = new RandomAccessFile(file, InternalZipConstants.WRITE_MODE);
+    this.raf = new RandomAccessFile(file, RandomAccessFileMode.WRITE.getCode());
     this.splitLength = splitLength;
     this.outFile = file;
     this.zipFile = file;
@@ -120,7 +121,7 @@ public class SplitOutputStream extends OutputStream {
       }
 
       zipFile = new File(zipFileName);
-      raf = new RandomAccessFile(zipFile, InternalZipConstants.WRITE_MODE);
+      raf = new RandomAccessFile(zipFile, RandomAccessFileMode.WRITE.getCode());
       currSplitFileCounter++;
     } catch (ZipException e) {
       throw new IOException(e);

@@ -42,6 +42,7 @@ public class ZipParameters {
   private String fileNameInZip;
   private boolean isSourceExternalStream;
   private int lastModifiedFileTime;
+  private long uncompressedSize;
 
   public ZipParameters() {
   }
@@ -62,6 +63,7 @@ public class ZipParameters {
     this.fileNameInZip = zipParameters.getFileNameInZip();
     this.isSourceExternalStream = zipParameters.isSourceExternalStream();
     this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
+    this.uncompressedSize = zipParameters.getUncompressedSize();
   }
 
   public CompressionMethod getCompressionMethod() {
@@ -214,5 +216,13 @@ public class ZipParameters {
 
   public void setLastModifiedFileTime(int lastModifiedFileTime) {
     this.lastModifiedFileTime = lastModifiedFileTime;
+  }
+
+  public long getUncompressedSize() {
+    return uncompressedSize;
+  }
+
+  public void setUncompressedSize(long uncompressedSize) {
+    this.uncompressedSize = uncompressedSize;
   }
 }

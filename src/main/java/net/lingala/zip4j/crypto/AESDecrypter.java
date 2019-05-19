@@ -52,11 +52,6 @@ public class AESDecrypter implements Decrypter {
   private int loopCount = 0;
 
   public AESDecrypter(LocalFileHeader localFileHeader, byte[] salt, byte[] passwordVerifier) throws ZipException {
-
-    if (localFileHeader == null) {
-      throw new ZipException("one of the input parameters is null in AESDecryptor Constructor");
-    }
-
     this.localFileHeader = localFileHeader;
     this.storedMac = null;
     iv = new byte[InternalZipConstants.AES_BLOCK_SIZE];
@@ -65,15 +60,7 @@ public class AESDecrypter implements Decrypter {
   }
 
   private void init(byte[] salt, byte[] passwordVerifier) throws ZipException {
-    if (localFileHeader == null) {
-      throw new ZipException("invalid file header in init method of AESDecryptor");
-    }
-
     AESExtraDataRecord aesExtraDataRecord = localFileHeader.getAesExtraDataRecord();
-    if (aesExtraDataRecord == null) {
-      throw new ZipException("invalid aes extra data record - in init method of AESDecryptor");
-    }
-
     if (aesExtraDataRecord.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
       KEY_LENGTH = 16;
       MAC_LENGTH = 16;
