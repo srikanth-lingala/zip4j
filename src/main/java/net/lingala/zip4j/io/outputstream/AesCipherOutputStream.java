@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.outputstreams;
+package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.crypto.AESEncrpyter;
 import net.lingala.zip4j.exception.ZipException;
@@ -14,13 +14,13 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
   private byte[] pendingBuffer = new byte[AES_BLOCK_SIZE];
   private int pendingBufferLength = 0;
 
-  public AesCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters) throws IOException, ZipException {
-    super(outputStream, zipParameters);
+  public AesCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    super(outputStream, zipParameters, password);
   }
 
   @Override
-  protected AESEncrpyter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters) throws IOException, ZipException {
-    AESEncrpyter encrypter = new AESEncrpyter(zipParameters.getPassword(), zipParameters.getAesKeyStrength());
+  protected AESEncrpyter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    AESEncrpyter encrypter = new AESEncrpyter(password, zipParameters.getAesKeyStrength());
     writeAesEncryptionHeaderData(encrypter, outputStream);
     return encrypter;
   }

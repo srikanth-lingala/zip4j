@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.outputstreams;
+package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.crypto.StandardEncrypter;
 import net.lingala.zip4j.exception.ZipException;
@@ -9,13 +9,13 @@ import java.io.OutputStream;
 
 class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter> {
 
-  public ZipStandardCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters) throws IOException, ZipException {
-    super(outputStream, zipParameters);
+  public ZipStandardCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    super(outputStream, zipParameters, password);
   }
 
   @Override
-  protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters) throws IOException, ZipException {
-    StandardEncrypter encrypter = new StandardEncrypter(zipParameters.getPassword(), (zipParameters.getLastModifiedFileTime() & 0x0000ffff) << 16);
+  protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    StandardEncrypter encrypter = new StandardEncrypter(password, (zipParameters.getLastModifiedFileTime() & 0x0000ffff) << 16);
     outputStream.write(encrypter.getHeaderBytes());
     return encrypter;
   }

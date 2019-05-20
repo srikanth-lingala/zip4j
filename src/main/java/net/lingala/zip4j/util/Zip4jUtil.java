@@ -622,12 +622,12 @@ public class Zip4jUtil {
     }
 
     ArrayList retList = new ArrayList();
-    String currZipFile = zipModel.getZipFile();
-    String zipFileName = (new File(currZipFile)).getName();
+    String currZipFile = zipModel.getZipFile().getPath();
+    String zipFileName = zipModel.getZipFile().getName();
     String partFile = null;
 
-    if (!isStringNotNullAndNotEmpty(currZipFile)) {
-      throw new ZipException("cannot get split zip files: zipfile is null");
+    if (!zipModel.getZipFile().exists()) {
+      throw new ZipException("zip file does not exist");
     }
 
     if (!zipModel.isSplitArchive()) {

@@ -19,7 +19,7 @@ package net.lingala.zip4j.model;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.zip.Unzip;
+import net.lingala.zip4j.zip.UnzipEngine;
 
 public class FileHeader extends AbstractFileHeader {
 
@@ -36,12 +36,12 @@ public class FileHeader extends AbstractFileHeader {
    * Extracts file to the specified directory
    *
    * @param zipModel
-   * @param outPath
+   * @param outputPath
    * @throws ZipException
    */
-  public void extractFile(ZipModel zipModel, String outPath,
-                          ProgressMonitor progressMonitor, boolean runInThread) throws ZipException {
-    extractFile(zipModel, outPath, null, progressMonitor, runInThread);
+  public void extractFile(ZipModel zipModel, String outputPath, ProgressMonitor progressMonitor,
+                          boolean runInThread, char[] password) throws ZipException {
+    extractFile(zipModel, outputPath, null, progressMonitor, runInThread, password);
   }
 
   /**
@@ -49,13 +49,13 @@ public class FileHeader extends AbstractFileHeader {
    * user defined parameters in UnzipParameters
    *
    * @param zipModel
-   * @param outPath
+   * @param outputPath
    * @param unzipParameters
    * @throws ZipException
    */
-  public void extractFile(ZipModel zipModel, String outPath,
-                          UnzipParameters unzipParameters, ProgressMonitor progressMonitor, boolean runInThread) throws ZipException {
-    extractFile(zipModel, outPath, unzipParameters, null, progressMonitor, runInThread);
+  public void extractFile(ZipModel zipModel, String outputPath, UnzipParameters unzipParameters,
+                          ProgressMonitor progressMonitor, boolean runInThread, char[] password) throws ZipException {
+    extractFile(zipModel, outputPath, unzipParameters, null, progressMonitor, runInThread, password);
   }
 
   /**
@@ -66,18 +66,17 @@ public class FileHeader extends AbstractFileHeader {
    * FileHeader.getFileName
    *
    * @param zipModel
-   * @param outPath
+   * @param outputPath
    * @param unzipParameters
    * @throws ZipException
    */
-  public void extractFile(ZipModel zipModel, String outPath,
-                          UnzipParameters unzipParameters, String newFileName,
-                          ProgressMonitor progressMonitor, boolean runInThread) throws ZipException {
+  public void extractFile(ZipModel zipModel, String outputPath, UnzipParameters unzipParameters, String newFileName,
+                          ProgressMonitor progressMonitor, boolean runInThread, char[] password) throws ZipException {
     if (zipModel == null) {
       throw new ZipException("input zipModel is null");
     }
 
-    if (!Zip4jUtil.checkOutputFolder(outPath)) {
+    if (!Zip4jUtil.checkOutputFolder(outputPath)) {
       throw new ZipException("Invalid output path");
     }
 
@@ -85,8 +84,8 @@ public class FileHeader extends AbstractFileHeader {
       throw new ZipException("invalid file header");
     }
 
-    Unzip unzip = new Unzip(zipModel);
-    unzip.extractFile(this, outPath, unzipParameters, newFileName, progressMonitor, runInThread);
+    UnzipEngine unzipEngine = new UnzipEngine(zipModel, progressMonitor, password);
+    unzipEngine.extractFile(this, outputPath, newFileName, runInThread, unzipParameters);
   }
 
   public int getVersionMadeBy() {

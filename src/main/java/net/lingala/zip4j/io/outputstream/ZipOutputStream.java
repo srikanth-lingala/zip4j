@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.outputstreams;
+package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.FileHeaderFactory;
@@ -19,6 +19,7 @@ import java.util.zip.CRC32;
 public class ZipOutputStream extends OutputStream {
 
   private CountingOutputStream countingOutputStream;
+  private char[] password;
   private ZipModel zipModel;
   private CompressedOutputStream compressedOutputStream;
   private FileHeader fileHeader;
@@ -27,20 +28,26 @@ public class ZipOutputStream extends OutputStream {
   private HeaderWriter headerWriter = new HeaderWriter();
   private CRC32 crc32 = new CRC32();
   private long uncompressedSizeForThisEntry = 0;
-  private boolean shouldWriteCrc32 = true;
+  private boolean writeCrc32 = true;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
-    this(outputStream, new ZipModel());
+    this(outputStream, null);
   }
 
-  public ZipOutputStream(OutputStream outputStream, ZipModel zipModel) throws IOException {
+  public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
+    this(outputStream, password, new ZipModel());
+  }
+
+  public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel) throws IOException {
     this.countingOutputStream = new CountingOutputStream(outputStream);
+    this.password = password;
     this.zipModel = initializeZipModel(zipModel, countingOutputStream);
     writeSplitZipHeaderIfApplicable();
   }
 
   public void putNextEntry(ZipParameters zipParameters) throws IOException {
     try {
+      verifyZipParameters(zipParameters);
       initializeAndWriteFileHeader(zipParameters);
 
       //Initialisation of below compressedOutputStream should happen after writing local file header
@@ -49,11 +56,11 @@ public class ZipOutputStream extends OutputStream {
       compressedOutputStream = initializeCompressedOutputStream(zipParameters);
 
       if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-        this.shouldWriteCrc32 = false;
+        this.writeCrc32 = false;
       }
     } catch (IOException e) {
       throw e;
-    } catch (Exception e) {
+    } catch (ZipException e) {
       throw new IOException(e);
     }
   }
@@ -83,7 +90,7 @@ public class ZipOutputStream extends OutputStream {
       fileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
       localFileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
 
-      if (shouldWriteCrc32) {
+      if (writeCrc32) {
         fileHeader.setCrc32(crc32.getValue());
         localFileHeader.setCrc32(crc32.getValue());
       }
@@ -157,13 +164,17 @@ public class ZipOutputStream extends OutputStream {
 
   private CipherOutputStream initializeCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters) throws IOException, ZipException {
     if (!zipParameters.isEncryptFiles()) {
-      return new NoCipherOutputStream(zipEntryOutputStream, zipParameters);
+      return new NoCipherOutputStream(zipEntryOutputStream, zipParameters, null);
+    }
+
+    if (password == null || password.length == 0) {
+      throw new ZipException("password not set");
     }
 
     if (zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-      return new AesCipherOutputStream(zipEntryOutputStream, zipParameters);
+      return new AesCipherOutputStream(zipEntryOutputStream, zipParameters, password);
     } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-      return new ZipStandardCipherOutputStream(zipEntryOutputStream, zipParameters);
+      return new ZipStandardCipherOutputStream(zipEntryOutputStream, zipParameters, password);
     } else {
       throw new ZipException("Invalid encryption method");
     }
@@ -175,5 +186,17 @@ public class ZipOutputStream extends OutputStream {
     }
 
     return new StoreOutputStream(cipherOutputStream);
+  }
+
+  private void verifyZipParameters(ZipParameters zipParameters) {
+    if (zipParameters.getCompressionMethod() == CompressionMethod.STORE
+        && zipParameters.getUncompressedSize() == 0
+        && !isEntryDirectory(zipParameters.getFileNameInZip())) {
+      throw new IllegalArgumentException("uncompressed size should be set for zip entries of compression type store");
+    }
+  }
+
+  private boolean isEntryDirectory(String entryName) {
+    return entryName.endsWith("/") || entryName.endsWith("\\");
   }
 }

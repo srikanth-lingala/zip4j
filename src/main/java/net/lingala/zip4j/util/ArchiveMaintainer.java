@@ -19,8 +19,8 @@ package net.lingala.zip4j.util;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderWriter;
-import net.lingala.zip4j.io.outputstreams.CountingOutputStream;
-import net.lingala.zip4j.io.outputstreams.SplitOutputStream;
+import net.lingala.zip4j.io.outputstream.CountingOutputStream;
+import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirLocator;
@@ -90,12 +90,12 @@ public class ArchiveMaintainer {
       }
 
       long currTime = System.currentTimeMillis();
-      tmpZipFileName = zipModel.getZipFile() + currTime % 1000;
+      tmpZipFileName = zipModel.getZipFile().getPath() + currTime % 1000;
       File tmpFile = new File(tmpZipFileName);
 
       while (tmpFile.exists()) {
         currTime = System.currentTimeMillis();
-        tmpZipFileName = zipModel.getZipFile() + currTime % 1000;
+        tmpZipFileName = zipModel.getZipFile().getPath() + currTime % 1000;
         tmpFile = new File(tmpZipFileName);
       }
 
@@ -105,7 +105,7 @@ public class ArchiveMaintainer {
         throw new ZipException(e1);
       }
 
-      zipFile = new File(zipModel.getZipFile());
+      zipFile = zipModel.getZipFile();
 
       inputStream = createFileHandler(zipModel, RandomAccessFileMode.READ.getCode());
 
@@ -302,12 +302,8 @@ public class ArchiveMaintainer {
   }
 
   private RandomAccessFile createFileHandler(ZipModel zipModel, String mode) throws ZipException {
-    if (zipModel == null || !Zip4jUtil.isStringNotNullAndNotEmpty(zipModel.getZipFile())) {
-      throw new ZipException("input parameter is null in getFilePointer, cannot create file handler to remove file");
-    }
-
     try {
-      return new RandomAccessFile(new File(zipModel.getZipFile()), mode);
+      return new RandomAccessFile(zipModel.getZipFile(), mode);
     } catch (FileNotFoundException e) {
       throw new ZipException(e);
     }
@@ -457,10 +453,10 @@ public class ArchiveMaintainer {
     }
 
     try {
-      String curZipFile = zipModel.getZipFile();
+      String curZipFile = zipModel.getZipFile().getPath();
       String partFile = null;
       if (partNumber == zipModel.getEndOfCentralDirRecord().getNoOfThisDisk()) {
-        partFile = zipModel.getZipFile();
+        partFile = zipModel.getZipFile().getPath();
       } else {
         if (partNumber >= 9) {
           partFile = curZipFile.substring(0, curZipFile.lastIndexOf(".")) + ".z" + (partNumber + 1);
@@ -686,7 +682,7 @@ public class ArchiveMaintainer {
   }
 
   private long calculateTotalWorkForRemoveOp(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
-    return Zip4jUtil.getFileLengh(new File(zipModel.getZipFile())) - fileHeader.getCompressedSize();
+    return Zip4jUtil.getFileLengh(zipModel.getZipFile()) - fileHeader.getCompressedSize();
   }
 
   public void initProgressMonitorForMergeOp(ZipModel zipModel, ProgressMonitor progressMonitor) throws ZipException {
@@ -695,7 +691,7 @@ public class ArchiveMaintainer {
     }
 
     progressMonitor.setCurrentOperation(ProgressMonitor.OPERATION_MERGE);
-    progressMonitor.setFileName(zipModel.getZipFile());
+    progressMonitor.setFileName(zipModel.getZipFile().getPath());
     progressMonitor.setTotalWork(calculateTotalWorkForMergeOp(zipModel));
     progressMonitor.setState(ProgressMonitor.STATE_BUSY);
   }
@@ -705,11 +701,11 @@ public class ArchiveMaintainer {
     if (zipModel.isSplitArchive()) {
       int totNoOfSplitFiles = zipModel.getEndOfCentralDirRecord().getNoOfThisDisk();
       String partFile = null;
-      String curZipFile = zipModel.getZipFile();
+      String curZipFile = zipModel.getZipFile().getPath();
       int partNumber = 0;
       for (int i = 0; i <= totNoOfSplitFiles; i++) {
         if (partNumber == zipModel.getEndOfCentralDirRecord().getNoOfThisDisk()) {
-          partFile = zipModel.getZipFile();
+          partFile = zipModel.getZipFile().getPath();
         } else {
           if (partNumber >= 9) {
             partFile = curZipFile.substring(0, curZipFile.lastIndexOf(".")) + ".z" + (partNumber + 1);

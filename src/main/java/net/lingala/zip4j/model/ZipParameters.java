@@ -32,7 +32,6 @@ public class ZipParameters {
   private boolean encryptFiles = false;
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
   private boolean readHiddenFiles = true;
-  private char[] password;
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
   private boolean includeRootFolder = true;
   private String rootFolderInZip;
@@ -40,7 +39,6 @@ public class ZipParameters {
   private int sourceFileCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
-  private boolean isSourceExternalStream;
   private int lastModifiedFileTime;
   private long uncompressedSize;
 
@@ -53,7 +51,6 @@ public class ZipParameters {
     this.encryptFiles = zipParameters.isEncryptFiles();
     this.encryptionMethod = zipParameters.getEncryptionMethod();
     this.readHiddenFiles = zipParameters.isReadHiddenFiles();
-    this.password = zipParameters.getPassword();
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
     this.rootFolderInZip = zipParameters.getRootFolderInZip();
@@ -61,7 +58,6 @@ public class ZipParameters {
     this.sourceFileCRC = zipParameters.getSourceFileCRC();
     this.defaultFolderPath = zipParameters.getDefaultFolderPath();
     this.fileNameInZip = zipParameters.getFileNameInZip();
-    this.isSourceExternalStream = zipParameters.isSourceExternalStream();
     this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
     this.uncompressedSize = zipParameters.getUncompressedSize();
   }
@@ -108,29 +104,6 @@ public class ZipParameters {
 
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
-  }
-
-  public char[] getPassword() {
-    return password;
-  }
-
-  /**
-   * Sets the password for the zip file or the file being added<br>
-   * <b>Note</b>: For security reasons, usage of this method is discouraged. Use
-   * setPassword(char[]) instead. As strings are immutable, they cannot be wiped
-   * out from memory explicitly after usage. Therefore, usage of Strings to store
-   * passwords is discouraged. More info here:
-   * http://docs.oracle.com/javase/1.5.0/docs/guide/security/jce/JCERefGuide.html#PBEEx
-   *
-   * @param password
-   */
-  public void setPassword(String password) {
-    if (password == null) return;
-    setPassword(password.toCharArray());
-  }
-
-  public void setPassword(char[] password) {
-    this.password = password;
   }
 
   public AesKeyStrength getAesKeyStrength() {
@@ -200,14 +173,6 @@ public class ZipParameters {
 
   public void setFileNameInZip(String fileNameInZip) {
     this.fileNameInZip = fileNameInZip;
-  }
-
-  public boolean isSourceExternalStream() {
-    return isSourceExternalStream;
-  }
-
-  public void setSourceExternalStream(boolean isSourceExternalStream) {
-    this.isSourceExternalStream = isSourceExternalStream;
   }
 
   public int getLastModifiedFileTime() {

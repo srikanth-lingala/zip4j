@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.inputstreams;
+package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
@@ -15,9 +15,9 @@ abstract class CipherInputStream extends InputStream {
   private byte[] lastReadRawDataCache;
   private byte[] singleByteBuffer = new byte[1];
 
-  public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader) throws IOException, ZipException {
+  public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
     this.zipEntryInputStream = zipEntryInputStream;
-    this.decrypter = initializeDecrypter(localFileHeader);
+    this.decrypter = initializeDecrypter(localFileHeader, password);
 
     if (getCompressionMethod(localFileHeader) == CompressionMethod.DEFLATE) {
       lastReadRawDataCache = new byte[512];
@@ -89,5 +89,5 @@ abstract class CipherInputStream extends InputStream {
     return zipEntryInputStream.getNumberOfBytesRead();
   }
 
-  protected abstract Decrypter initializeDecrypter(LocalFileHeader localFileHeader) throws IOException, ZipException;
+  protected abstract Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException;
 }

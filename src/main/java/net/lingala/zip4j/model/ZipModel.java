@@ -16,6 +16,7 @@
 
 package net.lingala.zip4j.model;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class ZipModel implements Cloneable {
 
   private boolean splitArchive;
   private long splitLength;
-  private String zipFile;
+  private File zipFile;
   private boolean isZip64Format;
   private boolean isNestedZipFile;
   private long start;
@@ -91,11 +92,11 @@ public class ZipModel implements Cloneable {
     this.splitArchive = splitArchive;
   }
 
-  public String getZipFile() {
+  public File getZipFile() {
     return zipFile;
   }
 
-  public void setZipFile(String zipFile) {
+  public void setZipFile(File zipFile) {
     this.zipFile = zipFile;
   }
 

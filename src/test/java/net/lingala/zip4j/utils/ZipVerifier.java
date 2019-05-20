@@ -3,7 +3,6 @@ package net.lingala.zip4j.utils;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.UnzipParameters;
-import net.lingala.zip4j.model.ZipParameters;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -15,14 +14,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipVerifier {
 
-  public static void verifyZipFile(File generatedZipFile, ZipParameters zipParameters,
-                            TemporaryFolder temporaryFolder) throws ZipException, IOException {
+  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder) throws ZipException, IOException {
+    verifyZipFile(generatedZipFile, temporaryFolder, null);
+  }
+
+  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder, char[] password) throws ZipException, IOException {
     assertThat(generatedZipFile).isNotNull();
 
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    if (zipParameters.isEncryptFiles()) {
-      zipFile.setPassword(zipParameters.getPassword());
-    }
+    ZipFile zipFile = new ZipFile(generatedZipFile, password);
 
     File folderToExtractTo = temporaryFolder.newFolder();
     zipFile.extractAll(folderToExtractTo.getAbsolutePath(), new UnzipParameters());

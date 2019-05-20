@@ -19,21 +19,18 @@ package net.lingala.zip4j.crypto;
 import net.lingala.zip4j.crypto.engine.ZipCryptoEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
-import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.util.InternalZipConstants;
 
 public class StandardDecrypter implements Decrypter {
 
-  private LocalFileHeader localFileHeader;
+  private char[] password;
+  private byte[] crcBytes;
   private byte[] crc = new byte[4];
   private ZipCryptoEngine zipCryptoEngine;
 
-  public StandardDecrypter(LocalFileHeader localFileHeader, byte[] headerBytes) throws ZipException {
-    if (localFileHeader == null) {
-      throw new ZipException("one of more of the input parameters were null in StandardDecrypter");
-    }
-
-    this.localFileHeader = localFileHeader;
+  public StandardDecrypter(char[] password, byte[] crcBytes , byte[] headerBytes) throws ZipException {
+    this.password = password;
+    this.crcBytes = crcBytes;
     this.zipCryptoEngine = new ZipCryptoEngine();
     init(headerBytes);
   }
@@ -61,20 +58,19 @@ public class StandardDecrypter implements Decrypter {
   }
 
   public void init(byte[] headerBytes) throws ZipException {
-    byte[] crcBuff = localFileHeader.getCrcRawData();
-    crc[3] = (byte) (crcBuff[3] & 0xFF);
-    crc[2] = (byte) ((crcBuff[3] >> 8) & 0xFF);
-    crc[1] = (byte) ((crcBuff[3] >> 16) & 0xFF);
-    crc[0] = (byte) ((crcBuff[3] >> 24) & 0xFF);
+    crc[3] = (byte) (crcBytes[3] & 0xFF);
+    crc[2] = (byte) ((crcBytes[3] >> 8) & 0xFF);
+    crc[1] = (byte) ((crcBytes[3] >> 16) & 0xFF);
+    crc[0] = (byte) ((crcBytes[3] >> 24) & 0xFF);
 
     if (crc[2] > 0 || crc[1] > 0 || crc[0] > 0)
       throw new IllegalStateException("Invalid CRC in File Header");
 
-    if (localFileHeader.getPassword() == null || localFileHeader.getPassword().length <= 0) {
+    if (password == null || password.length <= 0) {
       throw new ZipException("Wrong password!", ZipExceptionType.WRONG_PASSWORD);
     }
 
-    zipCryptoEngine.initKeys(localFileHeader.getPassword());
+    zipCryptoEngine.initKeys(password);
 
     try {
       int result = headerBytes[0];

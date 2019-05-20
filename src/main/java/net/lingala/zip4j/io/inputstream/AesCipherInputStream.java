@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.inputstreams;
+package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.crypto.Decrypter;
@@ -17,13 +17,13 @@ class AesCipherInputStream extends CipherInputStream {
   private int aesBytesReturned = 0;
   private boolean non16ByteBlockRead = false;
 
-  public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader) throws IOException, ZipException {
-    super(zipEntryInputStream, localFileHeader);
+  public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
+    super(zipEntryInputStream, localFileHeader, password);
   }
 
   @Override
-  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader) throws IOException, ZipException {
-    return new AESDecrypter(localFileHeader, getSalt(localFileHeader), getPasswordVerifier());
+  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
+    return new AESDecrypter(localFileHeader.getAesExtraDataRecord(), password, getSalt(localFileHeader), getPasswordVerifier());
   }
 
   @Override

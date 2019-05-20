@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.outputstreams;
+package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.crypto.Encrypter;
 import net.lingala.zip4j.exception.ZipException;
@@ -9,12 +9,12 @@ import java.io.OutputStream;
 
 class NoCipherOutputStream extends CipherOutputStream<NoCipherOutputStream.NoEncrypter> {
 
-  public NoCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters) throws IOException, ZipException {
-    super(zipEntryOutputStream, zipParameters);
+  public NoCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    super(zipEntryOutputStream, zipParameters, password);
   }
 
   @Override
-  protected NoEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters) {
+  protected NoEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) {
     return new NoEncrypter();
   }
 

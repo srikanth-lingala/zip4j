@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.lingala.zip4j.io.inputstreams;
+package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
@@ -60,7 +60,7 @@ public class ZipInputStream extends InputStream {
         return null;
       }
 
-      localFileHeader.setPassword(password);
+      verifyLocalFileHeader(localFileHeader);
       crc32.reset();
       this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
       this.extendedLocalFileHeaderPresent = isExtendedLocalFileHeaderPresent(localFileHeader);
@@ -113,13 +113,13 @@ public class ZipInputStream extends InputStream {
 
   private CipherInputStream initializeCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader) throws IOException, ZipException {
     if (!localFileHeader.isEncrypted()) {
-      return new NoCipherInputStream(zipEntryInputStream, localFileHeader);
+      return new NoCipherInputStream(zipEntryInputStream, localFileHeader, password);
     }
 
     if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
-      return new AesCipherInputStream(zipEntryInputStream, localFileHeader);
+      return new AesCipherInputStream(zipEntryInputStream, localFileHeader, password);
     } else {
-      return new ZipStandardCipherInputStream(zipEntryInputStream, localFileHeader);
+      return new ZipStandardCipherInputStream(zipEntryInputStream, localFileHeader, password);
     }
   }
 
@@ -156,6 +156,18 @@ public class ZipInputStream extends InputStream {
   private boolean isExtendedLocalFileHeaderPresent(LocalFileHeader localFileHeader) {
     byte[] generalPurposeFlags = localFileHeader.getGeneralPurposeFlag();
     return (generalPurposeFlags[0] & (1L << 3)) != 0;
+  }
+
+  private void verifyLocalFileHeader(LocalFileHeader localFileHeader) throws IOException {
+    if (!isEntryDirectory(localFileHeader.getFileName())
+        && localFileHeader.getCompressionMethod() == CompressionMethod.STORE
+        && localFileHeader.getUncompressedSize() == 0) {
+      throw new IOException("Invalid local file header for: " + localFileHeader.getFileName() + ". Uncompressed size has to be set for entry of compression type store and which is not a directory");
+    }
+  }
+
+  private boolean isEntryDirectory(String entryName) {
+    return entryName.endsWith("/") || entryName.endsWith("\\");
   }
 
 }

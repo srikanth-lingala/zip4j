@@ -21,7 +21,6 @@ public abstract class AbstractFileHeader {
   private String fileName;
   private boolean isEncrypted;
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
-  private char[] password;
   private boolean dataDescriptorExists;
   private Zip64ExtendedInfo zip64ExtendedInfo;
   private AESExtraDataRecord aesExtraDataRecord;
@@ -138,14 +137,6 @@ public abstract class AbstractFileHeader {
 
   public void setEncryptionMethod(EncryptionMethod encryptionMethod) {
     this.encryptionMethod = encryptionMethod;
-  }
-
-  public char[] getPassword() {
-    return password;
-  }
-
-  public void setPassword(char[] password) {
-    this.password = password;
   }
 
   public boolean isDataDescriptorExists() {

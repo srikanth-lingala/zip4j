@@ -1009,9 +1009,6 @@ public class HeaderReader {
 
       localFileHeader.setOffsetStartOfData(locHdrOffset + length);
 
-      //Copy password from fileHeader to localFileHeader
-      localFileHeader.setPassword(fileHeader.getPassword());
-
       readAndSaveZip64ExtendedInfo(localFileHeader);
 
       readAndSaveAESExtraDataRecord(localFileHeader);

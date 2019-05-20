@@ -23,7 +23,6 @@ import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
 import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.zip.AesKeyStrength;
@@ -32,7 +31,8 @@ import java.util.Arrays;
 
 public class AESDecrypter implements Decrypter {
 
-  private LocalFileHeader localFileHeader;
+  private AESExtraDataRecord aesExtraDataRecord;
+  private char[] password;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
 
@@ -51,8 +51,9 @@ public class AESDecrypter implements Decrypter {
   private byte[] counterBlock;
   private int loopCount = 0;
 
-  public AESDecrypter(LocalFileHeader localFileHeader, byte[] salt, byte[] passwordVerifier) throws ZipException {
-    this.localFileHeader = localFileHeader;
+  public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt, byte[] passwordVerifier) throws ZipException {
+    this.aesExtraDataRecord = aesExtraDataRecord;
+    this.password = password;
     this.storedMac = null;
     iv = new byte[InternalZipConstants.AES_BLOCK_SIZE];
     counterBlock = new byte[InternalZipConstants.AES_BLOCK_SIZE];
@@ -60,7 +61,6 @@ public class AESDecrypter implements Decrypter {
   }
 
   private void init(byte[] salt, byte[] passwordVerifier) throws ZipException {
-    AESExtraDataRecord aesExtraDataRecord = localFileHeader.getAesExtraDataRecord();
     if (aesExtraDataRecord.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
       KEY_LENGTH = 16;
       MAC_LENGTH = 16;
@@ -74,14 +74,14 @@ public class AESDecrypter implements Decrypter {
       MAC_LENGTH = 32;
       SALT_LENGTH = 16;
     } else {
-      throw new ZipException("invalid aes key strength for file: " + localFileHeader.getFileName());
+      throw new ZipException("invalid aes key strength");
     }
 
-    if (localFileHeader.getPassword() == null || localFileHeader.getPassword().length <= 0) {
+    if (password == null || password.length <= 0) {
       throw new ZipException("empty or null password provided for AES Decryptor");
     }
 
-    byte[] derivedKey = deriveKey(salt, localFileHeader.getPassword());
+    byte[] derivedKey = deriveKey(salt, password);
     if (derivedKey == null ||
         derivedKey.length != (KEY_LENGTH + MAC_LENGTH + PASSWORD_VERIFIER_LENGTH)) {
       throw new ZipException("invalid derived key");
@@ -100,7 +100,7 @@ public class AESDecrypter implements Decrypter {
     }
 
     if (!Arrays.equals(passwordVerifier, derivedPasswordVerifier)) {
-      throw new ZipException("Wrong Password for file: " + localFileHeader.getFileName(), ZipExceptionType.WRONG_PASSWORD);
+      throw new ZipException("Wrong Password", ZipExceptionType.WRONG_PASSWORD);
     }
 
     aesEngine = new AESEngine(aesKey);
@@ -155,54 +155,4 @@ public class AESDecrypter implements Decrypter {
       throw new ZipException(e);
     }
   }
-
-  public int getPasswordVerifierLength() {
-    return PASSWORD_VERIFIER_LENGTH;
-  }
-
-  public int getSaltLength() {
-    return SALT_LENGTH;
-  }
-
-  public byte[] getCalculatedAuthenticationBytes() {
-    return mac.doFinal();
-  }
-
-  public void setStoredMac(byte[] storedMac) {
-    this.storedMac = storedMac;
-  }
-
-  public byte[] getStoredMac() {
-    return storedMac;
-  }
-
-//	public byte[] getStoredMac() throws ZipException {
-//		if (raf == null) {
-//			throw new ZipException("attempting to read MAC on closed file handle");
-//		}
-//		
-//		try {
-//			byte[] storedMacBytes = new byte[InternalZipConstants.AES_AUTH_LENGTH];
-//			int bytesRead = raf.read(storedMacBytes);
-//			if (bytesRead != InternalZipConstants.AES_AUTH_LENGTH) {
-//				if (zipModel.isSplitArchive()) {
-////					unzipEngine.startNextSplitFile();
-//					if (bytesRead == -1) bytesRead = 0;
-//					int newlyRead = raf.read(storedMacBytes, bytesRead, InternalZipConstants.AES_AUTH_LENGTH - bytesRead);
-//					bytesRead += newlyRead;
-//					if (bytesRead != InternalZipConstants.AES_AUTH_LENGTH) {
-//						throw new ZipException("invalid number of bytes read for stored MAC after starting split file");
-//					}
-//				} else {
-//					throw new ZipException("invalid number of bytes read for stored MAC");
-//				}
-//			}
-//			return storedMacBytes;
-//		} catch (IOException e) {
-//			throw new ZipException(e);
-//		} catch (Exception e) {
-//			throw new ZipException(e);
-//		}
-//		
-//	}
 }

@@ -17,8 +17,8 @@
 package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.outputstreams.CountingOutputStream;
-import net.lingala.zip4j.io.outputstreams.SplitOutputStream;
+import net.lingala.zip4j.io.outputstream.CountingOutputStream;
+import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
@@ -819,9 +819,8 @@ public class HeaderWriter {
       SplitOutputStream currOutputStream = null;
 
       if (noOfDisk != outputStream.getCurrSplitFileCounter()) {
-        File zipFile = new File(zipModel.getZipFile());
-        String parentFile = zipFile.getParent();
-        String fileNameWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(zipFile.getName());
+        String parentFile = zipModel.getZipFile().getParent();
+        String fileNameWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(zipModel.getZipFile().getName());
         String fileName = parentFile + System.getProperty("file.separator");
         if (noOfDisk < 9) {
           fileName += fileNameWithoutExt + ".z0" + (noOfDisk + 1);

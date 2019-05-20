@@ -1,32 +1,31 @@
-package net.lingala.zip4j.io.inputstreams;
+package net.lingala.zip4j.io.inputstream;
 
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.RandomAccessFileMode;
-import net.lingala.zip4j.util.Zip4jUtil;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.io.RandomAccessFile;
 
-class ZipEntryInputStream extends InputStream {
+public class SplitInputStream extends InputStream {
 
-  private InputStream inputStream;
+  private PushbackInputStream inputStream;
   private RandomAccessFile randomAccessFile;
-  private DecompressedInputStream decompressedInputStream;
   private ZipModel zipModel;
   private boolean isSplitZipArchive = false;
   private int currentSplitFileCounter = 0;
   private long numberOfBytesRead = 0;
   private byte[] singleByteArray = new byte[1];
 
-  public ZipEntryInputStream(InputStream inputStream, ZipModel zipModel) {
-    this.inputStream = inputStream;
-    this.zipModel = zipModel;
-    initializeRandomAccessFileIfSpliZipArchive(zipModel);
+  public SplitInputStream(InputStream inputStream) {
+    this.inputStream = new PushbackInputStream(inputStream, 512);
   }
 
-  public ZipEntryInputStream(RandomAccessFile randomAccessFile, ZipModel zipModel) {
+  public SplitInputStream(RandomAccessFile randomAccessFile, ZipModel zipModel) {
     this.randomAccessFile = randomAccessFile;
     this.zipModel = zipModel;
     this.inputStream = null;
@@ -55,11 +54,17 @@ class ZipEntryInputStream extends InputStream {
     return readLen;
   }
 
-  private void initializeRandomAccessFileIfSpliZipArchive(ZipModel zipModel) {
-    if (zipModel == null || !zipModel.isSplitArchive()) {
-      randomAccessFile = null;
+  public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
+    if (zipModel == null || randomAccessFile == null) {
+      throw new IOException("This method can only be called in randomaccessfile mode");
+    }
+
+    if (!zipModel.isSplitArchive()) {
+      randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
       return;
     }
+
+    openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
   }
 
   private int readDataFromStream(byte[] b, int off, int len) throws IOException {
@@ -75,8 +80,10 @@ class ZipEntryInputStream extends InputStream {
   private int readFromRandomAccessFile(byte[] b, int off, int len) throws IOException {
     int readLen = randomAccessFile.read(b, off, len);
 
-    if (readLen != len && isSplitZipArchive) {
-      startNextSplitFile();
+    if (readLen == -1 && isSplitZipArchive) {
+      openRandomAccessFileForIndex(currentSplitFileCounter);
+      currentSplitFileCounter++;
+
       if (readLen < 0) readLen = 0;
       int newlyRead = randomAccessFile.read(b, readLen, len - readLen);
       if (newlyRead > 0) readLen += newlyRead;
@@ -85,27 +92,28 @@ class ZipEntryInputStream extends InputStream {
     return readLen;
   }
 
-  private void startNextSplitFile() throws IOException {
-    String nextSplitFileName = getNextSplitFileName();
-    currentSplitFileCounter++;
-    if (!Zip4jUtil.checkFileExists(nextSplitFileName)) {
-      throw new FileNotFoundException("zip split file does not exist: " + nextSplitFileName);
+  private void openRandomAccessFileForIndex(int zipFileIndex) throws IOException {
+    File nextSplitFile = getNextSplitFileName(zipFileIndex);
+    if (!nextSplitFile.exists()) {
+      throw new FileNotFoundException("zip split file does not exist: " + nextSplitFile);
     }
-    randomAccessFile = new RandomAccessFile(nextSplitFileName, RandomAccessFileMode.READ.getCode());
+    randomAccessFile.close();
+    randomAccessFile = new RandomAccessFile(nextSplitFile, RandomAccessFileMode.READ.getCode());
   }
 
-  private String getNextSplitFileName() {
-    if (currentSplitFileCounter == zipModel.getEndOfCentralDirRecord().getNoOfThisDisk()) {
+  private File getNextSplitFileName(int zipFileIndex) throws IOException {
+    if (zipFileIndex == zipModel.getEndOfCentralDirRecord().getNoOfThisDisk()) {
       return zipModel.getZipFile();
     }
 
-    String currZipFile = zipModel.getZipFile();
+    String currZipFileNameWithPath = zipModel.getZipFile().getCanonicalPath();
     String extensionSubString = ".z0";
-    if (currentSplitFileCounter >= 9) {
+    if (zipFileIndex >= 9) {
       extensionSubString = ".z";
     }
 
-    return currZipFile.substring(0, currZipFile.lastIndexOf(".")) + extensionSubString + (currentSplitFileCounter + 1);
+    return new File(currZipFileNameWithPath.substring(0,
+        currZipFileNameWithPath.lastIndexOf(".")) + extensionSubString + (zipFileIndex + 1));
   }
 
   @Override

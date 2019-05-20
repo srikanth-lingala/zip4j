@@ -1,4 +1,4 @@
-package net.lingala.zip4j.io.inputstreams;
+package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
@@ -8,12 +8,12 @@ import java.io.IOException;
 
 class NoCipherInputStream extends CipherInputStream {
 
-  public NoCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader) throws IOException, ZipException {
-    super(zipEntryInputStream, localFileHeader);
+  public NoCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
+    super(zipEntryInputStream, localFileHeader, password);
   }
 
   @Override
-  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader) {
+  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) {
     return new NoDecrypter();
   }
 
