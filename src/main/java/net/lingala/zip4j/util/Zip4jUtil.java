@@ -609,7 +609,7 @@ public class Zip4jUtil {
       throw new ZipException("cannot get split zip files: zipmodel is null");
     }
 
-    if (zipModel.getEndOfCentralDirRecord() == null) {
+    if (zipModel.getEndOfCentralDirectoryRecord() == null) {
       return null;
     }
 
@@ -627,7 +627,7 @@ public class Zip4jUtil {
       return retList;
     }
 
-    int numberOfThisDisk = zipModel.getEndOfCentralDirRecord().getNoOfThisDisk();
+    int numberOfThisDisk = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
 
     if (numberOfThisDisk == 0) {
       retList.add(currZipFile);

@@ -26,9 +26,9 @@ public class ZipModel implements Cloneable {
   private List<DataDescriptor> dataDescriptors = new ArrayList<>();
   private ArchiveExtraDataRecord archiveExtraDataRecord = new ArchiveExtraDataRecord();
   private CentralDirectory centralDirectory = new CentralDirectory();
-  private EndOfCentralDirRecord endOfCentralDirRecord = new EndOfCentralDirRecord();
-  private Zip64EndOfCentralDirLocator zip64EndOfCentralDirLocator = new Zip64EndOfCentralDirLocator();
-  private Zip64EndOfCentralDirRecord zip64EndOfCentralDirRecord = new Zip64EndOfCentralDirRecord();
+  private EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
+  private Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator = new Zip64EndOfCentralDirectoryLocator();
+  private Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord = new Zip64EndOfCentralDirectoryRecord();
 
   private boolean splitArchive;
   private long splitLength;
@@ -67,12 +67,12 @@ public class ZipModel implements Cloneable {
     this.centralDirectory = centralDirectory;
   }
 
-  public EndOfCentralDirRecord getEndOfCentralDirRecord() {
-    return endOfCentralDirRecord;
+  public EndOfCentralDirectoryRecord getEndOfCentralDirectoryRecord() {
+    return endOfCentralDirectoryRecord;
   }
 
-  public void setEndOfCentralDirRecord(EndOfCentralDirRecord endOfCentralDirRecord) {
-    this.endOfCentralDirRecord = endOfCentralDirRecord;
+  public void setEndOfCentralDirectoryRecord(EndOfCentralDirectoryRecord endOfCentralDirectoryRecord) {
+    this.endOfCentralDirectoryRecord = endOfCentralDirectoryRecord;
   }
 
   public ArchiveExtraDataRecord getArchiveExtraDataRecord() {
@@ -100,22 +100,22 @@ public class ZipModel implements Cloneable {
     this.zipFile = zipFile;
   }
 
-  public Zip64EndOfCentralDirLocator getZip64EndOfCentralDirLocator() {
-    return zip64EndOfCentralDirLocator;
+  public Zip64EndOfCentralDirectoryLocator getZip64EndOfCentralDirectoryLocator() {
+    return zip64EndOfCentralDirectoryLocator;
   }
 
-  public void setZip64EndOfCentralDirLocator(
-      Zip64EndOfCentralDirLocator zip64EndOfCentralDirLocator) {
-    this.zip64EndOfCentralDirLocator = zip64EndOfCentralDirLocator;
+  public void setZip64EndOfCentralDirectoryLocator(
+      Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator) {
+    this.zip64EndOfCentralDirectoryLocator = zip64EndOfCentralDirectoryLocator;
   }
 
-  public Zip64EndOfCentralDirRecord getZip64EndOfCentralDirRecord() {
-    return zip64EndOfCentralDirRecord;
+  public Zip64EndOfCentralDirectoryRecord getZip64EndOfCentralDirectoryRecord() {
+    return zip64EndOfCentralDirectoryRecord;
   }
 
-  public void setZip64EndOfCentralDirRecord(
-      Zip64EndOfCentralDirRecord zip64EndOfCentralDirRecord) {
-    this.zip64EndOfCentralDirRecord = zip64EndOfCentralDirRecord;
+  public void setZip64EndOfCentralDirectoryRecord(
+      Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord) {
+    this.zip64EndOfCentralDirectoryRecord = zip64EndOfCentralDirectoryRecord;
   }
 
   public boolean isZip64Format() {

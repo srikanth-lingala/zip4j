@@ -25,13 +25,11 @@ import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
@@ -218,8 +216,8 @@ public class UnzipEngine {
   }
 
   private SplitInputStream createSplitInputStream(FileHeader fileHeader) throws IOException {
-    RandomAccessFile randomAccessFile = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.READ.getValue());
-    SplitInputStream splitInputStream = new SplitInputStream(randomAccessFile, zipModel);
+    SplitInputStream splitInputStream = new SplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
+        zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
 
     if (fileHeader != null) {
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
@@ -262,7 +260,7 @@ public class UnzipEngine {
 
     for (FileHeader fileHeader : fileHeaders) {
       if (fileHeader.getZip64ExtendedInfo() != null &&
-          fileHeader.getZip64ExtendedInfo().getUnCompressedSize() > 0) {
+          fileHeader.getZip64ExtendedInfo().getUncompressedSize() > 0) {
         totalWork += fileHeader.getZip64ExtendedInfo().getCompressedSize();
       } else {
         totalWork += fileHeader.getCompressedSize();

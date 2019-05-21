@@ -46,7 +46,7 @@ public class FileHeaderFactory {
     }
 
     //TODO add file attributes for internally added files
-    fileHeader.setExternalFileAttr(new byte[] {0, 0, 0, 0});
+    fileHeader.setExternalFileAttributes(new byte[] {0, 0, 0, 0});
     fileHeader.setDirectory(Zip4jUtil.isZipEntryDirectory(fileName));
     fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
 

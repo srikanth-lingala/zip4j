@@ -53,7 +53,7 @@ public class UnzipUtil {
       throw new ZipException("invalid file header. cannot set file attributes");
     }
 
-    byte[] externalAttrbs = fileHeader.getExternalFileAttr();
+    byte[] externalAttrbs = fileHeader.getExternalFileAttributes();
     if (externalAttrbs == null) {
       return;
     }

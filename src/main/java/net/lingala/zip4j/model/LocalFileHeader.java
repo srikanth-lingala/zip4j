@@ -20,7 +20,7 @@ public class LocalFileHeader extends AbstractFileHeader {
 
   private byte[] extraField;
   private long offsetStartOfData;
-  private boolean writeComprSizeInZip64ExtraRecord;
+  private boolean writeCompressedSizeInZip64ExtraRecord;
 
   public byte[] getExtraField() {
     return extraField;
@@ -38,11 +38,11 @@ public class LocalFileHeader extends AbstractFileHeader {
     this.offsetStartOfData = offsetStartOfData;
   }
 
-  public boolean isWriteComprSizeInZip64ExtraRecord() {
-    return writeComprSizeInZip64ExtraRecord;
+  public boolean isWriteCompressedSizeInZip64ExtraRecord() {
+    return writeCompressedSizeInZip64ExtraRecord;
   }
 
-  public void setWriteComprSizeInZip64ExtraRecord(boolean writeComprSizeInZip64ExtraRecord) {
-    this.writeComprSizeInZip64ExtraRecord = writeComprSizeInZip64ExtraRecord;
+  public void setWriteCompressedSizeInZip64ExtraRecord(boolean writeCompressedSizeInZip64ExtraRecord) {
+    this.writeCompressedSizeInZip64ExtraRecord = writeCompressedSizeInZip64ExtraRecord;
   }
 }

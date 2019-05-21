@@ -47,7 +47,7 @@ public final class InternalZipConstants {
 
   public static final int UFT8_NAMES_FLAG = 1 << 11;
 
-  public static final String CHARSET_COMMENTS_DEFAULT = "windows-1254";
+  public static final String DEFAULT_COMMENT_CHARSET = "windows-1254";
 
   public static final String CHARSET_DEFAULT = System.getProperty("file.encoding");
 

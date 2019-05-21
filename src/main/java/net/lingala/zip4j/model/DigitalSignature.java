@@ -19,7 +19,6 @@ package net.lingala.zip4j.model;
 public class DigitalSignature  extends ZipHeader {
 
   private int sizeOfData;
-
   private String signatureData;
 
   public int getSizeOfData() {

@@ -109,7 +109,7 @@ public class ZipOutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     try {
-      zipModel.getEndOfCentralDirRecord().setOffsetOfStartOfCentralDir(countingOutputStream.getNumberOfBytesWritten());
+      zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
       headerWriter.finalizeZipFile(zipModel, countingOutputStream);
     } catch (ZipException e) {
       throw new IOException(e);

@@ -35,13 +35,8 @@ public class SplitOutputStream extends OutputStream {
   private RandomAccessFile raf;
   private long splitLength;
   private File zipFile;
-  private File outFile;
   private int currSplitFileCounter;
   private long bytesWrittenForThisPart;
-
-  public SplitOutputStream(String name) throws FileNotFoundException, ZipException {
-    this(new File(name));
-  }
 
   public SplitOutputStream(File file) throws FileNotFoundException, ZipException {
     this(file, -1);
@@ -51,9 +46,9 @@ public class SplitOutputStream extends OutputStream {
     if (splitLength >= 0 && splitLength < MIN_SPLIT_LENGTH) {
       throw new ZipException("split length less than minimum allowed split length of " + MIN_SPLIT_LENGTH + " Bytes");
     }
+
     this.raf = new RandomAccessFile(file, RandomAccessFileMode.WRITE.getValue());
     this.splitLength = splitLength;
-    this.outFile = file;
     this.zipFile = file;
     this.currSplitFileCounter = 0;
     this.bytesWrittenForThisPart = 0;
@@ -101,9 +96,9 @@ public class SplitOutputStream extends OutputStream {
 
   private void startNextSplitFile() throws IOException {
     try {
-      String zipFileWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(outFile.getName());
+      String zipFileWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(zipFile.getName());
       String zipFileName = zipFile.getAbsolutePath();
-      String parentPath = (outFile.getParent() == null) ? "" : outFile.getParent() + System.getProperty("file.separator");
+      String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent() + System.getProperty("file.separator");
 
       String fileExtension = ".z0" + (currSplitFileCounter + 1);
       if (currSplitFileCounter > 9) {
@@ -192,9 +187,6 @@ public class SplitOutputStream extends OutputStream {
 
   public void close() throws IOException {
     raf.close();
-  }
-
-  public void flush() throws IOException {
   }
 
   public long getFilePointer() throws IOException {

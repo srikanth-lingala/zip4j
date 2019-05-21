@@ -26,8 +26,8 @@ public class FileHeader extends AbstractFileHeader {
   private int versionMadeBy;
   private int fileCommentLength;
   private int diskNumberStart;
-  private byte[] internalFileAttr;
-  private byte[] externalFileAttr;
+  private byte[] internalFileAttributes;
+  private byte[] externalFileAttributes;
   private long offsetLocalHeader;
   private String fileComment;
   private boolean isDirectory;
@@ -112,20 +112,20 @@ public class FileHeader extends AbstractFileHeader {
     this.diskNumberStart = diskNumberStart;
   }
 
-  public byte[] getInternalFileAttr() {
-    return internalFileAttr;
+  public byte[] getInternalFileAttributes() {
+    return internalFileAttributes;
   }
 
-  public void setInternalFileAttr(byte[] internalFileAttr) {
-    this.internalFileAttr = internalFileAttr;
+  public void setInternalFileAttributes(byte[] internalFileAttributes) {
+    this.internalFileAttributes = internalFileAttributes;
   }
 
-  public byte[] getExternalFileAttr() {
-    return externalFileAttr;
+  public byte[] getExternalFileAttributes() {
+    return externalFileAttributes;
   }
 
-  public void setExternalFileAttr(byte[] externalFileAttr) {
-    this.externalFileAttr = externalFileAttr;
+  public void setExternalFileAttributes(byte[] externalFileAttributes) {
+    this.externalFileAttributes = externalFileAttributes;
   }
 
   public long getOffsetLocalHeader() {

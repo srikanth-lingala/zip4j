@@ -1,7 +1,6 @@
 package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
@@ -13,15 +12,17 @@ import java.io.RandomAccessFile;
 public class SplitInputStream extends InputStream {
 
   private RandomAccessFile randomAccessFile;
-  private ZipModel zipModel;
-  private boolean isSplitZipArchive = false;
+  private File zipFile;
+  private int lastSplitZipFileNumber;
+  private boolean isSplitZipArchive;
   private int currentSplitFileCounter = 0;
   private byte[] singleByteArray = new byte[1];
 
-  public SplitInputStream(RandomAccessFile randomAccessFile, ZipModel zipModel) {
-    this.randomAccessFile = randomAccessFile;
-    this.zipModel = zipModel;
-    this.isSplitZipArchive = zipModel.isSplitArchive();
+  public SplitInputStream(File zipFile, boolean isSplitZipArchive, int lastSplitZipFileNumber) throws FileNotFoundException {
+    this.randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());;
+    this.zipFile = zipFile;
+    this.isSplitZipArchive = isSplitZipArchive;
+    this.lastSplitZipFileNumber = lastSplitZipFileNumber;
   }
 
   @Override
@@ -46,11 +47,8 @@ public class SplitInputStream extends InputStream {
   }
 
   public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
-    if (zipModel == null || randomAccessFile == null) {
-      throw new IOException("This method can only be called in randomaccessfile mode");
-    }
 
-    if (zipModel.isSplitArchive() && currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1) {
+    if (isSplitZipArchive && currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1) {
       openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
     }
 
@@ -82,11 +80,11 @@ public class SplitInputStream extends InputStream {
   }
 
   private File getNextSplitFileName(int zipFileIndex) throws IOException {
-    if (zipFileIndex == zipModel.getEndOfCentralDirRecord().getNoOfThisDisk()) {
-      return zipModel.getZipFile();
+    if (zipFileIndex == lastSplitZipFileNumber) {
+      return zipFile;
     }
 
-    String currZipFileNameWithPath = zipModel.getZipFile().getCanonicalPath();
+    String currZipFileNameWithPath = zipFile.getCanonicalPath();
     String extensionSubString = ".z0";
     if (zipFileIndex >= 9) {
       extensionSubString = ".z";
