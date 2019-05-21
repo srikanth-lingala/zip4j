@@ -18,6 +18,7 @@ package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
@@ -27,6 +28,7 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirRecord;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,13 +41,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_COMMENTS_DEFAULT;
+import static net.lingala.zip4j.util.InternalZipConstants.MAX_ALLOWED_ZIP_COMMENT_LENGTH;
+import static net.lingala.zip4j.util.InternalZipConstants.OFFSET_CENTRAL_DIR;
+import static net.lingala.zip4j.util.InternalZipConstants.THREAD_NAME;
+
 public class ArchiveMaintainer {
 
   public HashMap removeZipFile(final ZipModel zipModel,
                                final FileHeader fileHeader, final ProgressMonitor progressMonitor, boolean runInThread) throws ZipException {
 
     if (runInThread) {
-      Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
+      Thread thread = new Thread(THREAD_NAME) {
         public void run() {
           try {
             initRemoveZipFile(zipModel, fileHeader, progressMonitor);
@@ -107,7 +115,7 @@ public class ArchiveMaintainer {
 
       zipFile = zipModel.getZipFile();
 
-      inputStream = createFileHandler(zipModel, RandomAccessFileMode.READ.getCode());
+      inputStream = createFileHandler(zipModel, RandomAccessFileMode.READ.getValue());
 
       HeaderReader headerReader = new HeaderReader();
       LocalFileHeader localFileHeader = headerReader.readLocalFileHeader(inputStream, fileHeader);
@@ -192,8 +200,7 @@ public class ArchiveMaintainer {
 
       successFlag = true;
 
-      retMap.put(InternalZipConstants.OFFSET_CENTRAL_DIR,
-          Long.toString(zipModel.getEndOfCentralDirRecord().getOffsetOfStartOfCentralDir()));
+      retMap.put(OFFSET_CENTRAL_DIR, Long.toString(zipModel.getEndOfCentralDirRecord().getOffsetOfStartOfCentralDir()));
 
     } catch (ZipException e) {
       progressMonitor.endProgressMonitorError(e);
@@ -270,10 +277,10 @@ public class ArchiveMaintainer {
       long bytesRead = 0;
       long bytesToRead = end - start;
 
-      if ((end - start) < InternalZipConstants.BUFF_SIZE) {
+      if ((end - start) < BUFF_SIZE) {
         buff = new byte[(int) (end - start)];
       } else {
-        buff = new byte[InternalZipConstants.BUFF_SIZE];
+        buff = new byte[BUFF_SIZE];
       }
 
       while ((readLen = inputStream.read(buff)) != -1) {
@@ -318,7 +325,7 @@ public class ArchiveMaintainer {
   public void mergeSplitZipFiles(final ZipModel zipModel, final File outputZipFile,
                                  final ProgressMonitor progressMonitor, boolean runInThread) throws ZipException {
     if (runInThread) {
-      Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
+      Thread thread = new Thread(THREAD_NAME) {
         public void run() {
           try {
             initMergeSplitZipFile(zipModel, outputZipFile, progressMonitor);
@@ -373,7 +380,7 @@ public class ArchiveMaintainer {
             byte[] buff = new byte[4];
             inputStream.seek(0);
             inputStream.read(buff);
-            if (Raw.readIntLittleEndian(buff, 0) == InternalZipConstants.SPLITSIG) {
+            if (Raw.readIntLittleEndian(buff, 0) == HeaderSignature.SPLIT_ZIP.getValue()) {
               start = 4;
               splitSigRemoved = true;
             }
@@ -470,7 +477,7 @@ public class ArchiveMaintainer {
         throw new ZipException("split file does not exist: " + partFile);
       }
 
-      return new RandomAccessFile(tmpFile, RandomAccessFileMode.READ.getCode());
+      return new RandomAccessFile(tmpFile, RandomAccessFileMode.READ.getValue());
     } catch (FileNotFoundException e) {
       throw new ZipException(e);
     } catch (Exception e) {
@@ -621,10 +628,10 @@ public class ArchiveMaintainer {
     byte[] commentBytes = comment.getBytes();
     int commentLength = comment.length();
 
-    if (Zip4jUtil.isSupportedCharset(InternalZipConstants.CHARSET_COMMENTS_DEFAULT)) {
+    if (Zip4jUtil.isSupportedCharset(CHARSET_COMMENTS_DEFAULT)) {
       try {
-        encodedComment = new String(comment.getBytes(InternalZipConstants.CHARSET_COMMENTS_DEFAULT), InternalZipConstants.CHARSET_COMMENTS_DEFAULT);
-        commentBytes = encodedComment.getBytes(InternalZipConstants.CHARSET_COMMENTS_DEFAULT);
+        encodedComment = new String(comment.getBytes(CHARSET_COMMENTS_DEFAULT), CHARSET_COMMENTS_DEFAULT);
+        commentBytes = encodedComment.getBytes(CHARSET_COMMENTS_DEFAULT);
         commentLength = encodedComment.length();
       } catch (UnsupportedEncodingException e) {
         encodedComment = comment;
@@ -633,7 +640,7 @@ public class ArchiveMaintainer {
       }
     }
 
-    if (commentLength > InternalZipConstants.MAX_ALLOWED_ZIP_COMMENT_LENGTH) {
+    if (commentLength > MAX_ALLOWED_ZIP_COMMENT_LENGTH) {
       throw new ZipException("comment length exceeds maximum length");
     }
 

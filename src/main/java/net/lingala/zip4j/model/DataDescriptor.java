@@ -19,9 +19,7 @@ package net.lingala.zip4j.model;
 public class DataDescriptor {
 
   private String crc32;
-
   private int compressedSize;
-
   private int uncompressedSize;
 
   public String getCrc32() {

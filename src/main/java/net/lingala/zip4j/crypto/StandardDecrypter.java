@@ -19,7 +19,8 @@ package net.lingala.zip4j.crypto;
 import net.lingala.zip4j.crypto.engine.ZipCryptoEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
-import net.lingala.zip4j.util.InternalZipConstants;
+
+import static net.lingala.zip4j.util.InternalZipConstants.STD_DEC_HDR_SIZE;
 
 public class StandardDecrypter implements Decrypter {
 
@@ -35,29 +36,22 @@ public class StandardDecrypter implements Decrypter {
     init(headerBytes);
   }
 
-  public int decryptData(byte[] buff) throws ZipException {
-    return decryptData(buff, 0, buff.length);
-  }
-
   public int decryptData(byte[] buff, int start, int len) throws ZipException {
     if (start < 0 || len < 0) {
       throw new ZipException("one of the input parameters were null in standard decrypt data");
     }
 
-    try {
-      for (int i = start; i < start + len; i++) {
-        int val = buff[i] & 0xff;
-        val = (val ^ zipCryptoEngine.decryptByte()) & 0xff;
-        zipCryptoEngine.updateKeys((byte) val);
-        buff[i] = (byte) val;
-      }
-      return len;
-    } catch (Exception e) {
-      throw new ZipException(e);
+    for (int i = start; i < start + len; i++) {
+      int val = buff[i] & 0xff;
+      val = (val ^ zipCryptoEngine.decryptByte()) & 0xff;
+      zipCryptoEngine.updateKeys((byte) val);
+      buff[i] = (byte) val;
     }
+
+    return len;
   }
 
-  public void init(byte[] headerBytes) throws ZipException {
+  private void init(byte[] headerBytes) throws ZipException {
     crc[3] = (byte) (crcBytes[3] & 0xFF);
     crc[2] = (byte) ((crcBytes[3] >> 8) & 0xFF);
     crc[1] = (byte) ((crcBytes[3] >> 16) & 0xFF);
@@ -72,21 +66,17 @@ public class StandardDecrypter implements Decrypter {
 
     zipCryptoEngine.initKeys(password);
 
-    try {
-      int result = headerBytes[0];
-      for (int i = 0; i < InternalZipConstants.STD_DEC_HDR_SIZE; i++) {
-//				Commented this as this check cannot always be trusted
-//				New functionality: If there is an error in extracting a password protected file, 
-//				"Wrong Password?" text is appended to the exception message
-//				if(i+1 == InternalZipConstants.STD_DEC_HDR_SIZE && ((byte)(result ^ zipCryptoEngine.decryptByte()) != crc[3]) && !isSplit)
-//					throw new ZipException("Wrong password!", ZipExceptionConstants.WRONG_PASSWORD);
+    int result = headerBytes[0];
+    for (int i = 0; i < STD_DEC_HDR_SIZE; i++) {
+//	    Commented this as this check cannot always be trusted
+//  	  New functionality: If there is an error in extracting a password protected file,
+//      "Wrong Password?" text is appended to the exception message
+//      if(i+1 == InternalZipConstants.STD_DEC_HDR_SIZE && ((byte)(result ^ zipCryptoEngine.decryptByte()) != crc[3]) && !isSplit)
+//      throw new ZipException("Wrong password!", ZipExceptionConstants.WRONG_PASSWORD);
 
-        zipCryptoEngine.updateKeys((byte) (result ^ zipCryptoEngine.decryptByte()));
-        if (i + 1 != InternalZipConstants.STD_DEC_HDR_SIZE)
-          result = headerBytes[i + 1];
-      }
-    } catch (Exception e) {
-      throw new ZipException(e);
+      zipCryptoEngine.updateKeys((byte) (result ^ zipCryptoEngine.decryptByte()));
+      if (i + 1 != STD_DEC_HDR_SIZE)
+        result = headerBytes[i + 1];
     }
   }
 

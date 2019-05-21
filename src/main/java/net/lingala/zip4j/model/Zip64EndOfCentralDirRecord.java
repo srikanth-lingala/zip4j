@@ -16,9 +16,7 @@
 
 package net.lingala.zip4j.model;
 
-public class Zip64EndOfCentralDirRecord {
-
-  private long signature;
+public class Zip64EndOfCentralDirRecord extends ZipHeader {
 
   private long sizeOfZip64EndCentralDirRec;
 
@@ -39,14 +37,6 @@ public class Zip64EndOfCentralDirRecord {
   private long offsetStartCenDirWRTStartDiskNo;
 
   private byte[] extensibleDataSector;
-
-  public long getSignature() {
-    return signature;
-  }
-
-  public void setSignature(long signature) {
-    this.signature = signature;
-  }
 
   public long getSizeOfZip64EndCentralDirRec() {
     return sizeOfZip64EndCentralDirRec;

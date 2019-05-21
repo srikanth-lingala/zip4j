@@ -3,8 +3,8 @@ package net.lingala.zip4j.zip;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.util.enums.FileMode;
 
 import java.io.File;
 
@@ -58,38 +58,43 @@ public class UnzipUtil {
       return;
     }
 
-    int atrrib = externalAttrbs[0];
-    switch (atrrib) {
-      case InternalZipConstants.FILE_MODE_READ_ONLY:
+    FileMode fileMode = FileMode.getFileModeFromValue(externalAttrbs[0]);
+
+    if (file == null) {
+      return;
+    }
+
+    switch (fileMode) {
+      case READ_ONLY:
         if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
         break;
-      case InternalZipConstants.FILE_MODE_HIDDEN:
-      case InternalZipConstants.FOLDER_MODE_HIDDEN:
+      case HIDDEN:
+      case FOLDER_HIDDEN:
         if (setHidden) Zip4jUtil.setFileHidden(file);
         break;
-      case InternalZipConstants.FILE_MODE_ARCHIVE:
-      case InternalZipConstants.FOLDER_MODE_ARCHIVE:
+      case ARCHIVE:
+      case FOLDER_ARCHIVE:
         if (setArchive) Zip4jUtil.setFileArchive(file);
         break;
-      case InternalZipConstants.FILE_MODE_READ_ONLY_HIDDEN:
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case InternalZipConstants.FILE_MODE_READ_ONLY_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        break;
-      case InternalZipConstants.FILE_MODE_HIDDEN_ARCHIVE:
-      case InternalZipConstants.FOLDER_MODE_HIDDEN_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case InternalZipConstants.FILE_MODE_READ_ONLY_HIDDEN_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
+      case READ_ONLY_AND_HIDDEN:
         if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
         if (setHidden) Zip4jUtil.setFileHidden(file);
         break;
-      case InternalZipConstants.FILE_MODE_SYSTEM:
+      case READ_ONLY_AND_ARCHIVE:
+        if (setArchive) Zip4jUtil.setFileArchive(file);
+        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
+        break;
+      case HIDDEN_AND_ARCHIVE:
+      case FOLDER_HIDDEN_AND_ARCHIVE:
+        if (setArchive) Zip4jUtil.setFileArchive(file);
+        if (setHidden) Zip4jUtil.setFileHidden(file);
+        break;
+      case READ_ONLY_AND_HIDDEN_AND_ARCHIVE:
+        if (setArchive) Zip4jUtil.setFileArchive(file);
+        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
+        if (setHidden) Zip4jUtil.setFileHidden(file);
+        break;
+      case SYSTEM_FILE:
         if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
         if (setHidden) Zip4jUtil.setFileHidden(file);
         if (setSystem) Zip4jUtil.setFileSystemMode(file);

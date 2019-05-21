@@ -24,9 +24,8 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,11 +34,15 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.List;
 
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
+import static net.lingala.zip4j.util.InternalZipConstants.THREAD_NAME;
+
 public class UnzipEngine {
 
   private ZipModel zipModel;
   private ProgressMonitor progressMonitor;
-  private byte[] buff = new byte[InternalZipConstants.BUFF_SIZE];
+  private byte[] buff = new byte[BUFF_SIZE];
   private char[] password;
 
   public UnzipEngine(ZipModel zipModel, ProgressMonitor progressMonitor, char[] password) {
@@ -65,7 +68,7 @@ public class UnzipEngine {
       progressMonitor.setState(ProgressMonitor.STATE_BUSY);
 
       if (runInThread) {
-        Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
+        Thread thread = new Thread(THREAD_NAME) {
           public void run() {
             try {
               initExtractAll(inputStream, fileHeaders, outPath, unzipParameters);
@@ -97,7 +100,7 @@ public class UnzipEngine {
 
     try(ZipInputStream inputStream = createZipInputStream(password)) {
       if (runInThread) {
-        Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
+        Thread thread = new Thread(THREAD_NAME) {
           public void run() {
             try {
               initExtractFile(inputStream, fileHeader, outPath, newFileName, unzipParameters);
@@ -140,8 +143,8 @@ public class UnzipEngine {
     try {
       progressMonitor.setFileName(fileHeader.getFileName());
 
-      if (!outPath.endsWith(InternalZipConstants.FILE_SEPARATOR)) {
-        outPath += InternalZipConstants.FILE_SEPARATOR;
+      if (!outPath.endsWith(FILE_SEPARATOR)) {
+        outPath += FILE_SEPARATOR;
       }
 
       // make sure no file is extracted outside of the target directory (a.k.a zip slip)
@@ -215,7 +218,7 @@ public class UnzipEngine {
   }
 
   private SplitInputStream createSplitInputStream(FileHeader fileHeader) throws IOException {
-    RandomAccessFile randomAccessFile = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.READ.getCode());
+    RandomAccessFile randomAccessFile = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.READ.getValue());
     SplitInputStream splitInputStream = new SplitInputStream(randomAccessFile, zipModel);
 
     if (fileHeader != null) {

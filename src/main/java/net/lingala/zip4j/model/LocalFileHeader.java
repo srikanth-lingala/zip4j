@@ -19,9 +19,7 @@ package net.lingala.zip4j.model;
 public class LocalFileHeader extends AbstractFileHeader {
 
   private byte[] extraField;
-
   private long offsetStartOfData;
-
   private boolean writeComprSizeInZip64ExtraRecord;
 
   public byte[] getExtraField() {

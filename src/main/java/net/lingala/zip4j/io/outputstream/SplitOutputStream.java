@@ -17,16 +17,18 @@
 package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.util.RandomAccessFileMode;
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_SPLIT_LENGTH;
 
 public class SplitOutputStream extends OutputStream {
 
@@ -46,10 +48,10 @@ public class SplitOutputStream extends OutputStream {
   }
 
   public SplitOutputStream(File file, long splitLength) throws FileNotFoundException, ZipException {
-    if (splitLength >= 0 && splitLength < InternalZipConstants.MIN_SPLIT_LENGTH) {
-      throw new ZipException("split length less than minimum allowed split length of " + InternalZipConstants.MIN_SPLIT_LENGTH + " Bytes");
+    if (splitLength >= 0 && splitLength < MIN_SPLIT_LENGTH) {
+      throw new ZipException("split length less than minimum allowed split length of " + MIN_SPLIT_LENGTH + " Bytes");
     }
-    this.raf = new RandomAccessFile(file, RandomAccessFileMode.WRITE.getCode());
+    this.raf = new RandomAccessFile(file, RandomAccessFileMode.WRITE.getValue());
     this.splitLength = splitLength;
     this.outFile = file;
     this.zipFile = file;
@@ -121,7 +123,7 @@ public class SplitOutputStream extends OutputStream {
       }
 
       zipFile = new File(zipFileName);
-      raf = new RandomAccessFile(zipFile, RandomAccessFileMode.WRITE.getCode());
+      raf = new RandomAccessFile(zipFile, RandomAccessFileMode.WRITE.getValue());
       currSplitFileCounter++;
     } catch (ZipException e) {
       throw new IOException(e);
@@ -130,14 +132,11 @@ public class SplitOutputStream extends OutputStream {
 
   private boolean isHeaderData(byte[] buff) {
     int signature = Raw.readIntLittleEndian(buff, 0);
-    long[] allHeaderSignatures = Zip4jUtil.getAllHeaderSignatures();
-    if (allHeaderSignatures != null && allHeaderSignatures.length > 0) {
-      for (int i = 0; i < allHeaderSignatures.length; i++) {
-        //Ignore split signature
-        if (allHeaderSignatures[i] != InternalZipConstants.SPLITSIG &&
-            allHeaderSignatures[i] == signature) {
-          return true;
-        }
+    for (HeaderSignature headerSignature : HeaderSignature.values()) {
+      //Ignore split signature
+      if (headerSignature != HeaderSignature.SPLIT_ZIP &&
+          headerSignature.getValue() == signature) {
+        return true;
       }
     }
 
@@ -179,7 +178,7 @@ public class SplitOutputStream extends OutputStream {
    * @throws ZipException
    */
   private boolean isBufferSizeFitForCurrSplitFile(int bufferSize) throws ZipException {
-    if (splitLength >= InternalZipConstants.MIN_SPLIT_LENGTH) {
+    if (splitLength >= MIN_SPLIT_LENGTH) {
       return (bytesWrittenForThisPart + bufferSize <= splitLength);
     } else {
       //Non split zip -- return true

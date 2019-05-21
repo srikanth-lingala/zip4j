@@ -29,14 +29,14 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_DEFAULT;
+import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
+
 public class Zip4jUtil {
 
   public static boolean isStringNotNullAndNotEmpty(String str) {
-    if (str == null || str.trim().length() <= 0) {
-      return false;
-    }
-
-    return true;
+    return str != null && str.trim().length() > 0;
   }
 
   public static boolean checkOutputFolder(String path) throws ZipException {
@@ -65,14 +65,6 @@ public class Zip4jUtil {
         if (!file.canWrite()) {
           throw new ZipException("no write access to destination folder");
         }
-
-//				SecurityManager manager = new SecurityManager();
-//				try {
-//					manager.checkWrite(file.getAbsolutePath());
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//					throw new ZipException("no write access to destination folder");
-//				}
       } catch (Exception e) {
         throw new ZipException("Cannot create destination folder");
       }
@@ -432,10 +424,10 @@ public class Zip4jUtil {
     try {
       byte[] converted = null;
       String charSet = detectCharSet(str);
-      if (charSet.equals(InternalZipConstants.CHARSET_CP850)) {
-        converted = str.getBytes(InternalZipConstants.CHARSET_CP850);
-      } else if (charSet.equals(InternalZipConstants.CHARSET_UTF8)) {
-        converted = str.getBytes(InternalZipConstants.CHARSET_UTF8);
+      if (charSet.equals(Charset.CP850.getCharsetCode())) {
+        converted = str.getBytes(Charset.CP850.getCharsetCode());
+      } else if (charSet.equals(Charset.UTF8.getCharsetCode())) {
+        converted = str.getBytes(Charset.UTF8.getCharsetCode());
       } else {
         converted = str.getBytes();
       }
@@ -460,7 +452,7 @@ public class Zip4jUtil {
   public static String decodeFileName(byte[] data, boolean isUTF8) {
     if (isUTF8) {
       try {
-        return new String(data, InternalZipConstants.CHARSET_UTF8);
+        return new String(data, Charset.UTF8.getCharsetCode());
       } catch (UnsupportedEncodingException e) {
         return new String(data);
       }
@@ -478,7 +470,7 @@ public class Zip4jUtil {
    */
   public static String getCp850EncodedString(byte[] data) {
     try {
-      String retString = new String(data, InternalZipConstants.CHARSET_CP850);
+      String retString = new String(data, Charset.CP850.getCharsetCode());
       return retString;
     } catch (UnsupportedEncodingException e) {
       return new String(data);
@@ -514,25 +506,25 @@ public class Zip4jUtil {
     }
 
     try {
-      byte[] byteString = str.getBytes(InternalZipConstants.CHARSET_CP850);
-      String tempString = new String(byteString, InternalZipConstants.CHARSET_CP850);
+      byte[] byteString = str.getBytes(Charset.CP850.getCharsetCode());
+      String tempString = new String(byteString, Charset.CP850.getCharsetCode());
 
       if (str.equals(tempString)) {
-        return InternalZipConstants.CHARSET_CP850;
+        return Charset.CP850.getCharsetCode();
       }
 
-      byteString = str.getBytes(InternalZipConstants.CHARSET_UTF8);
-      tempString = new String(byteString, InternalZipConstants.CHARSET_UTF8);
+      byteString = str.getBytes(Charset.UTF8.getCharsetCode());
+      tempString = new String(byteString, Charset.UTF8.getCharsetCode());
 
       if (str.equals(tempString)) {
-        return InternalZipConstants.CHARSET_UTF8;
+        return Charset.UTF8.getCharsetCode();
       }
 
-      return InternalZipConstants.CHARSET_DEFAULT;
+      return CHARSET_DEFAULT;
     } catch (UnsupportedEncodingException e) {
-      return InternalZipConstants.CHARSET_DEFAULT;
+      return CHARSET_DEFAULT;
     } catch (Exception e) {
-      return InternalZipConstants.CHARSET_DEFAULT;
+      return CHARSET_DEFAULT;
     }
   }
 
@@ -574,10 +566,10 @@ public class Zip4jUtil {
     ByteBuffer byteBuffer = null;
 
     try {
-      if (charset.equals(InternalZipConstants.CHARSET_CP850)) {
-        byteBuffer = ByteBuffer.wrap(str.getBytes(InternalZipConstants.CHARSET_CP850));
-      } else if (charset.equals(InternalZipConstants.CHARSET_UTF8)) {
-        byteBuffer = ByteBuffer.wrap(str.getBytes(InternalZipConstants.CHARSET_UTF8));
+      if (charset.equals(Charset.CP850.getCharsetCode())) {
+        byteBuffer = ByteBuffer.wrap(str.getBytes(Charset.CP850.getCharsetCode()));
+      } else if (charset.equals(Charset.UTF8.getCharsetCode())) {
+        byteBuffer = ByteBuffer.wrap(str.getBytes(Charset.UTF8.getCharsetCode()));
       } else {
         byteBuffer = ByteBuffer.wrap(str.getBytes(charset));
       }
@@ -671,8 +663,8 @@ public class Zip4jUtil {
 
       String rootFolderFileRef = rootFolderFile.getPath();
 
-      if (!rootFolderFileRef.endsWith(InternalZipConstants.FILE_SEPARATOR)) {
-        rootFolderFileRef += InternalZipConstants.FILE_SEPARATOR;
+      if (!rootFolderFileRef.endsWith(FILE_SEPARATOR)) {
+        rootFolderFileRef += FILE_SEPARATOR;
       }
 
       String tmpFileName = file.substring(rootFolderFileRef.length());
@@ -684,7 +676,7 @@ public class Zip4jUtil {
 
       if (tmpFile.isDirectory()) {
         tmpFileName = tmpFileName.replaceAll("\\\\", "/");
-        tmpFileName += InternalZipConstants.ZIP_FILE_SEPARATOR;
+        tmpFileName += ZIP_FILE_SEPARATOR;
       } else {
         String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
         bkFileName = bkFileName.replaceAll("\\\\", "/");
@@ -695,7 +687,7 @@ public class Zip4jUtil {
     } else {
       File relFile = new File(file);
       if (relFile.isDirectory()) {
-        fileName = relFile.getName() + InternalZipConstants.ZIP_FILE_SEPARATOR;
+        fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
       } else {
         fileName = Zip4jUtil.getFileNameFromFilePath(new File(file));
       }
@@ -710,24 +702,6 @@ public class Zip4jUtil {
     }
 
     return fileName;
-  }
-
-  public static long[] getAllHeaderSignatures() {
-    long[] allSigs = new long[11];
-
-    allSigs[0] = InternalZipConstants.LOCSIG;
-    allSigs[1] = InternalZipConstants.EXTSIG;
-    allSigs[2] = InternalZipConstants.CENSIG;
-    allSigs[3] = InternalZipConstants.ENDSIG;
-    allSigs[4] = InternalZipConstants.DIGSIG;
-    allSigs[5] = InternalZipConstants.ARCEXTDATREC;
-    allSigs[6] = InternalZipConstants.SPLITSIG;
-    allSigs[7] = InternalZipConstants.ZIP64ENDCENDIRLOC;
-    allSigs[8] = InternalZipConstants.ZIP64ENDCENDIRREC;
-    allSigs[9] = InternalZipConstants.EXTRAFIELDZIP64LENGTH;
-    allSigs[10] = InternalZipConstants.AESSIG;
-
-    return allSigs;
   }
 
   public static boolean isZipEntryDirectory(String fileNameInZip) {

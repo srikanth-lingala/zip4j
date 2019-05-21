@@ -16,21 +16,10 @@
 
 package net.lingala.zip4j.model;
 
-public class ArchiveExtraDataRecord {
-
-  private int signature;
+public class ArchiveExtraDataRecord extends ZipHeader {
 
   private int extraFieldLength;
-
   private String extraFieldData;
-
-  public int getSignature() {
-    return signature;
-  }
-
-  public void setSignature(int signature) {
-    this.signature = signature;
-  }
 
   public int getExtraFieldLength() {
     return extraFieldLength;

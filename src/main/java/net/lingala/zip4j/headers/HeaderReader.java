@@ -28,7 +28,6 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
 import net.lingala.zip4j.zip.AesKeyStrength;
@@ -41,6 +40,9 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
+import static net.lingala.zip4j.util.InternalZipConstants.UFT8_NAMES_FLAG;
+
 /**
  * Helper class to read header information for the zip file
  */
@@ -48,38 +50,18 @@ public class HeaderReader {
 
   private ZipModel zipModel;
 
-  /**
-   * Reads all the header information for the zip file.
-   * <br><br><b>Note:</b> This method does not read local file header information
-   *
-   * @return {@link ZipModel}
-   * @throws ZipException
-   */
-  public ZipModel readAllHeaders(RandomAccessFile raf) throws ZipException {
-    return readAllHeaders(raf, null);
-  }
-
-  /**
-   * Reads all the header information for the zip file. File names are read with
-   * input charset name. If this parameter is null, default system charset is used.
-   * <br><br><b>Note:</b> This method does not read local file header information
-   *
-   * @return {@link ZipModel}
-   * @throws ZipException
-   */
   public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, String fileNameCharset) throws ZipException {
     zipModel = new ZipModel();
     zipModel.setFileNameCharset(fileNameCharset);
     zipModel.setEndOfCentralDirRecord(readEndOfCentralDirectoryRecord(zip4jRaf));
 
-    // If file is Zip64 format, then Zip64 headers have to be read before
-    // reading central directory
+    // If file is Zip64 format, Zip64 headers have to be read before reading central directory
     zipModel.setZip64EndOfCentralDirLocator(readZip64EndCentralDirLocator(zip4jRaf));
 
     if (zipModel.isZip64Format()) {
       zipModel.setZip64EndOfCentralDirRecord(readZip64EndCentralDirRec(zip4jRaf));
-      if (zipModel.getZip64EndOfCentralDirRecord() != null &&
-          zipModel.getZip64EndOfCentralDirRecord().getNoOfThisDisk() > 0) {
+      if (zipModel.getZip64EndOfCentralDirRecord() != null
+          && zipModel.getZip64EndOfCentralDirRecord().getNoOfThisDisk() > 0) {
         zipModel.setSplitArchive(true);
       } else {
         zipModel.setSplitArchive(false);
@@ -87,36 +69,31 @@ public class HeaderReader {
     }
 
     zipModel.setCentralDirectory(readCentralDirectory(zip4jRaf));
-    //zipModel.setLocalFileHeaders(readLocalFileHeaders()); //Donot read local headers now.
+
     return zipModel;
   }
 
-  /**
-   * Reads end of central directory record
-   *
-   * @return {@link EndOfCentralDirRecord}
-   * @throws ZipException
-   */
   private EndOfCentralDirRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf) throws ZipException {
     try {
       byte[] ebs = new byte[4];
-      long pos = zip4jRaf.length() - InternalZipConstants.ENDHDR;
+      long pos = zip4jRaf.length() - ENDHDR;
 
       EndOfCentralDirRecord endOfCentralDirRecord = new EndOfCentralDirRecord();
       int counter = 0;
       do {
         zip4jRaf.seek(pos--);
         counter++;
-      } while ((Raw.readLeInt(zip4jRaf, ebs) != InternalZipConstants.ENDSIG) && counter <= 3000);
+      } while ((Raw.readLeInt(zip4jRaf, ebs) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= 3000);
 
-      if ((Raw.readIntLittleEndian(ebs, 0) != InternalZipConstants.ENDSIG)) {
+      if ((Raw.readIntLittleEndian(ebs, 0) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue())) {
         throw new ZipException("zip headers not found. probably not a zip file");
       }
+
       byte[] intBuff = new byte[4];
       byte[] shortBuff = new byte[2];
 
       //End of central record signature
-      endOfCentralDirRecord.setSignature(InternalZipConstants.ENDSIG);
+      endOfCentralDirRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
 
       //number of this disk
       readIntoBuff(zip4jRaf, shortBuff);
@@ -207,10 +184,10 @@ public class HeaderReader {
         //FileHeader Signature
         readIntoBuff(zip4jRaf, intBuff);
         int signature = Raw.readIntLittleEndian(intBuff, 0);
-        if (signature != InternalZipConstants.CENSIG) {
+        if (signature != HeaderSignature.CENTRAL_DIRECTORY.getValue()) {
           throw new ZipException("Expected central directory entry not found (#" + (i + 1) + ")");
         }
-        fileHeader.setSignature(signature);
+        fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
 
         //version made by
         readIntoBuff(zip4jRaf, shortBuff);
@@ -222,7 +199,7 @@ public class HeaderReader {
 
         //general purpose bit flag
         readIntoBuff(zip4jRaf, shortBuff);
-        fileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & InternalZipConstants.UFT8_NAMES_FLAG) != 0);
+        fileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & UFT8_NAMES_FLAG) != 0);
         int firstByte = shortBuff[0];
         int result = firstByte & 1;
         if (result != 0) {
@@ -362,11 +339,11 @@ public class HeaderReader {
       DigitalSignature digitalSignature = new DigitalSignature();
       readIntoBuff(zip4jRaf, intBuff);
       int signature = Raw.readIntLittleEndian(intBuff, 0);
-      if (signature != InternalZipConstants.DIGSIG) {
+      if (signature != HeaderSignature.DIGITAL_SIGNATURE.getValue()) {
         return centralDirectory;
       }
 
-      digitalSignature.setHeaderSignature(signature);
+      digitalSignature.setSignature(HeaderSignature.DIGITAL_SIGNATURE);
 
       //size of data
       readIntoBuff(zip4jRaf, shortBuff);
@@ -467,7 +444,7 @@ public class HeaderReader {
       while (counter < extraFieldLength) {
         ExtraDataRecord extraDataRecord = new ExtraDataRecord();
         int header = Raw.readShortLittleEndian(extraFieldBuf, counter);
-        extraDataRecord.setHeader(header);
+        extraDataRecord.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
         counter = counter + 2;
         int sizeOfRec = Raw.readShortLittleEndian(extraFieldBuf, counter);
 
@@ -575,9 +552,9 @@ public class HeaderReader {
 
       readIntoBuff(zip4jRaf, intBuff);
       int signature = Raw.readIntLittleEndian(intBuff, 0);
-      if (signature == InternalZipConstants.ZIP64ENDCENDIRLOC) {
+      if (signature == HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR.getValue()) {
         zipModel.setZip64Format(true);
-        zip64EndOfCentralDirLocator.setSignature(signature);
+        zip64EndOfCentralDirLocator.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR);
       } else {
         zipModel.setZip64Format(false);
         return null;
@@ -633,10 +610,10 @@ public class HeaderReader {
       //signature
       readIntoBuff(zip4jRaf, intBuff);
       int signature = Raw.readIntLittleEndian(intBuff, 0);
-      if (signature != InternalZipConstants.ZIP64ENDCENDIRREC) {
+      if (signature != HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD.getValue()) {
         throw new ZipException("invalid signature for zip64 end of central directory record");
       }
-      zip64EndOfCentralDirRecord.setSignature(signature);
+      zip64EndOfCentralDirRecord.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD);
 
       //size of zip64 end of central directory record
       readIntoBuff(zip4jRaf, longBuff);
@@ -766,16 +743,6 @@ public class HeaderReader {
     }
   }
 
-  /**
-   * Reads Zip64 Extended Info
-   *
-   * @param extraDataRecords
-   * @param unCompressedSize
-   * @param compressedSize
-   * @param offsetLocalHeader
-   * @param diskNumberStart
-   * @return {@link Zip64ExtendedInfo}
-   */
   private Zip64ExtendedInfo readZip64ExtendedInfo(
       List<ExtraDataRecord> extraDataRecords,
       long unCompressedSize,
@@ -853,11 +820,11 @@ public class HeaderReader {
   private void setFilePointerToReadZip64EndCentralDirLoc(RandomAccessFile zip4jRaf) throws ZipException {
     try {
       byte[] ebs = new byte[4];
-      long pos = zip4jRaf.length() - InternalZipConstants.ENDHDR;
+      long pos = zip4jRaf.length() - ENDHDR;
 
       do {
         zip4jRaf.seek(pos--);
-      } while (Raw.readLeInt(zip4jRaf, ebs) != InternalZipConstants.ENDSIG);
+      } while (Raw.readLeInt(zip4jRaf, ebs) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
 
       // Now the file pointer is at the end of signature of Central Dir Rec
       // Seek back with the following values
@@ -912,10 +879,10 @@ public class HeaderReader {
       //signature
       readIntoBuff(zip4jRaf, intBuff);
       int sig = Raw.readIntLittleEndian(intBuff, 0);
-      if (sig != InternalZipConstants.LOCSIG) {
+      if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
         throw new ZipException("invalid local header signature for file: " + fileHeader.getFileName());
       }
-      localFileHeader.setSignature(sig);
+      localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
       length += 4;
 
       //version needed to extract
@@ -925,7 +892,7 @@ public class HeaderReader {
 
       //general purpose bit flag
       readIntoBuff(zip4jRaf, shortBuff);
-      localFileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & InternalZipConstants.UFT8_NAMES_FLAG) != 0);
+      localFileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & UFT8_NAMES_FLAG) != 0);
       int firstByte = shortBuff[0];
       int result = firstByte & 1;
       if (result != 0) {
@@ -1061,10 +1028,10 @@ public class HeaderReader {
       //signature
       int readLen = inputStream.read(intBuff);
       int sig = Raw.readIntLittleEndian(intBuff, 0);
-      if (sig != InternalZipConstants.LOCSIG) {
+      if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
         return null;
       }
-      localFileHeader.setSignature(sig);
+      localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
       length += 4;
 
       //version needed to extract
@@ -1074,7 +1041,7 @@ public class HeaderReader {
 
       //general purpose bit flag
       inputStream.read(shortBuff);
-      localFileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & InternalZipConstants.UFT8_NAMES_FLAG) != 0);
+      localFileHeader.setFileNameUTF8Encoded((Raw.readShortLittleEndian(shortBuff, 0) & UFT8_NAMES_FLAG) != 0);
       int firstByte = shortBuff[0];
       int result = firstByte & 1;
       if (result != 0) {
@@ -1193,10 +1160,10 @@ public class HeaderReader {
       //signature
       int readLen = inputStream.read(intBuff);
       int sig = Raw.readIntLittleEndian(intBuff, 0);
-      if (sig != InternalZipConstants.EXTSIG) {
+      if (sig != HeaderSignature.EXTRA_DATA_RECORD.getValue()) {
         throw new ZipException("Extended local file header flag is set, but could not find signature");
       }
-      localFileHeader.setSignature(sig);
+      localFileHeader.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
 
       //crc-32
       inputStream.read(intBuff);
@@ -1281,15 +1248,15 @@ public class HeaderReader {
         continue;
       }
 
-      if (extraDataRecord.getHeader() == InternalZipConstants.AESSIG) {
+      if (extraDataRecord.getHeader() == HeaderSignature.AES_EXTRA_DATA_RECORD.getValue()) {
 
         if (extraDataRecord.getData() == null) {
-          throw new ZipException("corrput AES extra data records");
+          throw new ZipException("corrupt AES extra data records");
         }
 
         AESExtraDataRecord aesExtraDataRecord = new AESExtraDataRecord();
 
-        aesExtraDataRecord.setSignature(InternalZipConstants.AESSIG);
+        aesExtraDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
         aesExtraDataRecord.setDataSize(extraDataRecord.getSizeOfData());
 
         byte[] aesData = extraDataRecord.getData();
@@ -1308,43 +1275,19 @@ public class HeaderReader {
     return null;
   }
 
-  /**
-   * Reads buf length of bytes from the input stream to buf
-   *
-   * @param zip4jRaf
-   * @param buf
-   * @return byte array
-   * @throws ZipException
-   */
   private byte[] readIntoBuff(RandomAccessFile zip4jRaf, byte[] buf) throws ZipException {
     try {
       if (zip4jRaf.read(buf, 0, buf.length) != -1) {
         return buf;
       } else {
-        throw new ZipException("unexpected end of file when reading short buff");
+        throw new ZipException("unexpected end of file when reading into buffer");
       }
     } catch (IOException e) {
       throw new ZipException("IOException when reading short buff", e);
     }
   }
 
-  /**
-   * Returns a long byte from an int byte by appending last 4 bytes as 0's
-   *
-   * @param intByte
-   * @return byte array
-   * @throws ZipException
-   */
-  private byte[] getLongByteFromIntByte(byte[] intByte) throws ZipException {
-    if (intByte == null) {
-      throw new ZipException("input parameter is null, cannot expand to 8 bytes");
-    }
-
-    if (intByte.length != 4) {
-      throw new ZipException("invalid byte length, cannot expand to 8 bytes");
-    }
-
-    byte[] longBuff = {intByte[0], intByte[1], intByte[2], intByte[3], 0, 0, 0, 0};
-    return longBuff;
+  private byte[] getLongByteFromIntByte(byte[] intByte) {
+    return new byte[] {intByte[0], intByte[1], intByte[2], intByte[3], 0, 0, 0, 0};
   }
 }

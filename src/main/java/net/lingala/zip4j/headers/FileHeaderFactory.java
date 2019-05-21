@@ -5,7 +5,7 @@ import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.Charset;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
 import net.lingala.zip4j.zip.AesKeyStrength;
@@ -18,7 +18,7 @@ public class FileHeaderFactory {
                                        String fileNameCharset) throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
-    fileHeader.setSignature((int) InternalZipConstants.CENSIG);
+    fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
     fileHeader.setVersionMadeBy(20);
     fileHeader.setVersionNeededToExtract(20);
 
@@ -60,9 +60,9 @@ public class FileHeaderFactory {
     return fileHeader;
   }
 
-  public LocalFileHeader generateLocalFileHeaderFromFileHeader(FileHeader fileHeader) {
+  public LocalFileHeader generateLocalFileHeader(FileHeader fileHeader) {
     LocalFileHeader localFileHeader = new LocalFileHeader();
-    localFileHeader.setSignature((int) InternalZipConstants.LOCSIG);
+    localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
     localFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
     localFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
     localFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
@@ -78,14 +78,14 @@ public class FileHeaderFactory {
     return localFileHeader;
   }
 
-  private byte[] determineGeneralPurposeBitFlag(String fileNameCharset, boolean isEncrypted,
-                                                ZipParameters zipParameters, String fileName) throws ZipException {
+  private byte[] determineGeneralPurposeBitFlag(String fileNameCharset, boolean isEncrypted,ZipParameters zipParameters,
+                                                String fileName) throws ZipException {
     byte[] generalPurposeBitFlag = new byte[2];
     generalPurposeBitFlag[0] = Raw.bitArrayToByte(generateGeneralPurposeBitArray(isEncrypted, zipParameters.getCompressionMethod()));
 
     boolean isFileNameCharsetSet = Zip4jUtil.isStringNotNullAndNotEmpty(fileNameCharset);
-    if ((isFileNameCharsetSet && fileNameCharset.equalsIgnoreCase(InternalZipConstants.CHARSET_UTF8)) ||
-        (!isFileNameCharsetSet && Zip4jUtil.detectCharSet(fileName).equals(InternalZipConstants.CHARSET_UTF8))) {
+    if ((isFileNameCharsetSet && fileNameCharset.equalsIgnoreCase(Charset.UTF8.getCharsetCode()))
+        || (!isFileNameCharsetSet && Zip4jUtil.detectCharSet(fileName).equals(Charset.UTF8.getCharsetCode()))) {
       generalPurposeBitFlag[1] = 8;
     } else {
       generalPurposeBitFlag[1] = 0;
@@ -103,7 +103,7 @@ public class FileHeaderFactory {
 
   private AESExtraDataRecord generateAESExtraDataRecord(ZipParameters parameters) throws ZipException {
     AESExtraDataRecord aesDataRecord = new AESExtraDataRecord();
-    aesDataRecord.setSignature(InternalZipConstants.AESSIG);
+    aesDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
     aesDataRecord.setDataSize(7);
     aesDataRecord.setVendorID("AE");
     // Always set the version number to 2 as we do not store CRC for any AES encrypted files

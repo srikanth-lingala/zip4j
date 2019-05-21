@@ -23,28 +23,21 @@ import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
 import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.zip.AesKeyStrength;
 
 import java.util.Arrays;
 
+import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
+
 public class AESDecrypter implements Decrypter {
+
+  private static final int PASSWORD_VERIFIER_LENGTH = 2;
 
   private AESExtraDataRecord aesExtraDataRecord;
   private char[] password;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
-
-  private final int PASSWORD_VERIFIER_LENGTH = 2;
-  private int KEY_LENGTH;
-  private int MAC_LENGTH;
-  private int SALT_LENGTH;
-
-  private byte[] aesKey;
-  private byte[] macKey;
-  private byte[] derivedPasswordVerifier;
-  private byte[] storedMac;
 
   private int nonce = 1;
   private byte[] iv;
@@ -54,46 +47,32 @@ public class AESDecrypter implements Decrypter {
   public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt, byte[] passwordVerifier) throws ZipException {
     this.aesExtraDataRecord = aesExtraDataRecord;
     this.password = password;
-    this.storedMac = null;
-    iv = new byte[InternalZipConstants.AES_BLOCK_SIZE];
-    counterBlock = new byte[InternalZipConstants.AES_BLOCK_SIZE];
+    iv = new byte[AES_BLOCK_SIZE];
+    counterBlock = new byte[AES_BLOCK_SIZE];
     init(salt, passwordVerifier);
   }
 
   private void init(byte[] salt, byte[] passwordVerifier) throws ZipException {
-    if (aesExtraDataRecord.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
-      KEY_LENGTH = 16;
-      MAC_LENGTH = 16;
-      SALT_LENGTH = 8;
-    } else if (aesExtraDataRecord.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_192) {
-      KEY_LENGTH = 24;
-      MAC_LENGTH = 24;
-      SALT_LENGTH = 12;
-    } else if (aesExtraDataRecord.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_256) {
-      KEY_LENGTH = 32;
-      MAC_LENGTH = 32;
-      SALT_LENGTH = 16;
-    } else {
-      throw new ZipException("invalid aes key strength");
-    }
+    AesKeyStrength aesKeyStrength = aesExtraDataRecord.getAesKeyStrength();
 
     if (password == null || password.length <= 0) {
       throw new ZipException("empty or null password provided for AES Decryptor");
     }
 
-    byte[] derivedKey = deriveKey(salt, password);
-    if (derivedKey == null ||
-        derivedKey.length != (KEY_LENGTH + MAC_LENGTH + PASSWORD_VERIFIER_LENGTH)) {
+    byte[] derivedKey = deriveKey(salt, password, aesKeyStrength.getKeyLength(), aesKeyStrength.getMacLength());
+    if (derivedKey == null || derivedKey.length != (aesKeyStrength.getKeyLength() + aesKeyStrength.getMacLength()
+        + PASSWORD_VERIFIER_LENGTH)) {
       throw new ZipException("invalid derived key");
     }
 
-    aesKey = new byte[KEY_LENGTH];
-    macKey = new byte[MAC_LENGTH];
-    derivedPasswordVerifier = new byte[PASSWORD_VERIFIER_LENGTH];
+    byte[] aesKey = new byte[aesKeyStrength.getKeyLength()];
+    byte[] macKey = new byte[aesKeyStrength.getMacLength()];
+    byte[] derivedPasswordVerifier = new byte[PASSWORD_VERIFIER_LENGTH];
 
-    System.arraycopy(derivedKey, 0, aesKey, 0, KEY_LENGTH);
-    System.arraycopy(derivedKey, KEY_LENGTH, macKey, 0, MAC_LENGTH);
-    System.arraycopy(derivedKey, KEY_LENGTH + MAC_LENGTH, derivedPasswordVerifier, 0, PASSWORD_VERIFIER_LENGTH);
+    System.arraycopy(derivedKey, 0, aesKey, 0, aesKeyStrength.getKeyLength());
+    System.arraycopy(derivedKey, aesKeyStrength.getKeyLength(), macKey, 0, aesKeyStrength.getMacLength());
+    System.arraycopy(derivedKey, aesKeyStrength.getKeyLength() + aesKeyStrength.getMacLength(), derivedPasswordVerifier,
+        0, PASSWORD_VERIFIER_LENGTH);
 
     if (derivedPasswordVerifier == null) {
       throw new ZipException("invalid derived password verifier for AES");
@@ -108,51 +87,30 @@ public class AESDecrypter implements Decrypter {
     mac.init(macKey);
   }
 
+  @Override
   public int decryptData(byte[] buff, int start, int len) throws ZipException {
 
-    if (aesEngine == null) {
-      throw new ZipException("AES not initialized properly");
-    }
+    for (int j = start; j < (start + len); j += AES_BLOCK_SIZE) {
+      loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
+          AES_BLOCK_SIZE : ((start + len) - j);
 
-    try {
+      mac.update(buff, j, loopCount);
+      Raw.prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
+      aesEngine.processBlock(iv, counterBlock);
 
-      for (int j = start; j < (start + len); j += InternalZipConstants.AES_BLOCK_SIZE) {
-        loopCount = (j + InternalZipConstants.AES_BLOCK_SIZE <= (start + len)) ?
-            InternalZipConstants.AES_BLOCK_SIZE : ((start + len) - j);
-
-        mac.update(buff, j, loopCount);
-        Raw.prepareBuffAESIVBytes(iv, nonce, InternalZipConstants.AES_BLOCK_SIZE);
-        aesEngine.processBlock(iv, counterBlock);
-
-        for (int k = 0; k < loopCount; k++) {
-          buff[j + k] = (byte) (buff[j + k] ^ counterBlock[k]);
-        }
-
-        nonce++;
+      for (int k = 0; k < loopCount; k++) {
+        buff[j + k] = (byte) (buff[j + k] ^ counterBlock[k]);
       }
 
-      return len;
-
-    } catch (ZipException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new ZipException(e);
+      nonce++;
     }
+
+    return len;
   }
 
-  public int decryptData(byte[] buff) throws ZipException {
-    return decryptData(buff, 0, buff.length);
-  }
-
-  private byte[] deriveKey(byte[] salt, char[] password) throws ZipException {
-    try {
-      PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1",
-          salt, 1000);
-      PBKDF2Engine e = new PBKDF2Engine(p);
-      byte[] derivedKey = e.deriveKey(password, KEY_LENGTH + MAC_LENGTH + PASSWORD_VERIFIER_LENGTH);
-      return derivedKey;
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
+  private byte[] deriveKey(byte[] salt, char[] password, int keyLength, int macLength) {
+    PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1", salt, 1000);
+    PBKDF2Engine e = new PBKDF2Engine(p);
+    return e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
   }
 }

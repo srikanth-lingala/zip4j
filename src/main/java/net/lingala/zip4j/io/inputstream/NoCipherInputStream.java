@@ -20,11 +20,6 @@ class NoCipherInputStream extends CipherInputStream {
   static class NoDecrypter implements Decrypter {
 
     @Override
-    public int decryptData(byte[] buff) {
-      return buff.length;
-    }
-
-    @Override
     public int decryptData(byte[] buff, int start, int len) {
       return len;
     }

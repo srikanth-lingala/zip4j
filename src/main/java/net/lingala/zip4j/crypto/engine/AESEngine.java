@@ -17,7 +17,8 @@
 package net.lingala.zip4j.crypto.engine;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.util.InternalZipConstants;
+
+import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
 /**
  * Core Engine for AES Encryption
@@ -92,7 +93,7 @@ public class AESEngine {
     encryptBlock(workingKey);
     stateOut(out, outOff);
 
-    return InternalZipConstants.AES_BLOCK_SIZE;
+    return AES_BLOCK_SIZE;
   }
 
   private final void stateIn(byte[] bytes, int off) {

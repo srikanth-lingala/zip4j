@@ -16,21 +16,11 @@
 
 package net.lingala.zip4j.model;
 
-public class DigitalSignature {
-
-  private int headerSignature;
+public class DigitalSignature  extends ZipHeader {
 
   private int sizeOfData;
 
   private String signatureData;
-
-  public int getHeaderSignature() {
-    return headerSignature;
-  }
-
-  public void setHeaderSignature(int headerSignature) {
-    this.headerSignature = headerSignature;
-  }
 
   public int getSizeOfData() {
     return sizeOfData;

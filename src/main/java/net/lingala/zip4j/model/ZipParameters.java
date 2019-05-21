@@ -16,7 +16,6 @@
 
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Zip4jUtil;
 import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionLevel;
@@ -24,6 +23,8 @@ import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.util.TimeZone;
+
+import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
 public class ZipParameters {
 
@@ -130,7 +131,7 @@ public class ZipParameters {
     if (Zip4jUtil.isStringNotNullAndNotEmpty(rootFolderInZip)) {
 
       if (!rootFolderInZip.endsWith("\\") && !rootFolderInZip.endsWith("/")) {
-        rootFolderInZip = rootFolderInZip + InternalZipConstants.FILE_SEPARATOR;
+        rootFolderInZip = rootFolderInZip + FILE_SEPARATOR;
       }
 
       rootFolderInZip = rootFolderInZip.replaceAll("\\\\", "/");

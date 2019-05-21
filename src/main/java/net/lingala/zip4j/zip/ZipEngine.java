@@ -17,6 +17,7 @@
 package net.lingala.zip4j.zip;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.EndOfCentralDirRecord;
@@ -26,9 +27,8 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.ArchiveMaintainer;
 import net.lingala.zip4j.util.CRCUtil;
-import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.util.RandomAccessFileMode;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +39,10 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.OFFSET_CENTRAL_DIR;
+import static net.lingala.zip4j.util.InternalZipConstants.THREAD_NAME;
 
 public class ZipEngine {
 
@@ -62,7 +66,7 @@ public class ZipEngine {
       progressMonitor.setTotalWork(calculateTotalWork(filesToAdd, parameters));
       progressMonitor.setFileName(((File) filesToAdd.get(0)).getAbsolutePath());
 
-      Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
+      Thread thread = new Thread(THREAD_NAME) {
         public void run() {
           try {
             initAddFiles(filesToAdd, parameters);
@@ -109,7 +113,7 @@ public class ZipEngine {
         }
         splitOutputStream.seek(zipModel.getEndOfCentralDirRecord().getOffsetOfStartOfCentralDir());
       }
-      byte[] readBuff = new byte[InternalZipConstants.BUFF_SIZE];
+      byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
       for (int i = 0; i < filesToAdd.size(); i++) {
 
@@ -220,7 +224,7 @@ public class ZipEngine {
         splitOutputStream.seek(zipModel.getEndOfCentralDirRecord().getOffsetOfStartOfCentralDir());
       }
 
-      byte[] readBuff = new byte[InternalZipConstants.BUFF_SIZE];
+      byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
 
       outputStream.putNextEntry(parameters);
@@ -359,12 +363,12 @@ public class ZipEngine {
             outputStream = prepareFileOutputStream();
 
             if (retMap != null) {
-              if (retMap.get(InternalZipConstants.OFFSET_CENTRAL_DIR) != null) {
+              if (retMap.get(OFFSET_CENTRAL_DIR) != null) {
                 long offsetCentralDir = -1;
                 try {
                   offsetCentralDir = Long
                       .parseLong((String) retMap
-                          .get(InternalZipConstants.OFFSET_CENTRAL_DIR));
+                          .get(OFFSET_CENTRAL_DIR));
                 } catch (NumberFormatException e) {
                   throw new ZipException(
                       "NumberFormatException while parsing offset central directory. " +
@@ -401,7 +405,7 @@ public class ZipEngine {
       if (!zipModel.getZipFile().getParentFile().exists()) {
         zipModel.getZipFile().getParentFile().mkdirs();
       }
-      return new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getCode());
+      return new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
     } catch (FileNotFoundException e) {
       throw new ZipException(e);
     }
@@ -409,7 +413,7 @@ public class ZipEngine {
 
   private EndOfCentralDirRecord createEndOfCentralDirectoryRecord() {
     EndOfCentralDirRecord endOfCentralDirRecord = new EndOfCentralDirRecord();
-    endOfCentralDirRecord.setSignature(InternalZipConstants.ENDSIG);
+    endOfCentralDirRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
     endOfCentralDirRecord.setNoOfThisDisk(0);
     endOfCentralDirRecord.setTotNoOfEntriesInCentralDir(0);
     endOfCentralDirRecord.setTotNoOfEntriesInCentralDirOnThisDisk(0);

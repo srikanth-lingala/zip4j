@@ -20,8 +20,6 @@ import net.lingala.zip4j.exception.ZipException;
 
 public interface Decrypter {
 
-  public int decryptData(byte[] buff, int start, int len) throws ZipException;
-
-  public int decryptData(byte[] buff) throws ZipException;
+  int decryptData(byte[] buff, int start, int len) throws ZipException;
 
 }

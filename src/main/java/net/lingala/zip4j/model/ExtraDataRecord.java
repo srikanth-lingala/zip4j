@@ -16,12 +16,10 @@
 
 package net.lingala.zip4j.model;
 
-public class ExtraDataRecord {
+public class ExtraDataRecord extends ZipHeader {
 
   private long header;
-
   private int sizeOfData;
-
   private byte[] data;
 
   public long getHeader() {

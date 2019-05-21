@@ -2,12 +2,12 @@ package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.FileHeaderFactory;
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
@@ -136,7 +136,7 @@ public class ZipOutputStream extends OutputStream {
         countingOutputStream.getCurrentSplitFileCounter(), zipModel.getFileNameCharset());
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
-    localFileHeader = fileHeaderFactory.generateLocalFileHeaderFromFileHeader(fileHeader);
+    localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
     headerWriter.writeLocalFileHeader(zipModel, localFileHeader, countingOutputStream);
   }
 
@@ -152,7 +152,7 @@ public class ZipOutputStream extends OutputStream {
     }
 
     byte[] intByte = new byte[4];
-    Raw.writeIntLittleEndian(intByte, 0, (int) InternalZipConstants.SPLITSIG);
+    Raw.writeIntLittleEndian(intByte, 0, (int) HeaderSignature.SPLIT_ZIP.getValue());
     countingOutputStream.write(intByte);
   }
 

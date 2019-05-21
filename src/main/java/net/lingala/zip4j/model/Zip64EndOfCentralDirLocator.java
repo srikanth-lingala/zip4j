@@ -16,23 +16,11 @@
 
 package net.lingala.zip4j.model;
 
-public class Zip64EndOfCentralDirLocator {
-
-  private long signature;
+public class Zip64EndOfCentralDirLocator extends ZipHeader {
 
   private int noOfDiskStartOfZip64EndOfCentralDirRec;
-
   private long offsetZip64EndOfCentralDirRec;
-
   private int totNumberOfDiscs;
-
-  public long getSignature() {
-    return signature;
-  }
-
-  public void setSignature(long signature) {
-    this.signature = signature;
-  }
 
   public int getNoOfDiskStartOfZip64EndOfCentralDirRec() {
     return noOfDiskStartOfZip64EndOfCentralDirRec;

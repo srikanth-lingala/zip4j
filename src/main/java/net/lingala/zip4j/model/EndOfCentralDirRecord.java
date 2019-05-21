@@ -16,36 +16,21 @@
 
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.headers.HeaderSignature;
 
-public class EndOfCentralDirRecord {
-
-  private long signature = InternalZipConstants.ENDSIG;
-
+public class EndOfCentralDirRecord extends ZipHeader {
   private int noOfThisDisk;
-
   private int noOfThisDiskStartOfCentralDir;
-
   private int totNoOfEntriesInCentralDirOnThisDisk;
-
   private int totNoOfEntriesInCentralDir;
-
   private int sizeOfCentralDir;
-
   private long offsetOfStartOfCentralDir;
-
   private int commentLength;
-
   private String comment;
-
   private byte[] commentBytes;
 
-  public long getSignature() {
-    return signature;
-  }
-
-  public void setSignature(long signature) {
-    this.signature = signature;
+  public EndOfCentralDirRecord() {
+    setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
   }
 
   public int getNoOfThisDisk() {

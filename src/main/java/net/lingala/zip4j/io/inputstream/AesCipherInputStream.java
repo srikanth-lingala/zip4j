@@ -5,14 +5,15 @@ import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static net.lingala.zip4j.util.InternalZipConstants.AES_AUTH_LENGTH;
+
 class AesCipherInputStream extends CipherInputStream {
 
-  private byte[] storedMac = new byte[InternalZipConstants.AES_AUTH_LENGTH];
+  private byte[] storedMac = new byte[AES_AUTH_LENGTH];
   private byte[] aesBlockByte = new byte[16];
   private int aesBytesReturned = 0;
   private boolean non16ByteBlockRead = false;
@@ -56,7 +57,7 @@ class AesCipherInputStream extends CipherInputStream {
   protected void readMac(InputStream inputStream) throws IOException {
     int readLen = inputStream.read(storedMac);
 
-    if (readLen != InternalZipConstants.AES_AUTH_LENGTH) {
+    if (readLen != AES_AUTH_LENGTH) {
       throw new IOException("Invalid AES Mac bytes. Could not read sufficient data");
     }
   }

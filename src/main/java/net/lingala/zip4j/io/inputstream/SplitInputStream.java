@@ -2,33 +2,25 @@ package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.util.RandomAccessFileMode;
+import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PushbackInputStream;
 import java.io.RandomAccessFile;
 
 public class SplitInputStream extends InputStream {
 
-  private PushbackInputStream inputStream;
   private RandomAccessFile randomAccessFile;
   private ZipModel zipModel;
   private boolean isSplitZipArchive = false;
   private int currentSplitFileCounter = 0;
-  private long numberOfBytesRead = 0;
   private byte[] singleByteArray = new byte[1];
-
-  public SplitInputStream(InputStream inputStream) {
-    this.inputStream = new PushbackInputStream(inputStream, 512);
-  }
 
   public SplitInputStream(RandomAccessFile randomAccessFile, ZipModel zipModel) {
     this.randomAccessFile = randomAccessFile;
     this.zipModel = zipModel;
-    this.inputStream = null;
     this.isSplitZipArchive = zipModel.isSplitArchive();
   }
 
@@ -50,7 +42,6 @@ public class SplitInputStream extends InputStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     int readLen = readDataFromStream(b, off, len);
-    numberOfBytesRead += readLen;
     return readLen;
   }
 
@@ -59,25 +50,14 @@ public class SplitInputStream extends InputStream {
       throw new IOException("This method can only be called in randomaccessfile mode");
     }
 
-    if (!zipModel.isSplitArchive()) {
-      randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
-      return;
+    if (zipModel.isSplitArchive() && currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1) {
+      openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
     }
 
-    openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
+    randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
   }
 
   private int readDataFromStream(byte[] b, int off, int len) throws IOException {
-    if (randomAccessFile != null) {
-      return readFromRandomAccessFile(b, off, len);
-    } else if (inputStream != null) {
-      return inputStream.read(b, off, len);
-    } else {
-      throw new IOException("Invalid ZipEntryInputStream state. No inputstreams available to read data from");
-    }
-  }
-
-  private int readFromRandomAccessFile(byte[] b, int off, int len) throws IOException {
     int readLen = randomAccessFile.read(b, off, len);
 
     if (readLen == -1 && isSplitZipArchive) {
@@ -98,7 +78,7 @@ public class SplitInputStream extends InputStream {
       throw new FileNotFoundException("zip split file does not exist: " + nextSplitFile);
     }
     randomAccessFile.close();
-    randomAccessFile = new RandomAccessFile(nextSplitFile, RandomAccessFileMode.READ.getCode());
+    randomAccessFile = new RandomAccessFile(nextSplitFile, RandomAccessFileMode.READ.getValue());
   }
 
   private File getNextSplitFileName(int zipFileIndex) throws IOException {
@@ -121,9 +101,5 @@ public class SplitInputStream extends InputStream {
     if (randomAccessFile != null) {
       randomAccessFile.close();
     }
-  }
-
-  public long getNumberOfBytesRead() {
-    return numberOfBytesRead;
   }
 }

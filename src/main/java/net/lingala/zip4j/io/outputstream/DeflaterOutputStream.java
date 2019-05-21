@@ -16,15 +16,16 @@
 
 package net.lingala.zip4j.io.outputstream;
 
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.zip.CompressionLevel;
 
 import java.io.IOException;
 import java.util.zip.Deflater;
 
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+
 class DeflaterOutputStream extends CompressedOutputStream {
 
-  private byte[] buff = new byte[InternalZipConstants.BUFF_SIZE];
+  private byte[] buff = new byte[BUFF_SIZE];
   protected Deflater deflater;
   private boolean firstBytesRead;
 

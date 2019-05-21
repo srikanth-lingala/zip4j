@@ -16,12 +16,12 @@
 
 package net.lingala.zip4j.model;
 
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.zip.AesKeyStrength;
 import net.lingala.zip4j.zip.CompressionMethod;
 
-public class AESExtraDataRecord {
+public class AESExtraDataRecord extends ZipHeader {
 
-  private long signature;
   private int dataSize;
   private int versionNumber;
   private String vendorID;
@@ -29,24 +29,13 @@ public class AESExtraDataRecord {
   private CompressionMethod compressionMethod;
 
   public AESExtraDataRecord() {
-    signature = -1;
+    setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
     dataSize = -1;
     versionNumber = -1;
     vendorID = null;
     aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
     compressionMethod = CompressionMethod.DEFLATE;
   }
-
-
-  public long getSignature() {
-    return signature;
-  }
-
-
-  public void setSignature(long signature) {
-    this.signature = signature;
-  }
-
 
   public int getDataSize() {
     return dataSize;

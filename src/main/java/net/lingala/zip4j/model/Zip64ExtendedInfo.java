@@ -16,18 +16,12 @@
 
 package net.lingala.zip4j.model;
 
-public class Zip64ExtendedInfo {
-
-  private int header;
+public class Zip64ExtendedInfo extends ZipHeader {
 
   private int size;
-
   private long compressedSize;
-
   private long unCompressedSize;
-
   private long offsetLocalHeader;
-
   private int diskNumberStart;
 
   public Zip64ExtendedInfo() {
@@ -35,14 +29,6 @@ public class Zip64ExtendedInfo {
     unCompressedSize = -1;
     offsetLocalHeader = -1;
     diskNumberStart = -1;
-  }
-
-  public int getHeader() {
-    return header;
-  }
-
-  public void setHeader(int header) {
-    this.header = header;
   }
 
   public int getSize() {

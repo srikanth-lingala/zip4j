@@ -19,7 +19,6 @@ package net.lingala.zip4j.io.inputstream;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.zip.CompressionMethod;
 import net.lingala.zip4j.zip.EncryptionMethod;
 
@@ -32,23 +31,17 @@ public class ZipInputStream extends InputStream {
 
   private PushbackInputStream inputStream;
   private DecompressedInputStream decompressedInputStream;
-  private ZipModel zipModel;
   private HeaderReader headerReader = new HeaderReader();
   private char[] password;
   private boolean extendedLocalFileHeaderPresent = false;
   private CRC32 crc32 = new CRC32();
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null, null);
+    this(inputStream, null);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
-    this(inputStream, password, null);
-  }
-
-  public ZipInputStream(InputStream inputStream, char[] password, ZipModel zipModel) {
     this.inputStream = new PushbackInputStream(inputStream, 512);
-    this.zipModel = zipModel;
     this.password = password;
   }
 
@@ -106,7 +99,7 @@ public class ZipInputStream extends InputStream {
   }
 
   private DecompressedInputStream initializeEntryInputStream(LocalFileHeader localFileHeader) throws IOException, ZipException {
-    ZipEntryInputStream zipEntryInputStream = new ZipEntryInputStream(inputStream, zipModel);
+    ZipEntryInputStream zipEntryInputStream = new ZipEntryInputStream(inputStream);
     CipherInputStream cipherInputStream = initializeCipherInputStream(zipEntryInputStream, localFileHeader);
     return initializeDecompressorForThisEntry(cipherInputStream, localFileHeader);
   }

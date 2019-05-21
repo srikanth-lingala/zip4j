@@ -21,28 +21,21 @@ import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Engine;
 import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
 import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.zip.AesKeyStrength;
 
 import java.util.Random;
 
+import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
+
 public class AESEncrpyter implements Encrypter {
+
+  private static final int PASSWORD_VERIFIER_LENGTH = 2;
 
   private char[] password;
   private AesKeyStrength aesKeyStrength;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
-
-  private int KEY_LENGTH;
-  private int MAC_LENGTH;
-  private int SALT_LENGTH;
-  private final int PASSWORD_VERIFIER_LENGTH = 2;
-
-  private byte[] aesKey;
-  private byte[] macKey;
-  private byte[] derivedPasswordVerifier;
-  private byte[] saltBytes;
 
   private boolean finished;
 
@@ -51,6 +44,8 @@ public class AESEncrpyter implements Encrypter {
 
   private byte[] iv;
   private byte[] counterBlock;
+  private byte[] derivedPasswordVerifier;
+  private byte[] saltBytes;
 
   public AESEncrpyter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
     if (password == null || password.length == 0) {
@@ -64,42 +59,42 @@ public class AESEncrpyter implements Encrypter {
     this.password = password;
     this.aesKeyStrength = aesKeyStrength;
     this.finished = false;
-    counterBlock = new byte[InternalZipConstants.AES_BLOCK_SIZE];
-    iv = new byte[InternalZipConstants.AES_BLOCK_SIZE];
+    counterBlock = new byte[AES_BLOCK_SIZE];
+    iv = new byte[AES_BLOCK_SIZE];
     init();
   }
 
   private void init() throws ZipException {
-    KEY_LENGTH = aesKeyStrength.getKeyLength();
-    MAC_LENGTH = aesKeyStrength.getMacLength();
-    SALT_LENGTH = aesKeyStrength.getSaltLength();
+    int keyLength = aesKeyStrength.getKeyLength();
+    int macLength = aesKeyStrength.getMacLength();
+    int saltLength = aesKeyStrength.getSaltLength();
 
-    saltBytes = generateSalt(SALT_LENGTH);
-    byte[] keyBytes = deriveKey(saltBytes, password);
+    saltBytes = generateSalt(saltLength);
+    byte[] keyBytes = deriveKey(saltBytes, password, keyLength, macLength);
 
-    if (keyBytes == null || keyBytes.length != (KEY_LENGTH + MAC_LENGTH + PASSWORD_VERIFIER_LENGTH)) {
+    if (keyBytes == null || keyBytes.length != (keyLength + macLength + PASSWORD_VERIFIER_LENGTH)) {
       throw new ZipException("invalid key generated, cannot decrypt file");
     }
 
-    aesKey = new byte[KEY_LENGTH];
-    macKey = new byte[MAC_LENGTH];
+    byte[] aesKey = new byte[keyLength];
+    byte[] macKey = new byte[macLength];
     derivedPasswordVerifier = new byte[PASSWORD_VERIFIER_LENGTH];
 
-    System.arraycopy(keyBytes, 0, aesKey, 0, KEY_LENGTH);
-    System.arraycopy(keyBytes, KEY_LENGTH, macKey, 0, MAC_LENGTH);
-    System.arraycopy(keyBytes, KEY_LENGTH + MAC_LENGTH, derivedPasswordVerifier, 0, PASSWORD_VERIFIER_LENGTH);
+    System.arraycopy(keyBytes, 0, aesKey, 0, keyLength);
+    System.arraycopy(keyBytes, keyLength, macKey, 0, macLength);
+    System.arraycopy(keyBytes, keyLength + macLength, derivedPasswordVerifier, 0, PASSWORD_VERIFIER_LENGTH);
 
     aesEngine = new AESEngine(aesKey);
     mac = new MacBasedPRF("HmacSHA1");
     mac.init(macKey);
   }
 
-  private byte[] deriveKey(byte[] salt, char[] password) throws ZipException {
+  private byte[] deriveKey(byte[] salt, char[] password, int keyLength, int macLength) throws ZipException {
     try {
       PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1",
           salt, 1000);
       PBKDF2Engine e = new PBKDF2Engine(p);
-      byte[] derivedKey = e.deriveKey(password, KEY_LENGTH + MAC_LENGTH + PASSWORD_VERIFIER_LENGTH);
+      byte[] derivedKey = e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
       return derivedKey;
     } catch (Exception e) {
       throw new ZipException(e);
@@ -127,11 +122,11 @@ public class AESEncrpyter implements Encrypter {
       this.finished = true;
     }
 
-    for (int j = start; j < (start + len); j += InternalZipConstants.AES_BLOCK_SIZE) {
-      loopCount = (j + InternalZipConstants.AES_BLOCK_SIZE <= (start + len)) ?
-          InternalZipConstants.AES_BLOCK_SIZE : ((start + len) - j);
+    for (int j = start; j < (start + len); j += AES_BLOCK_SIZE) {
+      loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
+          AES_BLOCK_SIZE : ((start + len) - j);
 
-      Raw.prepareBuffAESIVBytes(iv, nonce, InternalZipConstants.AES_BLOCK_SIZE);
+      Raw.prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
       aesEngine.processBlock(iv, counterBlock);
 
       for (int k = 0; k < loopCount; k++) {
@@ -181,23 +176,7 @@ public class AESEncrpyter implements Encrypter {
     return derivedPasswordVerifier;
   }
 
-  public void setDerivedPasswordVerifier(byte[] derivedPasswordVerifier) {
-    this.derivedPasswordVerifier = derivedPasswordVerifier;
-  }
-
   public byte[] getSaltBytes() {
     return saltBytes;
-  }
-
-  public void setSaltBytes(byte[] saltBytes) {
-    this.saltBytes = saltBytes;
-  }
-
-  public int getSaltLength() {
-    return SALT_LENGTH;
-  }
-
-  public int getPasswordVeriifierLength() {
-    return PASSWORD_VERIFIER_LENGTH;
   }
 }

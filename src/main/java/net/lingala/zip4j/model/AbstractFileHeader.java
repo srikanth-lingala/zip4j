@@ -5,9 +5,8 @@ import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.util.List;
 
-public abstract class AbstractFileHeader {
+public abstract class AbstractFileHeader extends ZipHeader {
 
-  private int signature;
   private int versionNeededToExtract;
   private byte[] generalPurposeFlag;
   private CompressionMethod compressionMethod;
@@ -26,14 +25,6 @@ public abstract class AbstractFileHeader {
   private AESExtraDataRecord aesExtraDataRecord;
   private boolean fileNameUTF8Encoded;
   private List<ExtraDataRecord> extraDataRecords;
-
-  public int getSignature() {
-    return signature;
-  }
-
-  public void setSignature(int signature) {
-    this.signature = signature;
-  }
 
   public int getVersionNeededToExtract() {
     return versionNeededToExtract;
