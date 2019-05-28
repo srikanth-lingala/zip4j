@@ -32,7 +32,7 @@ public class CountingOutputStream extends OutputStream {
 
   public int getCurrentSplitFileCounter() {
     if (isSplitOutputStream()) {
-      return ((SplitOutputStream) outputStream).getCurrSplitFileCounter();
+      return ((SplitOutputStream) outputStream).getCurrentSplitFileCounter();
     }
 
     return 0;

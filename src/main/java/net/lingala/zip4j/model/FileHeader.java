@@ -16,11 +16,6 @@
 
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.zip.UnzipEngine;
-
 public class FileHeader extends AbstractFileHeader {
 
   private int versionMadeBy;
@@ -31,62 +26,6 @@ public class FileHeader extends AbstractFileHeader {
   private long offsetLocalHeader;
   private String fileComment;
   private boolean isDirectory;
-
-  /**
-   * Extracts file to the specified directory
-   *
-   * @param zipModel
-   * @param outputPath
-   * @throws ZipException
-   */
-  public void extractFile(ZipModel zipModel, String outputPath, ProgressMonitor progressMonitor,
-                          boolean runInThread, char[] password) throws ZipException {
-    extractFile(zipModel, outputPath, null, progressMonitor, runInThread, password);
-  }
-
-  /**
-   * Extracts file to the specified directory using any
-   * user defined parameters in UnzipParameters
-   *
-   * @param zipModel
-   * @param outputPath
-   * @param unzipParameters
-   * @throws ZipException
-   */
-  public void extractFile(ZipModel zipModel, String outputPath, UnzipParameters unzipParameters,
-                          ProgressMonitor progressMonitor, boolean runInThread, char[] password) throws ZipException {
-    extractFile(zipModel, outputPath, unzipParameters, null, progressMonitor, runInThread, password);
-  }
-
-  /**
-   * Extracts file to the specified directory using any
-   * user defined parameters in UnzipParameters. Output file name
-   * will be overwritten with the value in newFileName. If this
-   * parameter is null, then file name will be the same as in
-   * FileHeader.getFileName
-   *
-   * @param zipModel
-   * @param outputPath
-   * @param unzipParameters
-   * @throws ZipException
-   */
-  public void extractFile(ZipModel zipModel, String outputPath, UnzipParameters unzipParameters, String newFileName,
-                          ProgressMonitor progressMonitor, boolean runInThread, char[] password) throws ZipException {
-    if (zipModel == null) {
-      throw new ZipException("input zipModel is null");
-    }
-
-    if (!Zip4jUtil.checkOutputFolder(outputPath)) {
-      throw new ZipException("Invalid output path");
-    }
-
-    if (this == null) {
-      throw new ZipException("invalid file header");
-    }
-
-    UnzipEngine unzipEngine = new UnzipEngine(zipModel, progressMonitor, password);
-    unzipEngine.extractFile(this, outputPath, newFileName, runInThread, unzipParameters);
-  }
 
   public int getVersionMadeBy() {
     return versionMadeBy;

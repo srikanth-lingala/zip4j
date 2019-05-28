@@ -201,7 +201,7 @@ public class SplitOutputStream extends OutputStream {
     return splitLength;
   }
 
-  public int getCurrSplitFileCounter() {
+  public int getCurrentSplitFileCounter() {
     return currSplitFileCounter;
   }
 }

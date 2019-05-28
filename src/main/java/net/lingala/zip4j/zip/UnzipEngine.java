@@ -226,13 +226,8 @@ public class UnzipEngine {
     return splitInputStream;
   }
 
-  private void checkOutputDirectoryStructure(FileHeader fileHeader, String outPath, String newFileName) throws ZipException {
-    if (fileHeader == null || !Zip4jUtil.isStringNotNullAndNotEmpty(outPath)) {
-      throw new ZipException("Cannot check output directory structure...one of the parameters was null");
-    }
-
+  private void checkOutputDirectoryStructure(FileHeader fileHeader, String outPath, String newFileName) {
     String fileName = fileHeader.getFileName();
-
     if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
       fileName = newFileName;
     }
@@ -243,15 +238,9 @@ public class UnzipEngine {
     }
 
     String compOutPath = outPath + fileName;
-    try {
-      File file = new File(compOutPath);
-      String parentDir = file.getParent();
-      File parentDirFile = new File(parentDir);
-      if (!parentDirFile.exists()) {
-        parentDirFile.mkdirs();
-      }
-    } catch (Exception e) {
-      throw new ZipException(e);
+    File file = new File(compOutPath);
+    if (!file.getParentFile().exists()) {
+      file.getParentFile().mkdirs();
     }
   }
 
@@ -268,14 +257,6 @@ public class UnzipEngine {
     }
 
     return totalWork;
-  }
-
-  private String getOutputFileNameWithPath(FileHeader fileHeader, String outputPath, String newFileName) {
-    String fileName = fileHeader.getFileName();
-    if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
-      fileName = newFileName;
-    }
-    return outputPath + System.getProperty("file.separator") + fileName;
   }
 
 }

@@ -561,7 +561,7 @@ public class HeaderReader {
       }
 
       readIntoBuff(zip4jRaf, intBuff);
-      zip64EndOfCentralDirectoryLocator.setNoOfDiskStartOfZip64EndOfCentralDirRec(
+      zip64EndOfCentralDirectoryLocator.setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
           Raw.readIntLittleEndian(intBuff, 0));
 
       readIntoBuff(zip4jRaf, longBuff);
@@ -569,7 +569,7 @@ public class HeaderReader {
           Raw.readLongLittleEndian(longBuff, 0));
 
       readIntoBuff(zip4jRaf, intBuff);
-      zip64EndOfCentralDirectoryLocator.setTotNumberOfDiscs(Raw.readIntLittleEndian(intBuff, 0));
+      zip64EndOfCentralDirectoryLocator.setTotalNumberOfDiscs(Raw.readIntLittleEndian(intBuff, 0));
 
       return zip64EndOfCentralDirectoryLocator;
 

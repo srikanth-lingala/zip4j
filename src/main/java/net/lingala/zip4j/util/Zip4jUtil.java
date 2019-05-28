@@ -337,8 +337,7 @@ public class Zip4jUtil {
     return null;
   }
 
-  public static int getIndexOfFileHeader(ZipModel zipModel,
-                                         FileHeader fileHeader) throws ZipException {
+  public static int getIndexOfFileHeader(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
 
     if (zipModel == null || fileHeader == null) {
       throw new ZipException("input parameters is null, cannot determine index of file header");

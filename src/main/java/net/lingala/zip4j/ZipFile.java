@@ -443,7 +443,8 @@ public class ZipFile {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    fileHeader.extractFile(zipModel, destinationPath, unzipParameters, newFileName, progressMonitor, runInThread, password);
+    UnzipEngine unzipEngine = new UnzipEngine(zipModel, progressMonitor, password);
+    unzipEngine.extractFile(fileHeader, destinationPath, newFileName, runInThread, unzipParameters);
   }
 
   /**
@@ -523,17 +524,7 @@ public class ZipFile {
     readZipInfo();
 
     FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
-
-    if (fileHeader == null) {
-      throw new ZipException("file header not found for given file name, cannot extract file");
-    }
-
-    if (progressMonitor.getState() == ProgressMonitor.STATE_BUSY) {
-      throw new ZipException("invalid operation - Zip4j is in busy state");
-    }
-
-    fileHeader.extractFile(zipModel, destinationPath, unzipParameters, newFileName, progressMonitor, runInThread,
-        password);
+    extractFile(fileHeader, destinationPath, unzipParameters, newFileName);
   }
 
   /**

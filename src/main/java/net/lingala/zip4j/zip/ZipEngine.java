@@ -37,11 +37,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
-import static net.lingala.zip4j.util.InternalZipConstants.OFFSET_CENTRAL_DIR;
 import static net.lingala.zip4j.util.InternalZipConstants.THREAD_NAME;
 
 public class ZipEngine {
@@ -49,6 +47,7 @@ public class ZipEngine {
   private ZipModel zipModel;
   private ProgressMonitor progressMonitor;
   private char[] password;
+  private ArchiveMaintainer archiveMaintainer = new ArchiveMaintainer();
 
   public ZipEngine(ZipModel zipModel, ProgressMonitor progressMonitor, char[] password) {
     this.zipModel = zipModel;
@@ -321,81 +320,22 @@ public class ZipEngine {
   }
 
   private void removeFilesIfExists(List<File> files, ZipParameters parameters) throws ZipException {
+    for (File file : files) {
+      String fileName = Zip4jUtil.getRelativeFileName(file.getAbsolutePath(), parameters.getRootFolderInZip(),
+          parameters.getDefaultFolderPath());
 
-    if (zipModel == null || zipModel.getCentralDirectory() == null ||
-        zipModel.getCentralDirectory().getFileHeaders() == null ||
-        zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
-      //For a new zip file, this condition satisfies, so do nothing
-      return;
-    }
-    RandomAccessFile outputStream = null;
+      FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
+      if (fileHeader != null) {
+        progressMonitor.setCurrentOperation(ProgressMonitor.OPERATION_REMOVE);
+        archiveMaintainer.initRemoveZipFile(zipModel, fileHeader, progressMonitor);
 
-    try {
-      for (int i = 0; i < files.size(); i++) {
-        File file = (File) files.get(i);
-
-        String fileName = Zip4jUtil.getRelativeFileName(file.getAbsolutePath(),
-            parameters.getRootFolderInZip(), parameters.getDefaultFolderPath());
-
-        FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
-        if (fileHeader != null) {
-
-          if (outputStream != null) {
-            outputStream.close();
-            outputStream = null;
-          }
-
-          ArchiveMaintainer archiveMaintainer = new ArchiveMaintainer();
-          progressMonitor.setCurrentOperation(ProgressMonitor.OPERATION_REMOVE);
-          HashMap retMap = archiveMaintainer.initRemoveZipFile(zipModel,
-              fileHeader, progressMonitor);
-
-          if (progressMonitor.isCancelAllTasks()) {
-            progressMonitor.setResult(ProgressMonitor.RESULT_CANCELLED);
-            progressMonitor.setState(ProgressMonitor.STATE_READY);
-            return;
-          }
-
-          progressMonitor
-              .setCurrentOperation(ProgressMonitor.OPERATION_ADD);
-
-          if (outputStream == null) {
-            outputStream = prepareFileOutputStream();
-
-            if (retMap != null) {
-              if (retMap.get(OFFSET_CENTRAL_DIR) != null) {
-                long offsetCentralDir = -1;
-                try {
-                  offsetCentralDir = Long
-                      .parseLong((String) retMap
-                          .get(OFFSET_CENTRAL_DIR));
-                } catch (NumberFormatException e) {
-                  throw new ZipException(
-                      "NumberFormatException while parsing offset central directory. " +
-                          "Cannot update already existing file header");
-                } catch (Exception e) {
-                  throw new ZipException(
-                      "Error while parsing offset central directory. " +
-                          "Cannot update already existing file header");
-                }
-
-                if (offsetCentralDir >= 0) {
-                  outputStream.seek(offsetCentralDir);
-                }
-              }
-            }
-          }
+        if (progressMonitor.isCancelAllTasks()) {
+          progressMonitor.setResult(ProgressMonitor.RESULT_CANCELLED);
+          progressMonitor.setState(ProgressMonitor.STATE_READY);
+          return;
         }
-      }
-    } catch (IOException e) {
-      throw new ZipException(e);
-    } finally {
-      if (outputStream != null) {
-        try {
-          outputStream.close();
-        } catch (IOException e) {
-          //ignore
-        }
+
+        progressMonitor.setCurrentOperation(ProgressMonitor.OPERATION_ADD);
       }
     }
   }

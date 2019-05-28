@@ -26,7 +26,7 @@ public class Zip64EndOfCentralDirectoryLocator extends ZipHeader {
     return noOfDiskStartOfZip64EndOfCentralDirRec;
   }
 
-  public void setNoOfDiskStartOfZip64EndOfCentralDirRec(
+  public void setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
       int noOfDiskStartOfZip64EndOfCentralDirRec) {
     this.noOfDiskStartOfZip64EndOfCentralDirRec = noOfDiskStartOfZip64EndOfCentralDirRec;
   }
@@ -43,7 +43,7 @@ public class Zip64EndOfCentralDirectoryLocator extends ZipHeader {
     return totNumberOfDiscs;
   }
 
-  public void setTotNumberOfDiscs(int totNumberOfDiscs) {
+  public void setTotalNumberOfDiscs(int totNumberOfDiscs) {
     this.totNumberOfDiscs = totNumberOfDiscs;
   }
 
