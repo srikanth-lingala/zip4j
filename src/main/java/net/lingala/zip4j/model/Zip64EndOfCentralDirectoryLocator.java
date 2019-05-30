@@ -18,33 +18,33 @@ package net.lingala.zip4j.model;
 
 public class Zip64EndOfCentralDirectoryLocator extends ZipHeader {
 
-  private int noOfDiskStartOfZip64EndOfCentralDirRec;
-  private long offsetZip64EndOfCentralDirRec;
-  private int totNumberOfDiscs;
+  private int numberOfDiskStartOfZip64EndOfCentralDirectoryRecord;
+  private long offsetZip64EndOfCentralDirectoryRecord;
+  private int totalNumberOfDiscs;
 
-  public int getNoOfDiskStartOfZip64EndOfCentralDirRec() {
-    return noOfDiskStartOfZip64EndOfCentralDirRec;
+  public int getNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord() {
+    return numberOfDiskStartOfZip64EndOfCentralDirectoryRecord;
   }
 
   public void setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
       int noOfDiskStartOfZip64EndOfCentralDirRec) {
-    this.noOfDiskStartOfZip64EndOfCentralDirRec = noOfDiskStartOfZip64EndOfCentralDirRec;
+    this.numberOfDiskStartOfZip64EndOfCentralDirectoryRecord = noOfDiskStartOfZip64EndOfCentralDirRec;
   }
 
-  public long getOffsetZip64EndOfCentralDirRec() {
-    return offsetZip64EndOfCentralDirRec;
+  public long getOffsetZip64EndOfCentralDirectoryRecord() {
+    return offsetZip64EndOfCentralDirectoryRecord;
   }
 
-  public void setOffsetZip64EndOfCentralDirRec(long offsetZip64EndOfCentralDirRec) {
-    this.offsetZip64EndOfCentralDirRec = offsetZip64EndOfCentralDirRec;
+  public void setOffsetZip64EndOfCentralDirectoryRecord(long offsetZip64EndOfCentralDirectoryRecord) {
+    this.offsetZip64EndOfCentralDirectoryRecord = offsetZip64EndOfCentralDirectoryRecord;
   }
 
-  public int getTotNumberOfDiscs() {
-    return totNumberOfDiscs;
+  public int getTotalNumberOfDiscs() {
+    return totalNumberOfDiscs;
   }
 
   public void setTotalNumberOfDiscs(int totNumberOfDiscs) {
-    this.totNumberOfDiscs = totNumberOfDiscs;
+    this.totalNumberOfDiscs = totNumberOfDiscs;
   }
 
 

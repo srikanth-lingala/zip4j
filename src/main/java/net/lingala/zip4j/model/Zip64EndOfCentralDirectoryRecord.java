@@ -18,32 +18,23 @@ package net.lingala.zip4j.model;
 
 public class Zip64EndOfCentralDirectoryRecord extends ZipHeader {
 
-  private long sizeOfZip64EndCentralDirRec;
-
+  private long sizeOfZip64EndCentralDirectoryRecord;
   private int versionMadeBy;
-
   private int versionNeededToExtract;
-
-  private int noOfThisDisk;
-
-  private int noOfThisDiskStartOfCentralDir;
-
-  private long totNoOfEntriesInCentralDirOnThisDisk;
-
-  private long totNoOfEntriesInCentralDir;
-
-  private long sizeOfCentralDir;
-
-  private long offsetStartCenDirWRTStartDiskNo;
-
+  private int numberOfThisDisk;
+  private int numberOfThisDiskStartOfCentralDirectory;
+  private long totalNumberOfEntriesInCentralDirectoryOnThisDisk;
+  private long totNumberOfEntriesInCentralDirectory;
+  private long sizeOfCentralDirectory;
+  private long offsetStartCentralDirectoryWRTStartDiskNumber;
   private byte[] extensibleDataSector;
 
-  public long getSizeOfZip64EndCentralDirRec() {
-    return sizeOfZip64EndCentralDirRec;
+  public long getSizeOfZip64EndCentralDirectoryRecord() {
+    return sizeOfZip64EndCentralDirectoryRecord;
   }
 
-  public void setSizeOfZip64EndCentralDirRec(long sizeOfZip64EndCentralDirRec) {
-    this.sizeOfZip64EndCentralDirRec = sizeOfZip64EndCentralDirRec;
+  public void setSizeOfZip64EndCentralDirectoryRecord(long sizeOfZip64EndCentralDirectoryRecord) {
+    this.sizeOfZip64EndCentralDirectoryRecord = sizeOfZip64EndCentralDirectoryRecord;
   }
 
   public int getVersionMadeBy() {
@@ -62,54 +53,54 @@ public class Zip64EndOfCentralDirectoryRecord extends ZipHeader {
     this.versionNeededToExtract = versionNeededToExtract;
   }
 
-  public int getNoOfThisDisk() {
-    return noOfThisDisk;
+  public int getNumberOfThisDisk() {
+    return numberOfThisDisk;
   }
 
-  public void setNoOfThisDisk(int noOfThisDisk) {
-    this.noOfThisDisk = noOfThisDisk;
+  public void setNumberOfThisDisk(int numberOfThisDisk) {
+    this.numberOfThisDisk = numberOfThisDisk;
   }
 
-  public int getNoOfThisDiskStartOfCentralDir() {
-    return noOfThisDiskStartOfCentralDir;
+  public int getNumberOfThisDiskStartOfCentralDirectory() {
+    return numberOfThisDiskStartOfCentralDirectory;
   }
 
-  public void setNoOfThisDiskStartOfCentralDir(int noOfThisDiskStartOfCentralDir) {
-    this.noOfThisDiskStartOfCentralDir = noOfThisDiskStartOfCentralDir;
+  public void setNumberOfThisDiskStartOfCentralDirectory(int numberOfThisDiskStartOfCentralDirectory) {
+    this.numberOfThisDiskStartOfCentralDirectory = numberOfThisDiskStartOfCentralDirectory;
   }
 
-  public long getTotNoOfEntriesInCentralDirOnThisDisk() {
-    return totNoOfEntriesInCentralDirOnThisDisk;
+  public long getTotalNumberOfEntriesInCentralDirectoryOnThisDisk() {
+    return totalNumberOfEntriesInCentralDirectoryOnThisDisk;
   }
 
-  public void setTotNoOfEntriesInCentralDirOnThisDisk(
-      long totNoOfEntriesInCentralDirOnThisDisk) {
-    this.totNoOfEntriesInCentralDirOnThisDisk = totNoOfEntriesInCentralDirOnThisDisk;
+  public void setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
+      long totalNumberOfEntriesInCentralDirectoryOnThisDisk) {
+    this.totalNumberOfEntriesInCentralDirectoryOnThisDisk = totalNumberOfEntriesInCentralDirectoryOnThisDisk;
   }
 
-  public long getTotNoOfEntriesInCentralDir() {
-    return totNoOfEntriesInCentralDir;
+  public long getTotNumberOfEntriesInCentralDirectory() {
+    return totNumberOfEntriesInCentralDirectory;
   }
 
-  public void setTotNoOfEntriesInCentralDir(long totNoOfEntriesInCentralDir) {
-    this.totNoOfEntriesInCentralDir = totNoOfEntriesInCentralDir;
+  public void setTotNumberOfEntriesInCentralDirectory(long totNumberOfEntriesInCentralDirectory) {
+    this.totNumberOfEntriesInCentralDirectory = totNumberOfEntriesInCentralDirectory;
   }
 
-  public long getSizeOfCentralDir() {
-    return sizeOfCentralDir;
+  public long getSizeOfCentralDirectory() {
+    return sizeOfCentralDirectory;
   }
 
-  public void setSizeOfCentralDir(long sizeOfCentralDir) {
-    this.sizeOfCentralDir = sizeOfCentralDir;
+  public void setSizeOfCentralDirectory(long sizeOfCentralDirectory) {
+    this.sizeOfCentralDirectory = sizeOfCentralDirectory;
   }
 
-  public long getOffsetStartCenDirWRTStartDiskNo() {
-    return offsetStartCenDirWRTStartDiskNo;
+  public long getOffsetStartCentralDirectoryWRTStartDiskNumber() {
+    return offsetStartCentralDirectoryWRTStartDiskNumber;
   }
 
-  public void setOffsetStartCenDirWRTStartDiskNo(
-      long offsetStartCenDirWRTStartDiskNo) {
-    this.offsetStartCenDirWRTStartDiskNo = offsetStartCenDirWRTStartDiskNo;
+  public void setOffsetStartCentralDirectoryWRTStartDiskNumber(
+      long offsetStartCentralDirectoryWRTStartDiskNumber) {
+    this.offsetStartCentralDirectoryWRTStartDiskNumber = offsetStartCentralDirectoryWRTStartDiskNumber;
   }
 
   public byte[] getExtensibleDataSector() {

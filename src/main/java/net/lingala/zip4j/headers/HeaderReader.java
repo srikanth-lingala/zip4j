@@ -61,7 +61,7 @@ public class HeaderReader {
     if (zipModel.isZip64Format()) {
       zipModel.setZip64EndOfCentralDirectoryRecord(readZip64EndCentralDirRec(zip4jRaf));
       if (zipModel.getZip64EndOfCentralDirectoryRecord() != null
-          && zipModel.getZip64EndOfCentralDirectoryRecord().getNoOfThisDisk() > 0) {
+          && zipModel.getZip64EndOfCentralDirectoryRecord().getNumberOfThisDisk() > 0) {
         zipModel.setSplitArchive(true);
       } else {
         zipModel.setSplitArchive(false);
@@ -168,8 +168,8 @@ public class HeaderReader {
       int centralDirEntryCount = endOfCentralDirectoryRecord.getTotalNumberOfEntriesInCentralDirectory();
 
       if (zipModel.isZip64Format()) {
-        offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCenDirWRTStartDiskNo();
-        centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord().getTotNoOfEntriesInCentralDir();
+        offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
+        centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord().getTotNumberOfEntriesInCentralDirectory();
       }
 
       zip4jRaf.seek(offSetStartCentralDir);
@@ -565,7 +565,7 @@ public class HeaderReader {
           Raw.readIntLittleEndian(intBuff, 0));
 
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryLocator.setOffsetZip64EndOfCentralDirRec(
+      zip64EndOfCentralDirectoryLocator.setOffsetZip64EndOfCentralDirectoryRecord(
           Raw.readLongLittleEndian(longBuff, 0));
 
       readIntoBuff(zip4jRaf, intBuff);
@@ -592,7 +592,7 @@ public class HeaderReader {
     }
 
     long offSetStartOfZip64CentralDir =
-        zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirRec();
+        zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord();
 
     if (offSetStartOfZip64CentralDir < 0) {
       throw new ZipException("invalid offset for start of end of central directory record");
@@ -617,7 +617,7 @@ public class HeaderReader {
 
       //size of zip64 end of central directory record
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirRec(
+      zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirectoryRecord(
           Raw.readLongLittleEndian(longBuff, 0));
 
       //version made by
@@ -630,35 +630,35 @@ public class HeaderReader {
 
       //number of this disk
       readIntoBuff(zip4jRaf, intBuff);
-      zip64EndOfCentralDirectoryRecord.setNoOfThisDisk(Raw.readIntLittleEndian(intBuff, 0));
+      zip64EndOfCentralDirectoryRecord.setNumberOfThisDisk(Raw.readIntLittleEndian(intBuff, 0));
 
       //number of the disk with the start of the central directory
       readIntoBuff(zip4jRaf, intBuff);
-      zip64EndOfCentralDirectoryRecord.setNoOfThisDiskStartOfCentralDir(
+      zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(
           Raw.readIntLittleEndian(intBuff, 0));
 
       //total number of entries in the central directory on this disk
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryRecord.setTotNoOfEntriesInCentralDirOnThisDisk(
+      zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
           Raw.readLongLittleEndian(longBuff, 0));
 
       //total number of entries in the central directory
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryRecord.setTotNoOfEntriesInCentralDir(
+      zip64EndOfCentralDirectoryRecord.setTotNumberOfEntriesInCentralDirectory(
           Raw.readLongLittleEndian(longBuff, 0));
 
       //size of the central directory
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryRecord.setSizeOfCentralDir(Raw.readLongLittleEndian(longBuff, 0));
+      zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(Raw.readLongLittleEndian(longBuff, 0));
 
       //offset of start of central directory with respect to the starting disk number
       readIntoBuff(zip4jRaf, longBuff);
-      zip64EndOfCentralDirectoryRecord.setOffsetStartCenDirWRTStartDiskNo(
+      zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
           Raw.readLongLittleEndian(longBuff, 0));
 
       //zip64 extensible data sector
       //44 is the size of fixed variables in this record
-      long extDataSecSize = zip64EndOfCentralDirectoryRecord.getSizeOfZip64EndCentralDirRec() - 44;
+      long extDataSecSize = zip64EndOfCentralDirectoryRecord.getSizeOfZip64EndCentralDirectoryRecord() - 44;
       if (extDataSecSize > 0) {
         byte[] extDataSecRecBuf = new byte[(int) extDataSecSize];
         readIntoBuff(zip4jRaf, extDataSecRecBuf);
