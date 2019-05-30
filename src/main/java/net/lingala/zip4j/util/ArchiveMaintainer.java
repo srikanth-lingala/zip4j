@@ -230,7 +230,7 @@ public class ArchiveMaintainer {
     try {
       randomAccessFile.seek(start);
 
-      int readLen = -2;
+      int readLen;
       byte[] buff;
       long bytesRead = 0;
       long bytesToRead = end - start;
