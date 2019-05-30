@@ -42,12 +42,15 @@ import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.DEFAULT_COMMENT_CHARSET;
 import static net.lingala.zip4j.util.InternalZipConstants.MAX_ALLOWED_ZIP_COMMENT_LENGTH;
 import static net.lingala.zip4j.util.InternalZipConstants.THREAD_NAME;
+import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
 import static net.lingala.zip4j.util.Zip4jUtil.getIndexOfFileHeader;
 
 public class ArchiveMaintainer {
 
   public void removeZipFile(ZipModel zipModel, FileHeader fileHeader, ProgressMonitor progressMonitor,
                                boolean runInThread) throws ZipException {
+
+    initProgressMonitorForRemoveOp(zipModel, fileHeader, progressMonitor);
 
     if (runInThread) {
       Thread thread = new Thread(THREAD_NAME) {
@@ -322,11 +325,8 @@ public class ArchiveMaintainer {
           }
         }
       }
-
       updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream);
-
       progressMonitor.endProgressMonitorSuccess();
-
     } catch (ZipException e) {
       progressMonitor.endProgressMonitorError(e);
       throw e;
@@ -336,31 +336,9 @@ public class ArchiveMaintainer {
     }
   }
 
-  private RandomAccessFile createSplitZipFileStream(ZipModel zipModel, int partNumber) throws ZipException {
-    try {
-      String currentZipFile = zipModel.getZipFile().getPath();
-      String splitFileNameWithPath;
-
-      if (partNumber == zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk()) {
-        splitFileNameWithPath = zipModel.getZipFile().getPath();
-      } else {
-        String splitZipExtension = ".z0";
-        if (partNumber >= 9) {
-          splitZipExtension = ".z";
-        }
-        splitFileNameWithPath = currentZipFile.substring(0, currentZipFile.lastIndexOf(".")) + splitZipExtension
-            + (partNumber + 1);
-      }
-
-      File splitFile = new File(splitFileNameWithPath);
-      if (!Zip4jUtil.checkFileExists(splitFile)) {
-        throw new ZipException("split file does not exist: " + splitFileNameWithPath);
-      }
-
-      return new RandomAccessFile(splitFile, RandomAccessFileMode.READ.getValue());
-    } catch (FileNotFoundException e) {
-      throw new ZipException(e);
-    }
+  private RandomAccessFile createSplitZipFileStream(ZipModel zipModel, int partNumber) throws FileNotFoundException {
+    File splitFile = getNextSplitZipFile(zipModel, partNumber);
+    return new RandomAccessFile(splitFile, RandomAccessFileMode.READ.getValue());
   }
 
   private void updateHeadersForMergeSplitFileAction(ZipModel zipModel, long totalBytesWritten,
@@ -435,68 +413,45 @@ public class ArchiveMaintainer {
       throw new ZipException("comment is null, cannot update Zip file with comment");
     }
 
-    if (zipModel == null) {
-      throw new ZipException("zipModel is null, cannot update Zip file with comment");
-    }
+    String encodedComment = convertCommentToDefaultCharset(comment);
 
-    String encodedComment = comment;
-    byte[] commentBytes = comment.getBytes();
-    int commentLength = comment.length();
-
-    if (Zip4jUtil.isSupportedCharset(DEFAULT_COMMENT_CHARSET)) {
-      try {
-        encodedComment = new String(comment.getBytes(DEFAULT_COMMENT_CHARSET), DEFAULT_COMMENT_CHARSET);
-        commentBytes = encodedComment.getBytes(DEFAULT_COMMENT_CHARSET);
-        commentLength = encodedComment.length();
-      } catch (UnsupportedEncodingException e) {
-        encodedComment = comment;
-        commentBytes = comment.getBytes();
-        commentLength = comment.length();
-      }
-    }
-
-    if (commentLength > MAX_ALLOWED_ZIP_COMMENT_LENGTH) {
+    if (encodedComment.length() > MAX_ALLOWED_ZIP_COMMENT_LENGTH) {
       throw new ZipException("comment length exceeds maximum length");
     }
 
-    zipModel.getEndOfCentralDirectoryRecord().setComment(encodedComment);
-    zipModel.getEndOfCentralDirectoryRecord().setCommentBytes(commentBytes);
-    zipModel.getEndOfCentralDirectoryRecord().setCommentLength(commentLength);
+    EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
+    endOfCentralDirectoryRecord.setComment(encodedComment);
+    endOfCentralDirectoryRecord.setCommentBytes(encodedComment.getBytes());
+    endOfCentralDirectoryRecord.setCommentLength(encodedComment.length());
 
-    SplitOutputStream outputStream = null;
-
-    try {
-      HeaderWriter headerWriter = new HeaderWriter();
-      outputStream = new SplitOutputStream(zipModel.getZipFile());
-
+    try (SplitOutputStream outputStream = new SplitOutputStream(zipModel.getZipFile())) {
       if (zipModel.isZip64Format()) {
-        outputStream.seek(zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber());
+        outputStream.seek(zipModel.getZip64EndOfCentralDirectoryRecord()
+            .getOffsetStartCentralDirectoryWRTStartDiskNumber());
       } else {
-        outputStream.seek(zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
+        outputStream.seek(endOfCentralDirectoryRecord.getOffsetOfStartOfCentralDirectory());
       }
 
+      HeaderWriter headerWriter = new HeaderWriter();
       headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
-    } catch (FileNotFoundException e) {
-      throw new ZipException(e);
     } catch (IOException e) {
       throw new ZipException(e);
-    } finally {
-      if (outputStream != null) {
-        try {
-          outputStream.close();
-        } catch (IOException e) {
-          //ignore
-        }
-      }
     }
   }
 
-  public void initProgressMonitorForRemoveOp(ZipModel zipModel,
-                                             FileHeader fileHeader, ProgressMonitor progressMonitor) throws ZipException {
-    if (zipModel == null || fileHeader == null || progressMonitor == null) {
-      throw new ZipException("one of the input parameters is null, cannot calculate total work");
+  private String convertCommentToDefaultCharset(String comment) throws ZipException {
+    if (Zip4jUtil.isSupportedCharset(DEFAULT_COMMENT_CHARSET)) {
+      try {
+        return new String(comment.getBytes(DEFAULT_COMMENT_CHARSET), DEFAULT_COMMENT_CHARSET);
+      } catch (UnsupportedEncodingException e) {
+        return comment;
+      }
     }
+    return comment;
+  }
 
+  private void initProgressMonitorForRemoveOp(ZipModel zipModel, FileHeader fileHeader, ProgressMonitor progressMonitor)
+      throws ZipException {
     progressMonitor.setCurrentOperation(ProgressMonitor.OPERATION_REMOVE);
     progressMonitor.setFileName(fileHeader.getFileName());
     progressMonitor.setTotalWork(calculateTotalWorkForRemoveOp(zipModel, fileHeader));
@@ -504,7 +459,7 @@ public class ArchiveMaintainer {
   }
 
   private long calculateTotalWorkForRemoveOp(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
-    return Zip4jUtil.getFileLengh(zipModel.getZipFile()) - fileHeader.getCompressedSize();
+    return getFileLengh(zipModel.getZipFile()) - fileHeader.getCompressedSize();
   }
 
   public void initProgressMonitorForMergeOp(ZipModel zipModel, ProgressMonitor progressMonitor) throws ZipException {
@@ -519,27 +474,29 @@ public class ArchiveMaintainer {
   }
 
   private long calculateTotalWorkForMergeOp(ZipModel zipModel) throws ZipException {
-    long totSize = 0;
-    if (zipModel.isSplitArchive()) {
-      int totNoOfSplitFiles = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
-      String partFile = null;
-      String curZipFile = zipModel.getZipFile().getPath();
-      int partNumber = 0;
-      for (int i = 0; i <= totNoOfSplitFiles; i++) {
-        if (partNumber == zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk()) {
-          partFile = zipModel.getZipFile().getPath();
-        } else {
-          if (partNumber >= 9) {
-            partFile = curZipFile.substring(0, curZipFile.lastIndexOf(".")) + ".z" + (partNumber + 1);
-          } else {
-            partFile = curZipFile.substring(0, curZipFile.lastIndexOf(".")) + ".z0" + (partNumber + 1);
-          }
-        }
-
-        totSize += Zip4jUtil.getFileLengh(new File(partFile));
-      }
-
+    if (!zipModel.isSplitArchive()) {
+      return 0;
     }
-    return totSize;
+
+    long totalSize = 0;
+    for (int i = 0; i <= zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk(); i++) {
+      totalSize += getFileLengh(getNextSplitZipFile(zipModel, i));
+    }
+    return totalSize;
+  }
+
+  private File getNextSplitZipFile(ZipModel zipModel, int partNumber) {
+    if (partNumber == zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk() - 1) {
+      return zipModel.getZipFile();
+    }
+
+    String splitZipExtension = ".z0";
+    if (partNumber >= 9) {
+      splitZipExtension = ".z";
+    }
+    String rootZipFile = zipModel.getZipFile().getPath();
+    String nextSplitZipFileName =  zipModel.getZipFile().getPath().substring(0, rootZipFile.lastIndexOf("."))
+        + splitZipExtension + (partNumber + 1);
+    return new File(nextSplitZipFileName);
   }
 }

@@ -666,7 +666,6 @@ public class ZipFile {
     }
 
     ArchiveMaintainer archiveMaintainer = new ArchiveMaintainer();
-    archiveMaintainer.initProgressMonitorForRemoveOp(zipModel, fileHeader, progressMonitor);
     archiveMaintainer.removeZipFile(zipModel, fileHeader, progressMonitor, runInThread);
   }
 
