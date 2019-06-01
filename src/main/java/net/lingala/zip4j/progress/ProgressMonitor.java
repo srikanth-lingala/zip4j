@@ -16,65 +16,34 @@
 
 package net.lingala.zip4j.progress;
 
-import net.lingala.zip4j.exception.ZipException;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
 
 /**
  * If Zip4j is set to run in thread mode, this class helps retrieve current progress
  */
+@Data
 public class ProgressMonitor {
 
-  private int state;
+  public enum State { READY, BUSY }
+  public enum Result { SUCCESS, WORK_IN_PROGRESS, ERROR, CANCELLED }
+  public enum Task { NONE, ADD_ENTRY, REMOVE_ENTRY, CALCULATE_CRC}
+
+  private State state;
   private long totalWork;
+  @Setter(AccessLevel.NONE)
   private long workCompleted;
   private int percentDone;
-  private int currentOperation;
+  private Task currentTask;
   private String fileName;
-  private int result;
-  private Throwable exception;
+  private Result result;
+  private Exception exception;
   private boolean cancelAllTasks;
   private boolean pause;
 
-  //Progress monitor States
-  public static final int STATE_READY = 0;
-  public static final int STATE_BUSY = 1;
-
-  //Progress monitor result codes
-  public static final int RESULT_SUCCESS = 0;
-  public static final int RESULT_WORKING = 1;
-  public static final int RESULT_ERROR = 2;
-  public static final int RESULT_CANCELLED = 3;
-
-  //Operation Types
-  public static final int OPERATION_NONE = -1;
-  public static final int OPERATION_ADD = 0;
-  public static final int OPERATION_EXTRACT = 1;
-  public static final int OPERATION_REMOVE = 2;
-  public static final int OPERATION_CALC_CRC = 3;
-  public static final int OPERATION_MERGE = 4;
-
   public ProgressMonitor() {
     reset();
-    percentDone = 0;
-  }
-
-  public int getState() {
-    return state;
-  }
-
-  public void setState(int state) {
-    this.state = state;
-  }
-
-  public long getTotalWork() {
-    return totalWork;
-  }
-
-  public void setTotalWork(long totalWork) {
-    this.totalWork = totalWork;
-  }
-
-  public long getWorkCompleted() {
-    return workCompleted;
   }
 
   public void updateWorkCompleted(long workCompleted) {
@@ -86,6 +55,7 @@ public class ProgressMonitor {
         percentDone = 100;
       }
     }
+
     while (pause) {
       try {
         Thread.sleep(150);
@@ -95,85 +65,24 @@ public class ProgressMonitor {
     }
   }
 
-  public int getPercentDone() {
-    return percentDone;
-  }
-
-  public void setPercentDone(int percentDone) {
-    this.percentDone = percentDone;
-  }
-
-  public int getResult() {
-    return result;
-  }
-
-  public void setResult(int result) {
-    this.result = result;
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
-
-  public int getCurrentOperation() {
-    return currentOperation;
-  }
-
-  public void setCurrentOperation(int currentOperation) {
-    this.currentOperation = currentOperation;
-  }
-
-  public Throwable getException() {
-    return exception;
-  }
-
-  public void setException(Throwable exception) {
-    this.exception = exception;
-  }
-
-  public void endProgressMonitorSuccess() throws ZipException {
+  public void endProgressMonitor() {
     reset();
-    result = ProgressMonitor.RESULT_SUCCESS;
+    result = Result.SUCCESS;
+    percentDone = 100;
   }
 
-  public void endProgressMonitorError(Throwable e) throws ZipException {
+  public void endProgressMonitor(Exception e) {
     reset();
-    result = ProgressMonitor.RESULT_ERROR;
+    result = Result.ERROR;
     exception = e;
   }
 
-  public void reset() {
-    currentOperation = OPERATION_NONE;
-    state = STATE_READY;
+  private void reset() {
+    currentTask = Task.NONE;
+    state = State.READY;
     fileName = null;
     totalWork = 0;
     workCompleted = 0;
     percentDone = 0;
-  }
-
-  public void fullReset() {
-    reset();
-    exception = null;
-    result = RESULT_SUCCESS;
-  }
-
-  public boolean isCancelAllTasks() {
-    return cancelAllTasks;
-  }
-
-  public void cancelAllTasks() {
-    this.cancelAllTasks = true;
-  }
-
-  public boolean isPause() {
-    return pause;
-  }
-
-  public void setPause(boolean pause) {
-    this.pause = pause;
   }
 }

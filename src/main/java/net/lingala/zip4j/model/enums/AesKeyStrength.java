@@ -1,4 +1,4 @@
-package net.lingala.zip4j.zip;
+package net.lingala.zip4j.model.enums;
 
 public enum AesKeyStrength {
 

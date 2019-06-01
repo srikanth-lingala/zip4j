@@ -23,12 +23,22 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.util.ArchiveMaintainer;
+import net.lingala.zip4j.tasks.AddFilesToZipTask;
+import net.lingala.zip4j.tasks.AddFilesToZipTask.AddFilesToZipTaskParameters;
+import net.lingala.zip4j.tasks.AddFolderToZipTask;
+import net.lingala.zip4j.tasks.AddFolderToZipTask.AddFolderToZipTaskParameters;
+import net.lingala.zip4j.tasks.AddStreamToZipTask;
+import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
+import net.lingala.zip4j.tasks.ExtractAllFilesTask;
+import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
+import net.lingala.zip4j.tasks.ExtractFileTask;
+import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
+import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
+import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.util.enums.RandomAccessFileMode;
-import net.lingala.zip4j.zip.UnzipEngine;
-import net.lingala.zip4j.zip.ZipEngine;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +51,7 @@ import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_DEFAULT;
 import static net.lingala.zip4j.util.InternalZipConstants.DEFAULT_COMMENT_CHARSET;
+import static net.lingala.zip4j.util.UnzipUtil.createZipInputStreamFor;
 
 /**
  * Base class to handle zip files. Some of the operations supported
@@ -245,7 +256,7 @@ public class ZipFile {
       throw new ZipException("input parameters are null");
     }
 
-    if (progressMonitor.getState() == ProgressMonitor.STATE_BUSY) {
+    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
@@ -253,7 +264,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new ZipEngine(zipModel, progressMonitor, password).addFiles(sourceFiles, parameters, runInThread);
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password)
+        .execute(new AddFilesToZipTaskParameters(sourceFiles, parameters));
   }
 
   /**
@@ -262,31 +274,31 @@ public class ZipFile {
    * is thrown. Zip parameters for the files in the folder to be added can be set in
    * the input parameters
    *
-   * @param folder
-   * @param parameters
+   * @param folderToAdd
+   * @param zipParameters
    * @throws ZipException
    */
-  public void addFolder(File folder, ZipParameters parameters) throws ZipException {
-    if (folder == null) {
+  public void addFolder(File folderToAdd, ZipParameters zipParameters) throws ZipException {
+    if (folderToAdd == null) {
       throw new ZipException("input path is null, cannot add folder to zip file");
     }
 
-    if (parameters == null) {
+    if (zipParameters == null) {
       throw new ZipException("input parameters are null, cannot add folder to zip file");
     }
 
-    addFolder(folder, parameters, true);
+    addFolder(folderToAdd, zipParameters, true);
   }
 
   /**
    * Internal method to add a folder to the zip file.
    *
-   * @param folder
-   * @param parameters
+   * @param folderToAdd
+   * @param zipParameters
    * @param checkSplitArchive
    * @throws ZipException
    */
-  private void addFolder(File folder, ZipParameters parameters, boolean checkSplitArchive) throws ZipException {
+  private void addFolder(File folderToAdd, ZipParameters zipParameters, boolean checkSplitArchive) throws ZipException {
 
     checkZipModel();
 
@@ -300,7 +312,8 @@ public class ZipFile {
       }
     }
 
-    new ZipEngine(zipModel, progressMonitor, password).addFolderToZip(folder, parameters, runInThread);
+    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password)
+        .execute(new AddFolderToZipTaskParameters(folderToAdd, zipParameters));
   }
 
   /**
@@ -336,7 +349,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new ZipEngine(zipModel, progressMonitor, password).addStreamToZip(inputStream, parameters);
+    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password)
+        .execute(new AddStreamToZipTaskParameters(inputStream, parameters));
   }
 
   /**
@@ -379,11 +393,12 @@ public class ZipFile {
       throw new ZipException("Internal error occurred when extracting zip file");
     }
 
-    if (progressMonitor.getState() == ProgressMonitor.STATE_BUSY) {
+    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    new UnzipEngine(zipModel, progressMonitor, password).extractAll(unzipParameters, destinationPath, runInThread);
+    new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password)
+        .execute(new ExtractAllFilesTaskParameters(unzipParameters, destinationPath));
   }
 
   /**
@@ -439,12 +454,12 @@ public class ZipFile {
 
     readZipInfo();
 
-    if (progressMonitor.getState() == ProgressMonitor.STATE_BUSY) {
+    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    UnzipEngine unzipEngine = new UnzipEngine(zipModel, progressMonitor, password);
-    unzipEngine.extractFile(fileHeader, destinationPath, newFileName, runInThread, unzipParameters);
+    new ExtractFileTask(progressMonitor, runInThread, zipModel, password)
+        .execute(new ExtractFileTaskParameters(unzipParameters, destinationPath, fileHeader, newFileName));
   }
 
   /**
@@ -665,8 +680,7 @@ public class ZipFile {
       throw new ZipException("Zip file format does not allow updating split/spanned files");
     }
 
-    ArchiveMaintainer archiveMaintainer = new ArchiveMaintainer();
-    archiveMaintainer.removeZipFile(zipModel, fileHeader, progressMonitor, runInThread);
+    new RemoveEntryFromZipFileTask(progressMonitor, runInThread, zipModel).execute(fileHeader);
   }
 
   /**
@@ -691,9 +705,7 @@ public class ZipFile {
       throw new ZipException("zip model is null, corrupt zip file?");
     }
 
-    ArchiveMaintainer archiveMaintainer = new ArchiveMaintainer();
-    archiveMaintainer.initProgressMonitorForMergeOp(zipModel, progressMonitor);
-    archiveMaintainer.mergeSplitZipFiles(zipModel, outputZipFile, progressMonitor, runInThread);
+    new MergeSplitZipFileTask(progressMonitor, runInThread, zipModel).execute(outputZipFile);
   }
 
   /**
@@ -721,7 +733,7 @@ public class ZipFile {
       throw new ZipException("end of central directory is null, cannot set comment");
     }
 
-    new ArchiveMaintainer().setComment(zipModel, comment);
+    new SetCommentTask(progressMonitor, runInThread, zipModel).execute(comment);
   }
 
   /**
@@ -865,7 +877,7 @@ public class ZipFile {
       throw new ZipException("zip model is null, cannot get inputstream");
     }
 
-    return new UnzipEngine(zipModel, progressMonitor, password).createZipInputStreamFor(fileHeader);
+    return createZipInputStreamFor(zipModel, fileHeader, password);
   }
 
   /**

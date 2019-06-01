@@ -16,7 +16,7 @@
 
 package net.lingala.zip4j.io.outputstream;
 
-import net.lingala.zip4j.zip.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionLevel;
 
 import java.io.IOException;
 import java.util.zip.Deflater;

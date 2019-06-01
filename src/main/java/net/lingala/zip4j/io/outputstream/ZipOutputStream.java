@@ -8,9 +8,9 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Raw;
-import net.lingala.zip4j.zip.CompressionMethod;
-import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.io.IOException;
 import java.io.OutputStream;

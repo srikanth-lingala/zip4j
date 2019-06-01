@@ -1,7 +1,7 @@
 package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.util.enums.RandomAccessFileMode;
+import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -14,11 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipVerifier {
 
-  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder) throws ZipException, IOException {
+  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder)
+      throws ZipException, IOException {
     verifyZipFile(generatedZipFile, temporaryFolder, null);
   }
 
-  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder, char[] password) throws ZipException, IOException {
+  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder, char[] password)
+      throws ZipException, IOException {
     assertThat(generatedZipFile).isNotNull();
 
     ZipFile zipFile = new ZipFile(generatedZipFile, password);
@@ -35,7 +37,8 @@ public class ZipVerifier {
     byte[] sourceFileContent = Files.readAllBytes(sourceFile.toPath());
     byte[] extractedFileContent = Files.readAllBytes(extractedFile.toPath());
 
-    assertThat(extractedFileContent).as("Files do not match for file name: " + extractedFile.getName()).isEqualTo(sourceFileContent);
+    assertThat(extractedFileContent).as("Files do not match for file name: " + extractedFile.getName())
+        .isEqualTo(sourceFileContent);
   }
 
   private static void verifyAllFiles(File folderContainingExtractedFiles) throws IOException {

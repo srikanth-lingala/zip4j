@@ -54,8 +54,8 @@ public class CRCUtil {
         if (progressMonitor != null) {
           progressMonitor.updateWorkCompleted(readLen);
           if (progressMonitor.isCancelAllTasks()) {
-            progressMonitor.setResult(ProgressMonitor.RESULT_CANCELLED);
-            progressMonitor.setState(ProgressMonitor.STATE_READY);
+            progressMonitor.setResult(ProgressMonitor.Result.CANCELLED);
+            progressMonitor.setState(ProgressMonitor.State.READY);
             return 0;
           }
         }

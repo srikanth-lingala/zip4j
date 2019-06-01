@@ -28,11 +28,11 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.zip.AesKeyStrength;
-import net.lingala.zip4j.zip.CompressionMethod;
-import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.io.IOException;
 import java.io.InputStream;

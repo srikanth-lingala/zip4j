@@ -2,10 +2,10 @@ package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.utils.AbstractIT;
-import net.lingala.zip4j.zip.AesKeyStrength;
-import net.lingala.zip4j.zip.CompressionMethod;
-import net.lingala.zip4j.zip.EncryptionMethod;
 import org.junit.Test;
 
 import java.io.IOException;

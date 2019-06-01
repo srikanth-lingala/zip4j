@@ -18,5 +18,6 @@ package net.lingala.zip4j.exception;
 
 public enum ZipExceptionType {
 
-  WRONG_PASSWORD;
+  WRONG_PASSWORD,
+  TASK_CANCELLED_EXCEPTION
 }

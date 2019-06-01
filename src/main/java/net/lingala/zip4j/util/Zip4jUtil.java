@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -375,30 +374,25 @@ public class Zip4jUtil {
     return -1;
   }
 
-  public static ArrayList getFilesInDirectoryRec(File path,
-                                                 boolean readHiddenFiles) throws ZipException {
-
+  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles) throws ZipException {
     if (path == null) {
       throw new ZipException("input path is null, cannot read files in the directory");
     }
 
-    ArrayList result = new ArrayList();
+    List<File> result = new ArrayList<>();
     File[] filesAndDirs = path.listFiles();
-    List filesDirs = Arrays.asList(filesAndDirs);
 
-    if (!path.canRead()) {
+    if (!path.isDirectory() || !path.canRead() || filesAndDirs == null) {
       return result;
     }
 
-    for (int i = 0; i < filesDirs.size(); i++) {
-      File file = (File) filesDirs.get(i);
+    for (File file : filesAndDirs) {
       if (file.isHidden() && !readHiddenFiles) {
         return result;
       }
       result.add(file);
       if (file.isDirectory()) {
-        List deeperList = getFilesInDirectoryRec(file, readHiddenFiles);
-        result.addAll(deeperList);
+        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles));
       }
     }
     return result;
@@ -409,7 +403,7 @@ public class Zip4jUtil {
       throw new ZipException("zip file name is empty or null, cannot determine zip file name");
     }
     String tmpFileName = zipFile;
-    if (zipFile.indexOf(System.getProperty("file.separator")) >= 0) {
+    if (zipFile.contains(System.getProperty("file.separator"))) {
       tmpFileName = zipFile.substring(zipFile.lastIndexOf(System.getProperty("file.separator")));
     }
 

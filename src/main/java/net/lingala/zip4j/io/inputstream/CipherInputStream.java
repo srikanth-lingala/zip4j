@@ -3,7 +3,7 @@ package net.lingala.zip4j.io.inputstream;
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.zip.CompressionMethod;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -18,9 +18,9 @@ package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderSignature;
+import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.Raw;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.util.enums.RandomAccessFileMode;
 
 import java.io.File;
 import java.io.FileNotFoundException;

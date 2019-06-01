@@ -23,8 +23,8 @@ import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionType;
 import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.util.Raw;
-import net.lingala.zip4j.zip.AesKeyStrength;
 
 import java.util.Arrays;
 

@@ -1,0 +1,198 @@
+package net.lingala.zip4j.tasks;
+
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.outputstream.SplitOutputStream;
+import net.lingala.zip4j.io.outputstream.ZipOutputStream;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.progress.ProgressMonitor;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
+import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
+import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
+import static net.lingala.zip4j.model.enums.EncryptionMethod.ZIP_STANDARD;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
+import static net.lingala.zip4j.util.CRCUtil.computeFileCRC;
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.Zip4jUtil.getFileHeader;
+import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
+import static net.lingala.zip4j.util.Zip4jUtil.getFileNameFromFilePath;
+import static net.lingala.zip4j.util.Zip4jUtil.getLastModifiedFileTime;
+import static net.lingala.zip4j.util.Zip4jUtil.getRelativeFileName;
+import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
+
+public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
+
+  private ZipModel zipModel;
+  private char[] password;
+
+  public AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
+                                  char[] password) {
+    super(progressMonitor, runInThread);
+    this.zipModel = zipModel;
+    this.password = password;
+  }
+
+  protected void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
+      throws ZipException {
+
+    removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
+
+    try (ZipOutputStream zipOutputStream = initializeOutputStream()) {
+      byte[] readBuff = new byte[BUFF_SIZE];
+      int readLen = -1;
+
+      for (File fileToAdd : filesToAdd) {
+        verifyIfTaskIsCancelled();
+        ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd,
+            progressMonitor);
+        progressMonitor.setFileName(fileToAdd.getAbsolutePath());
+
+        zipOutputStream.putNextEntry(clonedZipParameters);
+        if (fileToAdd.isDirectory()) {
+          zipOutputStream.closeEntry();
+          continue;
+        }
+
+        try (InputStream inputStream = new FileInputStream(fileToAdd)) {
+          while ((readLen = inputStream.read(readBuff)) != -1) {
+            zipOutputStream.write(readBuff, 0, readLen);
+            progressMonitor.updateWorkCompleted(readLen);
+            verifyIfTaskIsCancelled();
+          }
+        }
+
+        zipOutputStream.closeEntry();
+      }
+    } catch (IOException e) {
+      throw new ZipException(e);
+    }
+  }
+
+  protected long calculateWorkForFiles(List<File> filesToAdd, ZipParameters zipParameters) throws ZipException {
+    long totalWork = 0;
+
+    for (File fileToAdd : filesToAdd) {
+      if (!fileToAdd.exists()) {
+        continue;
+      }
+
+      if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
+        totalWork += (fileToAdd.length() * 2); // for CRC calculation
+      } else {
+        totalWork += fileToAdd.length();
+      }
+
+      //If an entry already exists, we have to remove that entry first and then add content again.
+      //In this case, add corresponding work
+      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getRootFolderInZip(),
+          zipParameters.getDefaultFolderPath());
+      FileHeader fileHeader = getFileHeader(getZipModel(), relativeFileName);
+      if (fileHeader != null) {
+        totalWork += (getZipModel().getZipFile().length() - fileHeader.getCompressedSize());
+      }
+    }
+
+    return totalWork;
+  }
+
+  protected ZipOutputStream initializeOutputStream() throws IOException, ZipException {
+    SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
+
+    if (zipModel.getZipFile().exists()) {
+      if (zipModel.getEndOfCentralDirectoryRecord() == null) {
+        throw new ZipException("invalid end of central directory record");
+      }
+      splitOutputStream.seek(zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
+    }
+
+    return new ZipOutputStream(splitOutputStream, password, zipModel);
+  }
+
+  protected void verifyZipParameters(ZipParameters parameters) throws ZipException {
+    if (parameters == null) {
+      throw new ZipException("cannot validate zip parameters");
+    }
+
+    if (parameters.getCompressionMethod() != STORE && parameters.getCompressionMethod() != DEFLATE) {
+      throw new ZipException("unsupported compression type");
+    }
+
+    if (parameters.isEncryptFiles()) {
+      if (parameters.getEncryptionMethod() == NONE) {
+        throw new ZipException("Encryption method has to be set, when encrypt files flag is set");
+      }
+
+      if (password == null || password.length <= 0) {
+        throw new ZipException("input password is empty or null");
+      }
+    } else {
+      parameters.setEncryptionMethod(NONE);
+    }
+  }
+
+  private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
+                                                    ProgressMonitor progressMonitor) throws ZipException {
+    ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
+    clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((getLastModifiedFileTime(fileToAdd,
+        zipParameters.getTimeZone()))));
+    clonedZipParameters.setFileNameInZip(getFileNameFromFilePath(fileToAdd));
+
+    if (zipParameters.getCompressionMethod() == STORE) {
+      clonedZipParameters.setUncompressedSize(getFileLengh(fileToAdd));
+    }
+
+    if (!fileToAdd.isDirectory()) {
+      if (clonedZipParameters.isEncryptFiles()
+          && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
+        progressMonitor.setCurrentTask(CALCULATE_CRC);
+        clonedZipParameters.setSourceFileCRC((int) computeFileCRC(fileToAdd.getAbsolutePath(), progressMonitor));
+        progressMonitor.setCurrentTask(ADD_ENTRY);
+      }
+
+      if (fileToAdd.length() == 0) {
+        clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+      }
+    }
+
+    return clonedZipParameters;
+  }
+
+  private void removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor)
+      throws ZipException {
+
+    for (File file : files) {
+      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getRootFolderInZip(),
+          zipParameters.getDefaultFolderPath());
+
+      FileHeader fileHeader = getFileHeader(zipModel, fileName);
+      if (fileHeader != null) {
+        progressMonitor.setCurrentTask(REMOVE_ENTRY);
+        removeFile(fileHeader, progressMonitor);
+        verifyIfTaskIsCancelled();
+        progressMonitor.setCurrentTask(ADD_ENTRY);
+      }
+    }
+  }
+
+  private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor) throws ZipException {
+    RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
+        zipModel);
+    removeEntryFromZipFileTask.execute(fileHeader);
+  }
+
+  protected ZipModel getZipModel() {
+    return zipModel;
+  }
+}

@@ -1,7 +1,7 @@
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.zip.CompressionMethod;
-import net.lingala.zip4j.zip.EncryptionMethod;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 import java.util.List;
 

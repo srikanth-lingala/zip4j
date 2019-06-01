@@ -16,11 +16,11 @@
 
 package net.lingala.zip4j.model;
 
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.zip.AesKeyStrength;
-import net.lingala.zip4j.zip.CompressionLevel;
-import net.lingala.zip4j.zip.CompressionMethod;
-import net.lingala.zip4j.zip.EncryptionMethod;
 
 import java.util.TimeZone;
 

@@ -1,4 +1,4 @@
-package net.lingala.zip4j.util.enums;
+package net.lingala.zip4j.model.enums;
 
 public enum RandomAccessFileMode {
 

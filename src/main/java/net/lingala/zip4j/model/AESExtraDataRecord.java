@@ -17,8 +17,8 @@
 package net.lingala.zip4j.model;
 
 import net.lingala.zip4j.headers.HeaderSignature;
-import net.lingala.zip4j.zip.AesKeyStrength;
-import net.lingala.zip4j.zip.CompressionMethod;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 
 public class AESExtraDataRecord extends ZipHeader {
 
