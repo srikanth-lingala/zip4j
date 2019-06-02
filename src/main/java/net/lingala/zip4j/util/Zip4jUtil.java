@@ -22,15 +22,15 @@ import net.lingala.zip4j.model.ZipModel;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_DEFAULT;
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET;
 
 public class Zip4jUtil {
 
@@ -413,65 +413,8 @@ public class Zip4jUtil {
     return tmpFileName;
   }
 
-  public static byte[] convertCharset(String str) throws ZipException {
-    try {
-      byte[] converted = null;
-      String charSet = detectCharSet(str);
-      if (charSet.equals(Charset.CP850.getCharsetCode())) {
-        converted = str.getBytes(Charset.CP850.getCharsetCode());
-      } else if (charSet.equals(Charset.UTF8.getCharsetCode())) {
-        converted = str.getBytes(Charset.UTF8.getCharsetCode());
-      } else {
-        converted = str.getBytes();
-      }
-      return converted;
-    } catch (UnsupportedEncodingException err) {
-      return str.getBytes();
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
-  }
-
   /**
-   * Decodes file name based on encoding. If file name is UTF 8 encoded
-   * returns an UTF8 encoded string, else return Cp850 encoded String. If
-   * appropriate charset is not supported, then returns a System default
-   * charset encoded String
-   *
-   * @param data
-   * @param isUTF8
-   * @return String
-   */
-  public static String decodeFileName(byte[] data, boolean isUTF8) {
-    if (isUTF8) {
-      try {
-        return new String(data, Charset.UTF8.getCharsetCode());
-      } catch (UnsupportedEncodingException e) {
-        return new String(data);
-      }
-    } else {
-      return getCp850EncodedString(data);
-    }
-  }
-
-  /**
-   * Returns a string in Cp850 encoding from the input bytes.
-   * If this encoding is not supported, then String with the default encoding is returned.
-   *
-   * @param data
-   * @return String
-   */
-  public static String getCp850EncodedString(byte[] data) {
-    try {
-      String retString = new String(data, Charset.CP850.getCharsetCode());
-      return retString;
-    } catch (UnsupportedEncodingException e) {
-      return new String(data);
-    }
-  }
-
-  /**
-   * Returns an absoulte path for the given file path
+   * Returns an absolute path for the given file path
    *
    * @param filePath
    * @return String
@@ -485,119 +428,7 @@ public class Zip4jUtil {
     return file.getAbsolutePath();
   }
 
-  /**
-   * Detects the encoding charset for the input string
-   *
-   * @param str
-   * @return String - charset for the String
-   * @throws ZipException - if input string is null. In case of any other exception
-   *                      this method returns default System charset
-   */
-  public static String detectCharSet(String str) throws ZipException {
-    if (str == null) {
-      throw new ZipException("input string is null, cannot detect charset");
-    }
-
-    try {
-      byte[] byteString = str.getBytes(Charset.CP850.getCharsetCode());
-      String tempString = new String(byteString, Charset.CP850.getCharsetCode());
-
-      if (str.equals(tempString)) {
-        return Charset.CP850.getCharsetCode();
-      }
-
-      byteString = str.getBytes(Charset.UTF8.getCharsetCode());
-      tempString = new String(byteString, Charset.UTF8.getCharsetCode());
-
-      if (str.equals(tempString)) {
-        return Charset.UTF8.getCharsetCode();
-      }
-
-      return CHARSET_DEFAULT;
-    } catch (UnsupportedEncodingException e) {
-      return CHARSET_DEFAULT;
-    } catch (Exception e) {
-      return CHARSET_DEFAULT;
-    }
-  }
-
-  /**
-   * returns the length of the string by wrapping it in a byte buffer with
-   * the appropriate charset of the input string and returns the limit of the
-   * byte buffer
-   *
-   * @param str
-   * @return length of the string
-   * @throws ZipException
-   */
-  public static int getEncodedStringLength(String str) throws ZipException {
-    if (!isStringNotNullAndNotEmpty(str)) {
-      throw new ZipException("input string is null, cannot calculate encoded String length");
-    }
-
-    String charset = detectCharSet(str);
-    return getEncodedStringLength(str, charset);
-  }
-
-  /**
-   * returns the length of the string in the input encoding
-   *
-   * @param str
-   * @param charset
-   * @return int
-   * @throws ZipException
-   */
-  public static int getEncodedStringLength(String str, String charset) throws ZipException {
-    if (!isStringNotNullAndNotEmpty(str)) {
-      throw new ZipException("input string is null, cannot calculate encoded String length");
-    }
-
-    if (!isStringNotNullAndNotEmpty(charset)) {
-      throw new ZipException("encoding is not defined, cannot calculate string length");
-    }
-
-    ByteBuffer byteBuffer = null;
-
-    try {
-      if (charset.equals(Charset.CP850.getCharsetCode())) {
-        byteBuffer = ByteBuffer.wrap(str.getBytes(Charset.CP850.getCharsetCode()));
-      } else if (charset.equals(Charset.UTF8.getCharsetCode())) {
-        byteBuffer = ByteBuffer.wrap(str.getBytes(Charset.UTF8.getCharsetCode()));
-      } else {
-        byteBuffer = ByteBuffer.wrap(str.getBytes(charset));
-      }
-    } catch (UnsupportedEncodingException e) {
-      byteBuffer = ByteBuffer.wrap(str.getBytes());
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
-
-    return byteBuffer.limit();
-  }
-
-  /**
-   * Checks if the input charset is supported
-   *
-   * @param charset
-   * @return boolean
-   * @throws ZipException
-   */
-  public static boolean isSupportedCharset(String charset) throws ZipException {
-    if (!isStringNotNullAndNotEmpty(charset)) {
-      throw new ZipException("charset is null or empty, cannot check if it is supported");
-    }
-
-    try {
-      new String("a".getBytes(), charset);
-      return true;
-    } catch (UnsupportedEncodingException e) {
-      return false;
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
-  }
-
-  public static ArrayList getSplitZipFiles(ZipModel zipModel) throws ZipException {
+  public static List<File> getSplitZipFiles(ZipModel zipModel) throws ZipException {
     if (zipModel == null) {
       throw new ZipException("cannot get split zip files: zipmodel is null");
     }
@@ -606,41 +437,41 @@ public class Zip4jUtil {
       return null;
     }
 
-    ArrayList retList = new ArrayList();
-    String currZipFile = zipModel.getZipFile().getPath();
-    String zipFileName = zipModel.getZipFile().getName();
-    String partFile = null;
-
     if (!zipModel.getZipFile().exists()) {
       throw new ZipException("zip file does not exist");
     }
 
+    List<File> splitZipFiles = new ArrayList<>();
+    File currZipFile = zipModel.getZipFile();
+    String partFile;
+
     if (!zipModel.isSplitArchive()) {
-      retList.add(currZipFile);
-      return retList;
+      splitZipFiles.add(currZipFile);
+      return splitZipFiles;
     }
 
     int numberOfThisDisk = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
 
     if (numberOfThisDisk == 0) {
-      retList.add(currZipFile);
-      return retList;
+      splitZipFiles.add(currZipFile);
+      return splitZipFiles;
     } else {
       for (int i = 0; i <= numberOfThisDisk; i++) {
         if (i == numberOfThisDisk) {
-          retList.add(zipModel.getZipFile());
+          splitZipFiles.add(zipModel.getZipFile());
         } else {
           String fileExt = ".z0";
           if (i > 9) {
             fileExt = ".z";
           }
-          partFile = (zipFileName.indexOf(".") >= 0) ? currZipFile.substring(0, currZipFile.lastIndexOf(".")) : currZipFile;
+          partFile = (currZipFile.getName().contains("."))
+              ? currZipFile.getPath().substring(0, currZipFile.getPath().lastIndexOf(".")) : currZipFile.getPath();
           partFile = partFile + fileExt + (i + 1);
-          retList.add(partFile);
+          splitZipFiles.add(new File(partFile));
         }
       }
     }
-    return retList;
+    return splitZipFiles;
   }
 
   public static String getRelativeFileName(String file, String rootFolderInZip, String rootFolderPath) throws ZipException {
@@ -707,5 +538,27 @@ public class Zip4jUtil {
       bytes[i] = (byte) charArray[i];
     }
     return bytes;
+  }
+
+  /**
+   * Decodes file name based on encoding. If file name is UTF 8 encoded
+   * returns an UTF8 encoded string, else return Cp850 encoded String. If
+   * appropriate charset is not supported, then returns a System default
+   * charset encoded String
+   *
+   * @param data
+   * @param isUtf8Encoded
+   * @return String
+   */
+  public static String decodeFileName(byte[] data, boolean isUtf8Encoded) {
+    if (isUtf8Encoded) {
+      return new String(data, StandardCharsets.UTF_8);
+    }
+
+    try {
+      return new String(data, ZIP_STANDARD_CHARSET);
+    } catch (UnsupportedEncodingException e) {
+      return new String(data);
+    }
   }
 }

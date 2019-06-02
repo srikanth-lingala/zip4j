@@ -37,7 +37,6 @@ public class ZipModel implements Cloneable {
   private boolean isNestedZipFile;
   private long start;
   private long end;
-  private String fileNameCharset;
 
   public ZipModel() {
     splitLength = -1;
@@ -161,13 +160,4 @@ public class ZipModel implements Cloneable {
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
   }
-
-  public String getFileNameCharset() {
-    return fileNameCharset;
-  }
-
-  public void setFileNameCharset(String fileNameCharset) {
-    this.fileNameCharset = fileNameCharset;
-  }
-
 }

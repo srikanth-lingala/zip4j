@@ -37,12 +37,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
 import static net.lingala.zip4j.util.Zip4jUtil.decodeFileName;
-import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 /**
  * Helper class to read header information for the zip file
@@ -52,9 +52,8 @@ public class HeaderReader {
   private ZipModel zipModel;
   private RawIO rawIO = new RawIO();
 
-  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, String fileNameCharset) throws ZipException {
+  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf) throws ZipException {
     zipModel = new ZipModel();
-    zipModel.setFileNameCharset(fileNameCharset);
     zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
 
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory
@@ -104,13 +103,11 @@ public class HeaderReader {
       endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
 
       int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
-      endOfCentralDirectoryRecord.setCommentLength(commentLength);
 
       if (commentLength > 0) {
         byte[] commentBuf = new byte[commentLength];
         zip4jRaf.readFully(commentBuf);
-        endOfCentralDirectoryRecord.setComment(new String(commentBuf));
-        endOfCentralDirectoryRecord.setCommentBytes(commentBuf);
+        endOfCentralDirectoryRecord.setComment(new String(commentBuf, StandardCharsets.UTF_8));
       } else {
         endOfCentralDirectoryRecord.setComment(null);
       }
@@ -192,17 +189,7 @@ public class HeaderReader {
         if (fileNameLength > 0) {
           byte[] fileNameBuff = new byte[fileNameLength];
           zip4jRaf.readFully(fileNameBuff);
-          String fileName;
-
-          if (isStringNotNullAndNotEmpty(zipModel.getFileNameCharset())) {
-            fileName = new String(fileNameBuff, zipModel.getFileNameCharset());
-          } else {
-            fileName = decodeFileName(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
-          }
-
-          if (fileName == null) {
-            throw new ZipException("could not read file name from central directory");
-          }
+          String fileName = decodeFileName(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
 
           if (fileName.contains(":" + System.getProperty("file.separator"))) {
             fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);

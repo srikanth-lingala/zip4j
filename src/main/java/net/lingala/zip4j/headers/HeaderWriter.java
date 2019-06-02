@@ -32,14 +32,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_COMP_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_CRC;
 import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_UNCOMP_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_LIMIT;
-import static net.lingala.zip4j.util.Zip4jUtil.convertCharset;
-import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class HeaderWriter {
 
@@ -96,12 +95,7 @@ public class HeaderWriter {
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) (extraFieldLength));
 
-      if (isStringNotNullAndNotEmpty(zipModel.getFileNameCharset())) {
-        byte[] fileNameBytes = localFileHeader.getFileName().getBytes(zipModel.getFileNameCharset());
-        byteArrayOutputStream.write(fileNameBytes);
-      } else {
-        byteArrayOutputStream.write(convertCharset(localFileHeader.getFileName()));
-      }
+      byteArrayOutputStream.write(localFileHeader.getFileName().getBytes(StandardCharsets.UTF_8));
 
       //Zip64 should be the first extra data record that should be written
       //This is NOT according to any specification but if this is changed
@@ -134,9 +128,7 @@ public class HeaderWriter {
       }
 
       outputStream.write(byteArrayOutputStream.toByteArray());
-    } catch (ZipException e) {
-      throw e;
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new ZipException(e);
     }
   }
@@ -405,12 +397,7 @@ public class HeaderWriter {
       //offset local header - this data is computed above
       byteArrayOutputStream.write(offsetLocalHeaderBytes);
 
-      if (isStringNotNullAndNotEmpty(zipModel.getFileNameCharset())) {
-        byte[] fileNameBytes = fileHeader.getFileName().getBytes(zipModel.getFileNameCharset());
-        byteArrayOutputStream.write(fileNameBytes);
-      } else {
-        byteArrayOutputStream.write(convertCharset(fileHeader.getFileName()));
-      }
+      byteArrayOutputStream.write(fileHeader.getFileName().getBytes(StandardCharsets.UTF_8));
 
       if (writeZip64FileSize || writeZip64OffsetLocalHeader) {
         zipModel.setZip64Format(true);
@@ -561,14 +548,13 @@ public class HeaderWriter {
         byteArrayOutputStream.write(longByte, 0, 4);
       }
 
-      int commentLength = 0;
-      if (zipModel.getEndOfCentralDirectoryRecord().getComment() != null) {
-        commentLength = zipModel.getEndOfCentralDirectoryRecord().getCommentLength();
-      }
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) commentLength);
-
-      if (commentLength > 0) {
-        byteArrayOutputStream.write(zipModel.getEndOfCentralDirectoryRecord().getCommentBytes());
+      String comment = zipModel.getEndOfCentralDirectoryRecord().getComment();
+      if (Zip4jUtil.isStringNotNullAndNotEmpty(comment)) {
+        byte[] commentBytes = comment.getBytes(StandardCharsets.UTF_8);
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) commentBytes.length);
+        byteArrayOutputStream.write(commentBytes);
+      } else {
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) 0);
       }
     } catch (IOException e) {
       throw new ZipException(e);

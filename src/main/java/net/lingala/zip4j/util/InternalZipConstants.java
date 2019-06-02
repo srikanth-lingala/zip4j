@@ -32,8 +32,6 @@ public final class InternalZipConstants {
   public static final int MIN_SPLIT_LENGTH = 65536;
   public static final long ZIP_64_LIMIT = 4294967295L;
 
-  public static final String OFFSET_CENTRAL_DIR = "offsetCentralDir";
-
   public static final int BUFF_SIZE = 1024 * 4;
 
   // Update local file header constants
@@ -45,17 +43,11 @@ public final class InternalZipConstants {
 
   public static final int UPDATE_LFH_UNCOMP_SIZE = 22;
 
-  public static final int UFT8_NAMES_FLAG = 1 << 11;
-
-  public static final String DEFAULT_COMMENT_CHARSET = "windows-1254";
-
-  public static final String CHARSET_DEFAULT = System.getProperty("file.encoding");
+  public static final String ZIP_STANDARD_CHARSET = "Cp437";
 
   public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
   public static final String ZIP_FILE_SEPARATOR = "/";
-
-  public static final String THREAD_NAME = "Zip4j";
 
   public static final int MAX_ALLOWED_ZIP_COMMENT_LENGTH = 0xFFFF;
 }

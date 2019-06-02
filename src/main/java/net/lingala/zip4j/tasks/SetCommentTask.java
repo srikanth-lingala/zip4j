@@ -8,11 +8,6 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import static net.lingala.zip4j.util.InternalZipConstants.DEFAULT_COMMENT_CHARSET;
-import static net.lingala.zip4j.util.InternalZipConstants.MAX_ALLOWED_ZIP_COMMENT_LENGTH;
-import static net.lingala.zip4j.util.Zip4jUtil.isSupportedCharset;
 
 public class SetCommentTask extends AsyncZipTask<String> {
 
@@ -29,16 +24,8 @@ public class SetCommentTask extends AsyncZipTask<String> {
       throw new ZipException("comment is null, cannot update Zip file with comment");
     }
 
-    String encodedComment = convertCommentToDefaultCharset(comment);
-
-    if (encodedComment.length() > MAX_ALLOWED_ZIP_COMMENT_LENGTH) {
-      throw new ZipException("comment length exceeds maximum length");
-    }
-
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
-    endOfCentralDirectoryRecord.setComment(encodedComment);
-    endOfCentralDirectoryRecord.setCommentBytes(encodedComment.getBytes());
-    endOfCentralDirectoryRecord.setCommentLength(encodedComment.length());
+    endOfCentralDirectoryRecord.setComment(comment);
 
     try (SplitOutputStream outputStream = new SplitOutputStream(zipModel.getZipFile())) {
       if (zipModel.isZip64Format()) {
@@ -58,16 +45,5 @@ public class SetCommentTask extends AsyncZipTask<String> {
   @Override
   protected long calculateTotalWork(String taskParameters) {
     return 0;
-  }
-
-  private String convertCommentToDefaultCharset(String comment) throws ZipException {
-    if (isSupportedCharset(DEFAULT_COMMENT_CHARSET)) {
-      try {
-        return new String(comment.getBytes(DEFAULT_COMMENT_CHARSET), DEFAULT_COMMENT_CHARSET);
-      } catch (UnsupportedEncodingException e) {
-        return comment;
-      }
-    }
-    return comment;
   }
 }

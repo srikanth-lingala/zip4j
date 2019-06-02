@@ -44,13 +44,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_DEFAULT;
-import static net.lingala.zip4j.util.InternalZipConstants.DEFAULT_COMMENT_CHARSET;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStreamFor;
 
 /**
@@ -72,7 +68,6 @@ public class ZipFile {
   private boolean isEncrypted;
   private ProgressMonitor progressMonitor;
   private boolean runInThread;
-  private String fileNameCharset;
   private char[] password;
 
   /**
@@ -113,7 +108,7 @@ public class ZipFile {
    * @throws ZipException
    */
   public void createZipFile(File sourceFile, ZipParameters parameters) throws ZipException {
-    createZipFile(Arrays.asList(sourceFile), parameters, false, -1);
+    createZipFile(Collections.singletonList(sourceFile), parameters, false, -1);
   }
 
   /**
@@ -132,7 +127,7 @@ public class ZipFile {
    */
   public void createZipFile(File sourceFile, ZipParameters parameters,boolean splitArchive, long splitLength)
       throws ZipException {
-    createZipFile(Arrays.asList(sourceFile), parameters, splitArchive, splitLength);
+    createZipFile(Collections.singletonList(sourceFile), parameters, splitArchive, splitLength);
   }
 
   /**
@@ -170,7 +165,7 @@ public class ZipFile {
     }
 
     if (sourceFiles == null) {
-      throw new ZipException("input file ArrayList is null, cannot create zip file");
+      throw new ZipException("input file List is null, cannot create zip file");
     }
 
     createNewZipModel();
@@ -205,7 +200,8 @@ public class ZipFile {
     }
 
     if (zipFile.exists()) {
-      throw new ZipException("zip file: " + zipFile + " already exists. To add files to existing zip file use addFolder method");
+      throw new ZipException("zip file: " + zipFile
+          + " already exists. To add files to existing zip file use addFolder method");
     }
 
     createNewZipModel();
@@ -228,7 +224,7 @@ public class ZipFile {
    * @throws ZipException
    */
   public void addFile(File sourceFile, ZipParameters parameters) throws ZipException {
-    addFiles(Arrays.asList(sourceFile), parameters);
+    addFiles(Collections.singletonList(sourceFile), parameters);
   }
 
   /**
@@ -249,7 +245,7 @@ public class ZipFile {
     }
 
     if (sourceFiles == null) {
-      throw new ZipException("input file ArrayList is null");
+      throw new ZipException("input file List is null");
     }
 
     if (parameters == null) {
@@ -743,25 +739,6 @@ public class ZipFile {
    * @throws ZipException
    */
   public String getComment() throws ZipException {
-    return getComment(null);
-  }
-
-  /**
-   * Returns the comment set for the Zip file in the input encoding
-   *
-   * @param encoding
-   * @return String
-   * @throws ZipException
-   */
-  public String getComment(String encoding) throws ZipException {
-    if (encoding == null) {
-      if (Zip4jUtil.isSupportedCharset(DEFAULT_COMMENT_CHARSET)) {
-        encoding = DEFAULT_COMMENT_CHARSET;
-      } else {
-        encoding = CHARSET_DEFAULT;
-      }
-    }
-
     if (!zipFile.exists()) {
       throw new ZipException("zip file does not exist, cannot read comment");
     }
@@ -776,16 +753,7 @@ public class ZipFile {
       throw new ZipException("end of central directory record is null, cannot read comment");
     }
 
-    if (this.zipModel.getEndOfCentralDirectoryRecord().getCommentBytes() == null
-        || this.zipModel.getEndOfCentralDirectoryRecord().getCommentBytes().length <= 0) {
-      return null;
-    }
-
-    try {
-      return new String(this.zipModel.getEndOfCentralDirectoryRecord().getCommentBytes(), encoding);
-    } catch (UnsupportedEncodingException e) {
-      throw new ZipException(e);
-    }
+    return this.zipModel.getEndOfCentralDirectoryRecord().getComment();
   }
 
   /**
@@ -807,7 +775,7 @@ public class ZipFile {
 
     try (RandomAccessFile randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue())) {
       HeaderReader headerReader = new HeaderReader();
-      zipModel = headerReader.readAllHeaders(randomAccessFile, this.fileNameCharset);
+      zipModel = headerReader.readAllHeaders(randomAccessFile);
       zipModel.setZipFile(zipFile);
     } catch (IOException e) {
       throw new ZipException(e);
@@ -835,26 +803,6 @@ public class ZipFile {
   private void createNewZipModel() {
     zipModel = new ZipModel();
     zipModel.setZipFile(zipFile);
-    zipModel.setFileNameCharset(fileNameCharset);
-  }
-
-  /**
-   * Zip4j will encode all the file names with the input charset. This method throws
-   * an exception if the Charset is not supported
-   *
-   * @param charsetName
-   * @throws ZipException
-   */
-  public void setFileNameCharset(String charsetName) throws ZipException {
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(charsetName)) {
-      throw new ZipException("null or empty charset name");
-    }
-
-    if (!Zip4jUtil.isSupportedCharset(charsetName)) {
-      throw new ZipException("unsupported charset: " + charsetName);
-    }
-
-    this.fileNameCharset = charsetName;
   }
 
   /**
@@ -903,10 +851,10 @@ public class ZipFile {
    * this method returns an array list with path + "abc.z01", path + "abc.z02", etc.
    * Returns null if the zip file does not exist
    *
-   * @return ArrayList of Strings
+   * @return List of Split zip Files
    * @throws ZipException
    */
-  public ArrayList getSplitZipFiles() throws ZipException {
+  public List<File> getSplitZipFiles() throws ZipException {
     checkZipModel();
     return Zip4jUtil.getSplitZipFiles(zipModel);
   }

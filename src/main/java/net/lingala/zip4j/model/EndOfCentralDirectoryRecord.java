@@ -26,9 +26,7 @@ public class EndOfCentralDirectoryRecord extends ZipHeader {
   private int totalNumberOfEntriesInCentralDirectory;
   private int sizeOfCentralDirectory;
   private long offsetOfStartOfCentralDirectory;
-  private int commentLength;
   private String comment;
-  private byte[] commentBytes;
 
   public EndOfCentralDirectoryRecord() {
     setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
@@ -83,28 +81,12 @@ public class EndOfCentralDirectoryRecord extends ZipHeader {
     this.offsetOfStartOfCentralDirectory = offSetOfStartOfCentralDir;
   }
 
-  public int getCommentLength() {
-    return commentLength;
-  }
-
-  public void setCommentLength(int commentLength) {
-    this.commentLength = commentLength;
-  }
-
   public String getComment() {
     return comment;
   }
 
   public void setComment(String comment) {
     this.comment = comment;
-  }
-
-  public byte[] getCommentBytes() {
-    return commentBytes;
-  }
-
-  public void setCommentBytes(byte[] commentBytes) {
-    this.commentBytes = commentBytes;
   }
 
 }
