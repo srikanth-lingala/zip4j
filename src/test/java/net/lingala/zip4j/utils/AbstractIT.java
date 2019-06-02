@@ -15,7 +15,9 @@ public abstract class AbstractIT {
 
   protected static final char[] PASSWORD = "test123!".toCharArray();
   protected static final List<File> FILES_TO_ADD = Arrays.asList(
-      getFileFromResources("sample_text1.txt")
+      getFileFromResources("sample_text1.txt"),
+      getFileFromResources("sample_text_large.txt"),
+      getFileFromResources("sample.pdf")
   );
 
   protected File generatedZipFile;

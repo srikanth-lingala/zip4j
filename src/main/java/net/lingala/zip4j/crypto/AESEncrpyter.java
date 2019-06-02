@@ -126,7 +126,7 @@ public class AESEncrpyter implements Encrypter {
       loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
           AES_BLOCK_SIZE : ((start + len) - j);
 
-      prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
+      prepareBuffAESIVBytes(iv, nonce);
       aesEngine.processBlock(iv, counterBlock);
 
       for (int k = 0; k < loopCount; k++) {

@@ -10,5 +10,4 @@ public class TestUtils {
     final String path = "/" + TEST_FILES_FOLDER_NAME + "/" + fileName;
     return new File(TestUtils.class.getResource(path).getFile());
   }
-
 }

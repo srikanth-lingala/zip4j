@@ -56,23 +56,13 @@ public class HeaderWriter {
 
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getSignature().getValue());
-
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getVersionNeededToExtract());
-
-      //General Purpose bit flags
       byteArrayOutputStream.write(localFileHeader.getGeneralPurposeFlag());
-
-      //Compression Method
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getCompressionMethod().getCode());
-
-      //File modified time
       rawIO.writeIntLittleEndian(byteArrayOutputStream, localFileHeader.getLastModifiedTime());
-
-      //Skip crc for now - this field will be updated after data is compressed
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc32());
-
-      //compressed & uncompressed size
       long uncompressedSize = localFileHeader.getUncompressedSize();
+
       byte[] longByte = new byte[8];
       if (uncompressedSize + ZIP64_EXTRA_BUF >= ZIP_64_LIMIT) {
         rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
@@ -81,6 +71,7 @@ public class HeaderWriter {
         //these values will be stored in Zip64 extra record
         byteArrayOutputStream.write(longByte, 0, 4);
         byteArrayOutputStream.write(longByte, 0, 4);
+
         zipModel.setZip64Format(true);
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(true);
       } else {
@@ -96,7 +87,6 @@ public class HeaderWriter {
 
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getFileNameLength());
 
-      // extra field length
       int extraFieldLength = 0;
       if (zipModel.isZip64Format()) {
         extraFieldLength += 20;
@@ -117,7 +107,6 @@ public class HeaderWriter {
       //This is NOT according to any specification but if this is changed
       //then take care of updateLocalFileHeader for compressed size
       if (zipModel.isZip64Format()) {
-        //Zip64 header
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (short) HeaderSignature.ZIP64_EXTRA_FIELD_LENGTH.getValue());
 
@@ -125,8 +114,6 @@ public class HeaderWriter {
         //hardcoded it to 16 for local file header as we will just write
         //compressed and uncompressed file sizes
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) 16);
-
-        //uncompressed size
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getUncompressedSize());
         //set compressed size to 0 for now
         byteArrayOutputStream.write(new byte[] {0, 0, 0, 0, 0, 0, 0, 0});
@@ -134,13 +121,9 @@ public class HeaderWriter {
 
       if (localFileHeader.getAesExtraDataRecord() != null) {
         AESExtraDataRecord aesExtraDataRecord = localFileHeader.getAesExtraDataRecord();
-
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) aesExtraDataRecord.getSignature().getValue());
-
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) aesExtraDataRecord.getDataSize());
-
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) aesExtraDataRecord.getVersionNumber());
-
         byteArrayOutputStream.write(aesExtraDataRecord.getVendorID().getBytes());
 
         byte[] aesStrengthBytes = new byte[1];
@@ -166,20 +149,15 @@ public class HeaderWriter {
     }
 
     try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-      //Extended local file header signature
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) HeaderSignature.EXTRA_DATA_RECORD.getValue());
-
-      //CRC
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc32());
 
-      //compressed size
       long compressedSize = localFileHeader.getCompressedSize();
       if (compressedSize >= Integer.MAX_VALUE) {
         compressedSize = Integer.MAX_VALUE;
       }
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) compressedSize);
 
-      //uncompressed size
       long uncompressedSize = localFileHeader.getUncompressedSize();
       if (uncompressedSize >= Integer.MAX_VALUE) {
         uncompressedSize = Integer.MAX_VALUE;
@@ -198,7 +176,8 @@ public class HeaderWriter {
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       processHeaderData(zipModel, outputStream);
       long offsetCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
-      int sizeOfCentralDir = writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO);
+      writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO);
+      int sizeOfCentralDir = byteArrayOutputStream.size();
 
       if (zipModel.isZip64Format()) {
         if (zipModel.getZip64EndOfCentralDirectoryRecord() == null) {
@@ -208,10 +187,13 @@ public class HeaderWriter {
           zipModel.setZip64EndOfCentralDirectoryLocator(new Zip64EndOfCentralDirectoryLocator());
         }
 
-        zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(offsetCentralDir + sizeOfCentralDir);
+        zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(offsetCentralDir
+            + sizeOfCentralDir);
+
         if (isSplitZipFile(outputStream)) {
           int currentSplitFileCounter = getCurrentSplitFileCounter(outputStream);
-          zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(currentSplitFileCounter);
+          zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
+              currentSplitFileCounter);
           zipModel.getZip64EndOfCentralDirectoryLocator().setTotalNumberOfDiscs(currentSplitFileCounter + 1);
         } else {
           zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(0);
@@ -220,12 +202,10 @@ public class HeaderWriter {
 
         writeZip64EndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream,
             rawIO);
-
         writeZip64EndOfCentralDirectoryLocator(zipModel, byteArrayOutputStream, rawIO);
       }
 
       writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO);
-
       writeZipHeaderBytes(zipModel, outputStream, byteArrayOutputStream.toByteArray());
     } catch (IOException e) {
       throw new ZipException(e);
@@ -240,7 +220,8 @@ public class HeaderWriter {
 
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       long offsetCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
-      int sizeOfCentralDir = writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO);
+      writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO);
+      int sizeOfCentralDir = byteArrayOutputStream.size();
 
       if (zipModel.isZip64Format()) {
         if (zipModel.getZip64EndOfCentralDirectoryRecord() == null) {
@@ -250,7 +231,8 @@ public class HeaderWriter {
           zipModel.setZip64EndOfCentralDirectoryLocator(new Zip64EndOfCentralDirectoryLocator());
         }
 
-        zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(offsetCentralDir + sizeOfCentralDir);
+        zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(offsetCentralDir
+            + sizeOfCentralDir);
 
         writeZip64EndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream,
             rawIO);
@@ -258,7 +240,6 @@ public class HeaderWriter {
       }
 
       writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO);
-
       writeZipHeaderBytes(zipModel, outputStream, byteArrayOutputStream.toByteArray());
     } catch (ZipException e) {
       throw e;
@@ -306,10 +287,11 @@ public class HeaderWriter {
 
   private void processHeaderData(ZipModel zipModel, OutputStream outputStream) throws ZipException {
     try {
-      int currSplitFileCounter = 0;
+      int currentSplitFileCounter = 0;
       if (outputStream instanceof CountingOutputStream) {
-        zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(((CountingOutputStream) outputStream).getFilePointer());
-        currSplitFileCounter = ((CountingOutputStream) outputStream).getCurrentSplitFileCounter();
+        zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(
+            ((CountingOutputStream) outputStream).getFilePointer());
+        currentSplitFileCounter = ((CountingOutputStream) outputStream).getCurrentSplitFileCounter();
       }
 
       if (zipModel.isZip64Format()) {
@@ -320,34 +302,31 @@ public class HeaderWriter {
           zipModel.setZip64EndOfCentralDirectoryLocator(new Zip64EndOfCentralDirectoryLocator());
         }
 
-        zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(currSplitFileCounter);
-        zipModel.getZip64EndOfCentralDirectoryLocator().setTotalNumberOfDiscs(currSplitFileCounter + 1);
+        zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
+            currentSplitFileCounter);
+        zipModel.getZip64EndOfCentralDirectoryLocator().setTotalNumberOfDiscs(currentSplitFileCounter + 1);
       }
-      zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDisk(currSplitFileCounter);
-      zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDiskStartOfCentralDir(currSplitFileCounter);
+      zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDisk(currentSplitFileCounter);
+      zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDiskStartOfCentralDir(currentSplitFileCounter);
     } catch (IOException e) {
       throw new ZipException(e);
     }
   }
 
-  private int writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO)
+  private void writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO)
       throws ZipException {
 
-    if (zipModel.getCentralDirectory() == null ||
-        zipModel.getCentralDirectory().getFileHeaders() == null ||
-        zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
-      return 0;
+    if (zipModel.getCentralDirectory() == null || zipModel.getCentralDirectory().getFileHeaders() == null
+        || zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
+      return;
     }
 
-    int sizeOfCentralDir = 0;
     for (FileHeader fileHeader: zipModel.getCentralDirectory().getFileHeaders()) {
-      int sizeOfFileHeader = writeFileHeader(zipModel, fileHeader, byteArrayOutputStream, rawIO);
-      sizeOfCentralDir += sizeOfFileHeader;
+      writeFileHeader(zipModel, fileHeader, byteArrayOutputStream, rawIO);
     }
-    return sizeOfCentralDir;
   }
 
-  private int writeFileHeader(ZipModel zipModel, FileHeader fileHeader, ByteArrayOutputStream byteArrayOutputStream,
+  private void writeFileHeader(ZipModel zipModel, FileHeader fileHeader, ByteArrayOutputStream byteArrayOutputStream,
                               RawIO rawIO) throws ZipException {
 
     if (fileHeader == null) {
@@ -355,7 +334,6 @@ public class HeaderWriter {
     }
 
     try {
-      int sizeOfFileHeader = 0;
       byte[] longByte = new byte[8];
       final byte[] emptyShortByte = {0, 0};
 
@@ -363,49 +341,29 @@ public class HeaderWriter {
       boolean writeZip64OffsetLocalHeader = false;
 
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) fileHeader.getSignature().getValue());
-      sizeOfFileHeader += 4;
-
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getVersionMadeBy());
-      sizeOfFileHeader += 2;
-
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getVersionNeededToExtract());
-      sizeOfFileHeader += 2;
-
       byteArrayOutputStream.write(fileHeader.getGeneralPurposeFlag());
-      sizeOfFileHeader += 2;
-
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getCompressionMethod().getCode());
-      sizeOfFileHeader += 2;
 
       int lastModifiedTime = fileHeader.getLastModifiedTime();
       rawIO.writeIntLittleEndian(byteArrayOutputStream, lastModifiedTime);
-      sizeOfFileHeader += 4;
-
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) (fileHeader.getCrc32()));
-      sizeOfFileHeader += 4;
 
       if (fileHeader.getCompressedSize() >= ZIP_64_LIMIT ||
           fileHeader.getUncompressedSize() + ZIP64_EXTRA_BUF >= ZIP_64_LIMIT) {
         rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
         byteArrayOutputStream.write(longByte, 0, 4);
-        sizeOfFileHeader += 4;
-
         byteArrayOutputStream.write(longByte, 0, 4);
-        sizeOfFileHeader += 4;
-
         writeZip64FileSize = true;
       } else {
         rawIO.writeLongLittleEndian(longByte, 0, fileHeader.getCompressedSize());
         byteArrayOutputStream.write(longByte, 0, 4);
-        sizeOfFileHeader += 4;
-
         rawIO.writeLongLittleEndian(longByte, 0, fileHeader.getUncompressedSize());
         byteArrayOutputStream.write(longByte, 0, 4);
-        sizeOfFileHeader += 4;
       }
 
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getFileNameLength());
-      sizeOfFileHeader += 2;
 
       //Compute offset bytes before extra field is written for Zip64 compatibility
       //NOTE: this data is not written now, but written at a later point
@@ -419,7 +377,6 @@ public class HeaderWriter {
         System.arraycopy(longByte, 0, offsetLocalHeaderBytes, 0, 4);
       }
 
-      // extra field length
       int extraFieldLength = 0;
       if (writeZip64FileSize || writeZip64OffsetLocalHeader) {
         extraFieldLength += 4;
@@ -432,44 +389,35 @@ public class HeaderWriter {
         extraFieldLength += 11;
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) (extraFieldLength));
-      sizeOfFileHeader += 2;
 
       //Skip file comment length for now
       byteArrayOutputStream.write(emptyShortByte);
-      sizeOfFileHeader += 2;
 
       //Skip disk number start for now
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getDiskNumberStart());
-      sizeOfFileHeader += 2;
 
       //Skip internal file attributes for now
       byteArrayOutputStream.write(emptyShortByte);
-      sizeOfFileHeader += 2;
 
       //External file attributes
       byteArrayOutputStream.write(new byte[] {1, 1, 1, 1});
-      sizeOfFileHeader += 4;
 
-      //offset local header
-      //this data is computed above
+      //offset local header - this data is computed above
       byteArrayOutputStream.write(offsetLocalHeaderBytes);
-      sizeOfFileHeader += 4;
 
       if (isStringNotNullAndNotEmpty(zipModel.getFileNameCharset())) {
         byte[] fileNameBytes = fileHeader.getFileName().getBytes(zipModel.getFileNameCharset());
         byteArrayOutputStream.write(fileNameBytes);
-        sizeOfFileHeader += fileNameBytes.length;
       } else {
         byteArrayOutputStream.write(convertCharset(fileHeader.getFileName()));
-        sizeOfFileHeader += Zip4jUtil.getEncodedStringLength(fileHeader.getFileName());
       }
 
       if (writeZip64FileSize || writeZip64OffsetLocalHeader) {
         zipModel.setZip64Format(true);
 
         //Zip64 header
-        rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) HeaderSignature.ZIP64_EXTRA_FIELD_LENGTH.getValue());
-        sizeOfFileHeader += 2;
+        rawIO.writeShortLittleEndian(byteArrayOutputStream,
+            (short) HeaderSignature.ZIP64_EXTRA_FIELD_LENGTH.getValue());
 
         //Zip64 extra data record size
         int dataSize = 0;
@@ -482,19 +430,14 @@ public class HeaderWriter {
         }
 
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) dataSize);
-        sizeOfFileHeader += 2;
 
         if (writeZip64FileSize) {
           rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getUncompressedSize());
-          sizeOfFileHeader += 8;
-
           rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getCompressedSize());
-          sizeOfFileHeader += 8;
         }
 
         if (writeZip64OffsetLocalHeader) {
           rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getOffsetLocalHeader());
-          sizeOfFileHeader += 8;
         }
       }
 
@@ -511,10 +454,7 @@ public class HeaderWriter {
 
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (short) aesExtraDataRecord.getCompressionMethod().getCode());
-        sizeOfFileHeader += 11;
       }
-
-      return sizeOfFileHeader;
     } catch (Exception e) {
       throw new ZipException(e);
     }
@@ -527,15 +467,10 @@ public class HeaderWriter {
     try {
       byte[] emptyShortByte = {0, 0};
 
-      //zip64 end of central dir signature
       rawIO.writeIntLittleEndian(byteArrayOutputStream,
           (int) HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD.getValue());
-
-      //size of zip64 end of central directory record
       rawIO.writeLongLittleEndian(byteArrayOutputStream, (long) 44);
 
-      //version made by
-      //version needed to extract
       if (zipModel.getCentralDirectory() != null &&
           zipModel.getCentralDirectory().getFileHeaders() != null &&
           zipModel.getCentralDirectory().getFileHeaders().size() > 0) {
@@ -549,15 +484,11 @@ public class HeaderWriter {
         byteArrayOutputStream.write(emptyShortByte);
       }
 
-      //number of this disk
       rawIO.writeIntLittleEndian(byteArrayOutputStream,
           zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
-
-      //number of the disk with start of central directory
       rawIO.writeIntLittleEndian(byteArrayOutputStream, zipModel.getEndOfCentralDirectoryRecord()
           .getNumberOfThisDiskStartOfCentralDir());
 
-      //total number of entries in the central directory on this disk
       int numEntries = 0;
       int numEntriesOnThisDisk = 0;
       if (zipModel.getCentralDirectory() == null ||
@@ -574,14 +505,8 @@ public class HeaderWriter {
         }
       }
       rawIO.writeLongLittleEndian(byteArrayOutputStream, numEntriesOnThisDisk);
-
-      //Total number of entries in central directory
       rawIO.writeLongLittleEndian(byteArrayOutputStream, numEntries);
-
-      //Size of central directory
       rawIO.writeLongLittleEndian(byteArrayOutputStream, sizeOfCentralDir);
-
-      //offset of start of central directory with respect to the starting disk number
       rawIO.writeLongLittleEndian(byteArrayOutputStream, offsetCentralDir);
     } catch (ZipException zipException) {
       throw zipException;
@@ -593,18 +518,11 @@ public class HeaderWriter {
   private void writeZip64EndOfCentralDirectoryLocator(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream,
                                                       RawIO rawIO) throws ZipException {
     try {
-      //zip64 end of central dir locator  signature
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR.getValue());
-
-      //number of the disk with the start of the zip64 end of central directory
       rawIO.writeIntLittleEndian(byteArrayOutputStream,
           zipModel.getZip64EndOfCentralDirectoryLocator().getNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord());
-
-      //relative offset of the zip64 end of central directory record
       rawIO.writeLongLittleEndian(byteArrayOutputStream,
           zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord());
-
-      //total number of disks
       rawIO.writeIntLittleEndian(byteArrayOutputStream,
           zipModel.getZip64EndOfCentralDirectoryLocator().getTotalNumberOfDiscs());
     } catch (IOException e) {
@@ -617,21 +535,13 @@ public class HeaderWriter {
       throws ZipException {
 
     try {
-      byte[] intByte = new byte[4];
       byte[] longByte = new byte[8];
-
-      //End of central directory signature
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
-
-      //number of this disk
       rawIO.writeShortLittleEndian(byteArrayOutputStream,
           (short) (zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk()));
-
-      //number of the disk with start of central directory
       rawIO.writeShortLittleEndian(byteArrayOutputStream,
           (short) (zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDiskStartOfCentralDir()));
 
-      //Total number of entries in central directory on this disk
       int numEntriesOnThisDisk;
       int numEntries = zipModel.getCentralDirectory().getFileHeaders().size();
       if (zipModel.isSplitArchive()) {
@@ -641,14 +551,8 @@ public class HeaderWriter {
         numEntriesOnThisDisk = numEntries;
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) numEntriesOnThisDisk);
-
-      //Total number of entries in central directory
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) numEntries);
-
-      //Size of central directory
       rawIO.writeIntLittleEndian(byteArrayOutputStream, sizeOfCentralDir);
-
-      //Offset central directory
       if (offsetCentralDir > ZIP_64_LIMIT) {
         rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
         byteArrayOutputStream.write(longByte, 0, 4);
@@ -657,14 +561,12 @@ public class HeaderWriter {
         byteArrayOutputStream.write(longByte, 0, 4);
       }
 
-      //Zip File comment length
       int commentLength = 0;
       if (zipModel.getEndOfCentralDirectoryRecord().getComment() != null) {
         commentLength = zipModel.getEndOfCentralDirectoryRecord().getCommentLength();
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) commentLength);
 
-      //Comment
       if (commentLength > 0) {
         byteArrayOutputStream.write(zipModel.getEndOfCentralDirectoryRecord().getCommentBytes());
       }
@@ -674,10 +576,8 @@ public class HeaderWriter {
   }
 
   public void updateLocalFileHeader(LocalFileHeader localFileHeader, long offset, int toUpdate, ZipModel zipModel,
-                                    byte[] bytesToWrite, int noOfDisk, SplitOutputStream outputStream) throws ZipException {
-    if (localFileHeader == null || offset < 0 || zipModel == null) {
-      throw new ZipException("invalid input parameters, cannot update local file header");
-    }
+                                    byte[] bytesToWrite, int noOfDisk, SplitOutputStream outputStream)
+      throws ZipException {
 
     try {
       boolean closeFlag = false;
@@ -708,7 +608,7 @@ public class HeaderWriter {
         case UPDATE_LFH_COMP_SIZE:
         case UPDATE_LFH_UNCOMP_SIZE:
           updateCompressedSizeInLocalFileHeader(currOutputStream, localFileHeader,
-              offset, toUpdate, bytesToWrite, zipModel.isZip64Format());
+              offset, toUpdate, bytesToWrite);
           break;
         default:
           break;
@@ -725,11 +625,8 @@ public class HeaderWriter {
   }
 
   private void updateCompressedSizeInLocalFileHeader(SplitOutputStream outputStream, LocalFileHeader localFileHeader,
-                                                     long offset, long toUpdate, byte[] bytesToWrite, boolean isZip64Format) throws ZipException {
-
-    if (outputStream == null) {
-      throw new ZipException("invalid output stream, cannot update compressed size for local file header");
-    }
+                                                     long offset, long toUpdate, byte[] bytesToWrite)
+      throws ZipException {
 
     try {
       if (localFileHeader.isWriteCompressedSizeInZip64ExtraRecord()) {
@@ -747,7 +644,8 @@ public class HeaderWriter {
         //8 - crc
         //8 - compressed size
         //8 - uncompressed size
-        long zip64CompressedSizeOffset = offset + toUpdate + 4 + 4 + 2 + 2 + localFileHeader.getFileNameLength() + 2 + 2 + 8;
+        long zip64CompressedSizeOffset = offset + toUpdate + 4 + 4 + 2 + 2 + localFileHeader.getFileNameLength()
+            + 2 + 2 + 8;
         if (toUpdate == UPDATE_LFH_UNCOMP_SIZE) {
           zip64CompressedSizeOffset += 8;
         }
@@ -761,34 +659,6 @@ public class HeaderWriter {
       throw new ZipException(e);
     }
 
-  }
-
-  private void copyByteArrayToArrayList(byte[] byteArray, List arrayList) throws ZipException {
-    if (arrayList == null || byteArray == null) {
-      throw new ZipException("one of the input parameters is null, cannot copy byte array to array list");
-    }
-
-    for (int i = 0; i < byteArray.length; i++) {
-      arrayList.add(Byte.toString(byteArray[i]));
-    }
-  }
-
-  private byte[] byteArrayListToByteArray(List arrayList) throws ZipException {
-    if (arrayList == null) {
-      throw new ZipException("input byte array list is null, cannot conver to byte array");
-    }
-
-    if (arrayList.size() <= 0) {
-      return null;
-    }
-
-    byte[] retBytes = new byte[arrayList.size()];
-
-    for (int i = 0; i < arrayList.size(); i++) {
-      retBytes[i] = Byte.parseByte((String) arrayList.get(i));
-    }
-
-    return retBytes;
   }
 
   private int countNumberOfFileHeaderEntriesOnDisk(List<FileHeader> fileHeaders, int numOfDisk) throws ZipException {

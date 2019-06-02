@@ -95,7 +95,7 @@ public class AESDecrypter implements Decrypter {
           AES_BLOCK_SIZE : ((start + len) - j);
 
       mac.update(buff, j, loopCount);
-      prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
+      prepareBuffAESIVBytes(iv, nonce);
       aesEngine.processBlock(iv, counterBlock);
 
       for (int k = 0; k < loopCount; k++) {
