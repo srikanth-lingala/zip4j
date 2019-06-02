@@ -376,7 +376,7 @@ public class ZipFile {
       throw new ZipException("output path is null or invalid");
     }
 
-    if (!Zip4jUtil.checkOutputFolder(destinationPath)) {
+    if (!Zip4jUtil.createDirectoryIfNotExists(destinationPath)) {
       throw new ZipException("invalid output path");
     }
 

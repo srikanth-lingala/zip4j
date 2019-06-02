@@ -19,7 +19,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
 import static net.lingala.zip4j.util.FileUtils.copyFile;
-import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
 
 public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
@@ -87,7 +86,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
     long totalSize = 0;
     for (int i = 0; i <= zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk(); i++) {
-      totalSize += getFileLengh(getNextSplitZipFile(zipModel, i));
+      totalSize += getNextSplitZipFile(zipModel, i).length();
     }
     return totalSize;
   }

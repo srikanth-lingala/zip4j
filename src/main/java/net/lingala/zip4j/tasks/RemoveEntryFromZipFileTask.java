@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Random;
 
 import static net.lingala.zip4j.util.FileUtils.copyFile;
-import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
 import static net.lingala.zip4j.util.Zip4jUtil.getIndexOfFileHeader;
 
 public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
@@ -174,7 +173,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
   }
 
   @Override
-  protected long calculateTotalWork(FileHeader fileHeader) throws ZipException {
-    return getFileLengh(zipModel.getZipFile()) - fileHeader.getCompressedSize();
+  protected long calculateTotalWork(FileHeader fileHeader) {
+    return zipModel.getZipFile().length() - fileHeader.getCompressedSize();
   }
 }

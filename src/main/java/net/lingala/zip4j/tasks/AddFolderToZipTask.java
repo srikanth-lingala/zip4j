@@ -54,7 +54,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
       throw new ZipException("one of the input parameters is null, cannot add folder to zip");
     }
 
-    if (!Zip4jUtil.checkFileExists(folderToAdd.getAbsolutePath())) {
+    if (!folderToAdd.exists()) {
       throw new ZipException("input folder does not exist");
     }
 
@@ -62,7 +62,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
       throw new ZipException("input file is not a folder, user addFileToZip method to add files");
     }
 
-    if (!Zip4jUtil.assertFileReadAccess(folderToAdd.getAbsolutePath())) {
+    if (!folderToAdd.canRead()) {
       throw new ZipException("cannot read folder: " + folderToAdd.getAbsolutePath());
     }
   }

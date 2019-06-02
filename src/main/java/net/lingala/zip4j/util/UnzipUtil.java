@@ -40,7 +40,7 @@ public class UnzipUtil {
       throw new ZipException("cannot set file properties: output file is null");
     }
 
-    if (!Zip4jUtil.checkFileExists(file)) {
+    if (!file.exists()) {
       throw new ZipException("cannot set file properties: file doesnot exist");
     }
 
@@ -79,45 +79,7 @@ public class UnzipUtil {
       return;
     }
 
-    switch (fileMode) {
-      case READ_ONLY:
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        break;
-      case HIDDEN:
-      case FOLDER_HIDDEN:
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case ARCHIVE:
-      case FOLDER_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        break;
-      case READ_ONLY_AND_HIDDEN:
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case READ_ONLY_AND_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        break;
-      case HIDDEN_AND_ARCHIVE:
-      case FOLDER_HIDDEN_AND_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case READ_ONLY_AND_HIDDEN_AND_ARCHIVE:
-        if (setArchive) Zip4jUtil.setFileArchive(file);
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        break;
-      case SYSTEM_FILE:
-        if (setReadOnly) Zip4jUtil.setFileReadOnly(file);
-        if (setHidden) Zip4jUtil.setFileHidden(file);
-        if (setSystem) Zip4jUtil.setFileSystemMode(file);
-        break;
-      default:
-        //do nothing
-        break;
-    }
+    //TODO set attributes of file
   }
 
   private static void setFileLastModifiedTime(FileHeader fileHeader, File file) {

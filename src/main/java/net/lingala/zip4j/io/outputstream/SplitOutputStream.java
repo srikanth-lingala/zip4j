@@ -86,7 +86,8 @@ public class SplitOutputStream extends OutputStream {
       } else {
         raf.write(b, off, (int) (splitLength - bytesWrittenForThisPart));
         startNextSplitFile();
-        raf.write(b, off + (int) (splitLength - bytesWrittenForThisPart), (int) (len - (splitLength - bytesWrittenForThisPart)));
+        raf.write(b, off + (int) (splitLength - bytesWrittenForThisPart),
+            (int) (len - (splitLength - bytesWrittenForThisPart)));
         bytesWrittenForThisPart = len - (splitLength - bytesWrittenForThisPart);
       }
     } else {
@@ -99,7 +100,8 @@ public class SplitOutputStream extends OutputStream {
     try {
       String zipFileWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(zipFile.getName());
       String zipFileName = zipFile.getAbsolutePath();
-      String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent() + System.getProperty("file.separator");
+      String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent()
+          + System.getProperty("file.separator");
 
       String fileExtension = ".z0" + (currSplitFileCounter + 1);
       if (currSplitFileCounter > 9) {
@@ -111,7 +113,8 @@ public class SplitOutputStream extends OutputStream {
       raf.close();
 
       if (currSplitFile.exists()) {
-        throw new IOException("split file: " + currSplitFile.getName() + " already exists in the current directory, cannot rename this file");
+        throw new IOException("split file: " + currSplitFile.getName()
+            + " already exists in the current directory, cannot rename this file");
       }
 
       if (!zipFile.renameTo(currSplitFile)) {

@@ -26,9 +26,6 @@ import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
 import static net.lingala.zip4j.util.CRCUtil.computeFileCRC;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.Zip4jUtil.getFileHeader;
-import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
-import static net.lingala.zip4j.util.Zip4jUtil.getFileNameFromFilePath;
-import static net.lingala.zip4j.util.Zip4jUtil.getLastModifiedFileTime;
 import static net.lingala.zip4j.util.Zip4jUtil.getRelativeFileName;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
 
@@ -145,19 +142,18 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws ZipException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
-    clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((getLastModifiedFileTime(fileToAdd,
-        zipParameters.getTimeZone()))));
-    clonedZipParameters.setFileNameInZip(getFileNameFromFilePath(fileToAdd));
+    clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((fileToAdd.lastModified())));
+    clonedZipParameters.setFileNameInZip(fileToAdd.getName());
 
     if (zipParameters.getCompressionMethod() == STORE) {
-      clonedZipParameters.setUncompressedSize(getFileLengh(fileToAdd));
+      clonedZipParameters.setUncompressedSize(fileToAdd.length());
     }
 
     if (!fileToAdd.isDirectory()) {
       if (clonedZipParameters.isEncryptFiles()
           && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
         progressMonitor.setCurrentTask(CALCULATE_CRC);
-        clonedZipParameters.setSourceFileCRC((int) computeFileCRC(fileToAdd.getAbsolutePath(), progressMonitor));
+        clonedZipParameters.setSourceFileCRC((int) computeFileCRC(fileToAdd, progressMonitor));
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 

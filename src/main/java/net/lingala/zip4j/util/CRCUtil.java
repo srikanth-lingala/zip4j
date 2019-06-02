@@ -25,28 +25,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
 
-import static net.lingala.zip4j.util.Zip4jUtil.assertFileReadAccess;
-
 public class CRCUtil {
 
   private static final int BUF_SIZE = 1 << 14; //16384
 
-  public static long computeFileCRC(String inputFile) throws ZipException {
-    return computeFileCRC(inputFile, null);
-  }
+  public static long computeFileCRC(File inputFile, ProgressMonitor progressMonitor) throws ZipException {
 
-  public static long computeFileCRC(String inputFile, ProgressMonitor progressMonitor) throws ZipException {
-
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(inputFile)) {
-      throw new ZipException("input file is null or empty, cannot calculate CRC for the file");
+    if (inputFile == null || !inputFile.exists() || !inputFile.canRead()) {
+      throw new ZipException("input file is null or does not exist or cannot read file. " +
+          "Cannot calculate CRC for the file");
     }
-
-    assertFileReadAccess(inputFile);
 
     byte[] buff = new byte[BUF_SIZE];
     CRC32 crc32 = new CRC32();
 
-    try(InputStream inputStream = new FileInputStream(new File(inputFile))) {
+    try(InputStream inputStream = new FileInputStream(inputFile)) {
       int readLen;
       while ((readLen = inputStream.read(buff)) != -1) {
         crc32.update(buff, 0, readLen);
