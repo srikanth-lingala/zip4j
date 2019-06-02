@@ -700,4 +700,12 @@ public class Zip4jUtil {
   public static boolean isZipEntryDirectory(String fileNameInZip) {
     return fileNameInZip.endsWith("/") || fileNameInZip.endsWith("\\");
   }
+
+  public static byte[] convertCharArrayToByteArray(char[] charArray) {
+    byte[] bytes = new byte[charArray.length];
+    for (int i = 0; i < charArray.length; i++) {
+      bytes[i] = (byte) charArray[i];
+    }
+    return bytes;
+  }
 }

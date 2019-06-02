@@ -9,13 +9,13 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Charset;
-import net.lingala.zip4j.util.Raw;
+import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 public class FileHeaderFactory {
 
   public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart,
-                                       String fileNameCharset) throws ZipException {
+                                       String fileNameCharset, RawIO rawIO) throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
@@ -55,7 +55,7 @@ public class FileHeaderFactory {
     }
 
     fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileNameCharset, fileHeader.isEncrypted(),
-        zipParameters, fileName));
+        zipParameters, fileName, rawIO));
 
     return fileHeader;
   }
@@ -79,9 +79,9 @@ public class FileHeaderFactory {
   }
 
   private byte[] determineGeneralPurposeBitFlag(String fileNameCharset, boolean isEncrypted,ZipParameters zipParameters,
-                                                String fileName) throws ZipException {
+                                                String fileName, RawIO rawIO) throws ZipException {
     byte[] generalPurposeBitFlag = new byte[2];
-    generalPurposeBitFlag[0] = Raw.bitArrayToByte(generateGeneralPurposeBitArray(isEncrypted, zipParameters.getCompressionMethod()));
+    generalPurposeBitFlag[0] = rawIO.bitArrayToByte(generateGeneralPurposeBitArray(isEncrypted, zipParameters.getCompressionMethod()));
 
     boolean isFileNameCharsetSet = Zip4jUtil.isStringNotNullAndNotEmpty(fileNameCharset);
     if ((isFileNameCharsetSet && fileNameCharset.equalsIgnoreCase(Charset.UTF8.getCharsetCode()))

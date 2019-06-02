@@ -65,7 +65,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
-      inputStream.getNextEntry();
+      if (inputStream.getNextEntry() == null) {
+        throw new ZipException("Could not read corresponding localfileheader for fileheader: "
+            + fileHeader.getFileName());
+      }
+
       while ((readLength = inputStream.read(buff)) != -1) {
         outputStream.write(buff, 0, readLength);
         progressMonitor.updateWorkCompleted(readLength);

@@ -19,7 +19,7 @@ package net.lingala.zip4j.io.outputstream;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
-import net.lingala.zip4j.util.Raw;
+import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
@@ -37,6 +37,7 @@ public class SplitOutputStream extends OutputStream {
   private File zipFile;
   private int currSplitFileCounter;
   private long bytesWrittenForThisPart;
+  private  RawIO rawIO = new RawIO();
 
   public SplitOutputStream(File file) throws FileNotFoundException, ZipException {
     this(file, -1);
@@ -126,7 +127,7 @@ public class SplitOutputStream extends OutputStream {
   }
 
   private boolean isHeaderData(byte[] buff) {
-    int signature = Raw.readIntLittleEndian(buff, 0);
+    int signature = rawIO.readIntLittleEndian(buff);
     for (HeaderSignature headerSignature : HeaderSignature.values()) {
       //Ignore split signature
       if (headerSignature != HeaderSignature.SPLIT_ZIP &&

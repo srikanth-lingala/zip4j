@@ -22,10 +22,10 @@ import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
 import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.util.Raw;
 
 import java.util.Random;
 
+import static net.lingala.zip4j.crypto.AesCipherUtil.prepareBuffAESIVBytes;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
 public class AESEncrpyter implements Encrypter {
@@ -126,7 +126,7 @@ public class AESEncrpyter implements Encrypter {
       loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
           AES_BLOCK_SIZE : ((start + len) - j);
 
-      Raw.prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
+      prepareBuffAESIVBytes(iv, nonce, AES_BLOCK_SIZE);
       aesEngine.processBlock(iv, counterBlock);
 
       for (int k = 0; k < loopCount; k++) {

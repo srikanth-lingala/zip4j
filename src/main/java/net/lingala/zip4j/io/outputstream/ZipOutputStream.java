@@ -10,7 +10,7 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.Raw;
+import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,6 +27,7 @@ public class ZipOutputStream extends OutputStream {
   private FileHeaderFactory fileHeaderFactory = new FileHeaderFactory();
   private HeaderWriter headerWriter = new HeaderWriter();
   private CRC32 crc32 = new CRC32();
+  private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
   private boolean writeCrc32 = true;
 
@@ -133,7 +134,7 @@ public class ZipOutputStream extends OutputStream {
 
   private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws ZipException, IOException {
     fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitOutputStream(),
-        countingOutputStream.getCurrentSplitFileCounter(), zipModel.getFileNameCharset());
+        countingOutputStream.getCurrentSplitFileCounter(), zipModel.getFileNameCharset(), rawIO);
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
     localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
@@ -151,9 +152,7 @@ public class ZipOutputStream extends OutputStream {
       return;
     }
 
-    byte[] intByte = new byte[4];
-    Raw.writeIntLittleEndian(intByte, 0, (int) HeaderSignature.SPLIT_ZIP.getValue());
-    countingOutputStream.write(intByte);
+    rawIO.writeIntLittleEndian(countingOutputStream, (int) HeaderSignature.SPLIT_ZIP.getValue());
   }
 
   private CompressedOutputStream initializeCompressedOutputStream(ZipParameters zipParameters) throws IOException, ZipException {

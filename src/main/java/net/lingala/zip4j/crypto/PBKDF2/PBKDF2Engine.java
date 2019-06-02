@@ -16,7 +16,7 @@
 
 package net.lingala.zip4j.crypto.PBKDF2;
 
-import net.lingala.zip4j.util.Raw;
+import static net.lingala.zip4j.util.Zip4jUtil.convertCharArrayToByteArray;
 
 /*
  * Source referred from Matthias Gartner's PKCS#5 implementation -
@@ -54,7 +54,7 @@ public class PBKDF2Engine {
       throw new NullPointerException();
     }
 
-    P = Raw.convertCharArrayToByteArray(inputPassword);
+    P = convertCharArrayToByteArray(inputPassword);
 
     assertPRF(P);
     if (dkLen == 0) {

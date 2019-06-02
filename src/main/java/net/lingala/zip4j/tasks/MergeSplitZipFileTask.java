@@ -10,7 +10,7 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.util.Raw;
+import net.lingala.zip4j.util.RawIO;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,6 +24,7 @@ import static net.lingala.zip4j.util.Zip4jUtil.getFileLengh;
 public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
   private ZipModel zipModel;
+  private RawIO rawIO = new RawIO();
 
   public MergeSplitZipFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
     super(progressMonitor, runInThread);
@@ -51,9 +52,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
           long end = randomAccessFile.length();
 
           if (i == 0) {
-            byte[] buff = new byte[4];
-            randomAccessFile.read(buff);
-            if (Raw.readIntLittleEndian(buff, 0) == HeaderSignature.SPLIT_ZIP.getValue()) {
+            if (rawIO.readIntLittleEndian(randomAccessFile) == HeaderSignature.SPLIT_ZIP.getValue()) {
               start = 4;
             } else {
               randomAccessFile.seek(0);
