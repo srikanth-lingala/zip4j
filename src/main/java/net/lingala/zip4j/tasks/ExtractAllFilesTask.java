@@ -25,6 +25,11 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       throws ZipException {
     try (ZipInputStream zipInputStream = createZipInputStream()) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
+        if (fileHeader.getFileName().startsWith("__MACOSX")) {
+          progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
+          continue;
+        }
+
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
         verifyIfTaskIsCancelled();
       }

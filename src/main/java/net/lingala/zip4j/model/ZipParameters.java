@@ -135,11 +135,6 @@ public class ZipParameters {
       }
 
       rootFolderInZip = rootFolderInZip.replaceAll("\\\\", "/");
-
-//			if (rootFolderInZip.endsWith("/")) {
-//				rootFolderInZip = rootFolderInZip.substring(0, rootFolderInZip.length() - 1);
-//				rootFolderInZip = rootFolderInZip + "\\";
-//			}
     }
     this.rootFolderInZip = rootFolderInZip;
   }

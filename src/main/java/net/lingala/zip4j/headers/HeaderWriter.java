@@ -388,7 +388,7 @@ public class HeaderWriter {
       byteArrayOutputStream.write(emptyShortByte);
 
       //External file attributes
-      byteArrayOutputStream.write(new byte[] {1, 1, 1, 1});
+      byteArrayOutputStream.write(fileHeader.getExternalFileAttributes());
 
       //offset local header - this data is computed above
       byteArrayOutputStream.write(offsetLocalHeaderBytes);

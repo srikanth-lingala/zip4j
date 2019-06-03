@@ -53,9 +53,12 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
       for (File fileToAdd : filesToAdd) {
         verifyIfTaskIsCancelled();
-        ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd,
-            progressMonitor);
+        ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd, progressMonitor);
         progressMonitor.setFileName(fileToAdd.getAbsolutePath());
+
+        String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getRootFolderInZip(),
+            zipParameters.getRootFolderInZip());
+        clonedZipParameters.setFileNameInZip(relativeFileName);
 
         zipOutputStream.putNextEntry(clonedZipParameters);
         if (fileToAdd.isDirectory()) {
@@ -169,6 +172,9 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   private void removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor)
       throws ZipException {
+    if (!zipModel.getZipFile().exists()) {
+      return;
+    }
 
     for (File file : files) {
       String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getRootFolderInZip(),
