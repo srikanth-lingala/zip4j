@@ -20,7 +20,6 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
@@ -260,8 +259,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password)
-        .execute(new AddFilesToZipTaskParameters(sourceFiles, parameters));
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+        new AddFilesToZipTaskParameters(sourceFiles, parameters));
   }
 
   /**
@@ -308,8 +307,8 @@ public class ZipFile {
       }
     }
 
-    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password)
-        .execute(new AddFolderToZipTaskParameters(folderToAdd, zipParameters));
+    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+        new AddFolderToZipTaskParameters(folderToAdd, zipParameters));
   }
 
   /**
@@ -345,8 +344,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password)
-        .execute(new AddStreamToZipTaskParameters(inputStream, parameters));
+    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+        new AddStreamToZipTaskParameters(inputStream, parameters));
   }
 
   /**
@@ -358,19 +357,6 @@ public class ZipFile {
    * @throws ZipException
    */
   public void extractAll(String destinationPath) throws ZipException {
-    extractAll(destinationPath, null);
-  }
-
-  /**
-   * Extracts all the files in the given zip file to the input destination path.
-   * If zip file does not exist or destination path is invalid then an
-   * exception is thrown.
-   *
-   * @param destinationPath
-   * @param unzipParameters
-   * @throws ZipException
-   */
-  public void extractAll(String destinationPath, UnzipParameters unzipParameters) throws ZipException {
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("output path is null or invalid");
@@ -393,20 +379,8 @@ public class ZipFile {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password)
-        .execute(new ExtractAllFilesTaskParameters(unzipParameters, destinationPath));
-  }
-
-  /**
-   * Extracts a specific file from the zip file to the destination path.
-   * If destination path is invalid, then this method throws an exception.
-   *
-   * @param fileHeader
-   * @param destinationPath
-   * @throws ZipException
-   */
-  public void extractFile(FileHeader fileHeader, String destinationPath) throws ZipException {
-    extractFile(fileHeader, destinationPath, null);
+    new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password).execute(
+        new ExtractAllFilesTaskParameters(destinationPath));
   }
 
   /**
@@ -419,12 +393,10 @@ public class ZipFile {
    *
    * @param fileHeader
    * @param destinationPath
-   * @param unzipParameters
    * @throws ZipException
    */
-  public void extractFile(FileHeader fileHeader, String destinationPath, UnzipParameters unzipParameters)
-      throws ZipException {
-    extractFile(fileHeader, destinationPath, unzipParameters, null);
+  public void extractFile(FileHeader fileHeader, String destinationPath) throws ZipException {
+    extractFile(fileHeader, destinationPath, null);
   }
 
   /**
@@ -433,13 +405,10 @@ public class ZipFile {
    *
    * @param fileHeader
    * @param destinationPath
-   * @param unzipParameters
    * @param newFileName
    * @throws ZipException
    */
-  public void extractFile(FileHeader fileHeader, String destinationPath, UnzipParameters unzipParameters,
-                          String newFileName) throws ZipException {
-
+  public void extractFile(FileHeader fileHeader, String destinationPath, String newFileName) throws ZipException {
     if (fileHeader == null) {
       throw new ZipException("input file header is null, cannot extract file");
     }
@@ -454,8 +423,8 @@ public class ZipFile {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    new ExtractFileTask(progressMonitor, runInThread, zipModel, password)
-        .execute(new ExtractFileTaskParameters(unzipParameters, destinationPath, fileHeader, newFileName));
+    new ExtractFileTask(progressMonitor, runInThread, zipModel, password).execute(
+        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName));
   }
 
   /**
@@ -487,27 +456,6 @@ public class ZipFile {
    * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
    * input file name has to be abc/b.txt
    * <br><br>
-   * Throws an exception if file header could not be found for the given file name or if
-   * the destination path is invalid
-   *
-   * @param fileName
-   * @param destinationPath
-   * @param unzipParameters
-   * @throws ZipException
-   */
-  public void extractFile(String fileName, String destinationPath, UnzipParameters unzipParameters) throws ZipException {
-    extractFile(fileName, destinationPath, unzipParameters, null);
-  }
-
-  /**
-   * Extracts a specific file from the zip file to the destination path.
-   * This method first finds the necessary file header from the input file name.
-   * <br><br>
-   * File name is relative file name in the zip file. For example if a zip file contains
-   * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
-   * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
-   * input file name has to be abc/b.txt
-   * <br><br>
    * If newFileName is not null or empty, newly created file name will be replaced by
    * the value in newFileName. If this value is null, then the file name will be the
    * value in FileHeader.getFileName
@@ -517,12 +465,10 @@ public class ZipFile {
    *
    * @param fileName
    * @param destinationPath
-   * @param unzipParameters
    * @param newFileName
    * @throws ZipException
    */
-  public void extractFile(String fileName, String destinationPath, UnzipParameters unzipParameters, String newFileName)
-      throws ZipException {
+  public void extractFile(String fileName, String destinationPath, String newFileName) throws ZipException {
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileName)) {
       throw new ZipException("file to extract is null or empty, cannot extract file");
@@ -535,7 +481,7 @@ public class ZipFile {
     readZipInfo();
 
     FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
-    extractFile(fileHeader, destinationPath, unzipParameters, newFileName);
+    extractFile(fileHeader, destinationPath, newFileName);
   }
 
   /**

@@ -2,7 +2,6 @@ package net.lingala.zip4j.utils;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.UnzipParameters;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -26,7 +25,7 @@ public class ZipVerifier {
     ZipFile zipFile = new ZipFile(generatedZipFile, password);
 
     File folderToExtractTo = temporaryFolder.newFolder();
-    zipFile.extractAll(folderToExtractTo.getAbsolutePath(), new UnzipParameters());
+    zipFile.extractAll(folderToExtractTo.getAbsolutePath());
 
     verifyAllFiles(folderToExtractTo);
   }

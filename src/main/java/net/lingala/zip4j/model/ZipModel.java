@@ -42,19 +42,19 @@ public class ZipModel implements Cloneable {
     splitLength = -1;
   }
 
-  public List getLocalFileHeaders() {
+  public List<LocalFileHeader> getLocalFileHeaders() {
     return localFileHeaders;
   }
 
-  public void setLocalFileHeaders(List localFileHeaderList) {
+  public void setLocalFileHeaders(List<LocalFileHeader> localFileHeaderList) {
     this.localFileHeaders = localFileHeaderList;
   }
 
-  public List getDataDescriptors() {
+  public List<DataDescriptor> getDataDescriptors() {
     return dataDescriptors;
   }
 
-  public void setDataDescriptors(List dataDescriptors) {
+  public void setDataDescriptors(List<DataDescriptor> dataDescriptors) {
     this.dataDescriptors = dataDescriptors;
   }
 

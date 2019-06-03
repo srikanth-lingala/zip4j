@@ -32,7 +32,7 @@ public class CRCUtil {
   public static long computeFileCRC(File inputFile, ProgressMonitor progressMonitor) throws ZipException {
 
     if (inputFile == null || !inputFile.exists() || !inputFile.canRead()) {
-      throw new ZipException("input file is null or does not exist or cannot read file. " +
+      throw new ZipException("input file is null or does not exist or cannot read. " +
           "Cannot calculate CRC for the file");
     }
 

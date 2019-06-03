@@ -16,8 +16,6 @@
 
 package net.lingala.zip4j.util;
 
-import net.lingala.zip4j.exception.ZipException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -85,7 +83,7 @@ public class RawIO {
   }
 
   public int readShortLittleEndian(byte[] buff, int position) {
-    return (buff[0 + position] & 0xff) | (buff[1 + position] & 0xff) << 8;
+    return (buff[position] & 0xff) | (buff[1 + position] & 0xff) << 8;
   }
 
   public short readShortBigEndian(byte[] array, int pos) {
@@ -134,36 +132,6 @@ public class RawIO {
     array[pos + 2] = (byte) (value >>> 16);
     array[pos + 1] = (byte) (value >>> 8);
     array[pos] = (byte) (value & 0xFF);
-  }
-
-  public byte bitArrayToByte(int[] bitArray) throws ZipException {
-    if (bitArray == null) {
-      throw new ZipException("bit array is null, cannot calculate byte from bits");
-    }
-
-    if (bitArray.length != 8) {
-      throw new ZipException("invalid bit array length, cannot calculate byte");
-    }
-
-    if (!checkBits(bitArray)) {
-      throw new ZipException("invalid bits provided, bits contain other values than 0 or 1");
-    }
-
-    int retNum = 0;
-    for (int i = 0; i < bitArray.length; i++) {
-      retNum += Math.pow(2, i) * bitArray[i];
-    }
-
-    return (byte) retNum;
-  }
-
-  private boolean checkBits(int[] bitArray) {
-    for (int i = 0; i < bitArray.length; i++) {
-      if (bitArray[i] != 0 && bitArray[i] != 1) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private void readFully(InputStream inputStream, byte[] buff) throws IOException {

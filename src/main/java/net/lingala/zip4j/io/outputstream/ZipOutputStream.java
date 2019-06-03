@@ -80,7 +80,7 @@ public class ZipOutputStream extends OutputStream {
     uncompressedSizeForThisEntry += len;
   }
 
-  public void closeEntry() throws IOException {
+  public FileHeader closeEntry() throws IOException {
     try {
       compressedOutputStream.closeEntry();
 
@@ -102,6 +102,8 @@ public class ZipOutputStream extends OutputStream {
       headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
 
       reset();
+
+      return fileHeader;
     } catch (ZipException e) {
       throw new IOException(e);
     }
@@ -134,7 +136,7 @@ public class ZipOutputStream extends OutputStream {
 
   private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws ZipException, IOException {
     fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitOutputStream(),
-        countingOutputStream.getCurrentSplitFileCounter(), rawIO);
+        countingOutputStream.getCurrentSplitFileCounter());
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
     localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);

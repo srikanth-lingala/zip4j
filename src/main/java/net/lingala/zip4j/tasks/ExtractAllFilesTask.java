@@ -5,7 +5,6 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
@@ -26,8 +25,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       throws ZipException {
     try (ZipInputStream zipInputStream = createZipInputStream()) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
-        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, taskParameters.unzipParameters,
-            progressMonitor);
+        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
         verifyIfTaskIsCancelled();
       }
     } catch (IOException e) {
@@ -64,7 +62,6 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
   @AllArgsConstructor
   public static class ExtractAllFilesTaskParameters {
-    private UnzipParameters unzipParameters;
     private String outputPath;
 
   }

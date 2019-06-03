@@ -9,6 +9,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.util.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,14 +35,14 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipModel zipModel;
   private char[] password;
 
-  public AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
-                                  char[] password) {
+  AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
+                           char[] password) {
     super(progressMonitor, runInThread);
     this.zipModel = zipModel;
     this.password = password;
   }
 
-  protected void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
+  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
       throws ZipException {
 
     removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
@@ -70,14 +71,15 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
           }
         }
 
-        zipOutputStream.closeEntry();
+        FileHeader fileHeader = zipOutputStream.closeEntry();
+        fileHeader.setExternalFileAttributes(FileUtils.getFileAttributes(fileToAdd.toPath()));
       }
     } catch (IOException e) {
       throw new ZipException(e);
     }
   }
 
-  protected long calculateWorkForFiles(List<File> filesToAdd, ZipParameters zipParameters) throws ZipException {
+  long calculateWorkForFiles(List<File> filesToAdd, ZipParameters zipParameters) throws ZipException {
     long totalWork = 0;
 
     for (File fileToAdd : filesToAdd) {
@@ -104,7 +106,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return totalWork;
   }
 
-  protected ZipOutputStream initializeOutputStream() throws IOException, ZipException {
+  ZipOutputStream initializeOutputStream() throws IOException, ZipException {
     SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
 
     if (zipModel.getZipFile().exists()) {
@@ -117,7 +119,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return new ZipOutputStream(splitOutputStream, password, zipModel);
   }
 
-  protected void verifyZipParameters(ZipParameters parameters) throws ZipException {
+  void verifyZipParameters(ZipParameters parameters) throws ZipException {
     if (parameters == null) {
       throw new ZipException("cannot validate zip parameters");
     }

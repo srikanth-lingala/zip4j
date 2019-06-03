@@ -3,7 +3,6 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.UnzipUtil;
@@ -28,7 +27,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outPath, String newFileName,
-                             UnzipParameters unzipParameters, ProgressMonitor progressMonitor) throws ZipException {
+                             ProgressMonitor progressMonitor) throws ZipException {
 
     progressMonitor.setFileName(fileHeader.getFileName());
 
@@ -53,12 +52,12 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       }
     } else {
       checkOutputDirectoryStructure(fileHeader, outPath, newFileName);
-      unzipFile(zipInputStream, fileHeader, outPath, newFileName, unzipParameters, progressMonitor);
+      unzipFile(zipInputStream, fileHeader, outPath, newFileName, progressMonitor);
     }
   }
 
   private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, String outputPath, String newFileName,
-                         UnzipParameters unzipParameters, ProgressMonitor progressMonitor) throws ZipException {
+                         ProgressMonitor progressMonitor) throws ZipException {
 
     String outputFileName = Zip4jUtil.isStringNotNullAndNotEmpty(newFileName) ? newFileName : fileHeader.getFileName();
     File outputFile = new File(outputPath + System.getProperty("file.separator") + outputFileName);
@@ -66,7 +65,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
       if (inputStream.getNextEntry() == null) {
-        throw new ZipException("Could not read corresponding localfileheader for fileheader: "
+        throw new ZipException("Could not read corresponding localfileheader for file header: "
             + fileHeader.getFileName());
       }
 
@@ -79,7 +78,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       throw new ZipException(e);
     }
 
-    UnzipUtil.applyFileAttributes(fileHeader, outputFile, unzipParameters);
+    UnzipUtil.applyFileAttributes(fileHeader, outputFile.toPath());
   }
 
   private void checkOutputDirectoryStructure(FileHeader fileHeader, String outPath, String newFileName)
@@ -97,10 +96,8 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
     String compOutPath = outPath + fileName;
     File file = new File(compOutPath);
-    if (!file.getParentFile().exists()) {
-      if (!file.getParentFile().mkdirs()) {
-        throw new ZipException("Unable to create parent directories: " + file.getParentFile());
-      }
+    if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
+      throw new ZipException("Unable to create parent directories: " + file.getParentFile());
     }
   }
 

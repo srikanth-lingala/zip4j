@@ -6,17 +6,20 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.StandardCharsets;
 
+import static net.lingala.zip4j.util.BitUtils.setBitOfByte;
+import static net.lingala.zip4j.util.BitUtils.unsetBitOfByte;
+
 public class FileHeaderFactory {
 
-  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart,
-                                       RawIO rawIO) throws ZipException {
+  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart)
+      throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
@@ -55,9 +58,7 @@ public class FileHeaderFactory {
       fileHeader.setCrc32(zipParameters.getSourceFileCRC());
     }
 
-    fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters,
-        rawIO));
-
+    fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters));
     return fileHeader;
   }
 
@@ -79,13 +80,43 @@ public class FileHeaderFactory {
     return localFileHeader;
   }
 
-  private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters,
-                                                RawIO rawIO) throws ZipException {
+  private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters) {
     byte[] generalPurposeBitFlag = new byte[2];
-    generalPurposeBitFlag[0] = rawIO.bitArrayToByte(generateGeneralPurposeBitArray(isEncrypted,
-        zipParameters.getCompressionMethod()));
+    generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted,
+        zipParameters.getCompressionMethod(), zipParameters.getCompressionLevel());
     generalPurposeBitFlag[1] |= 1 << 3; // set 3rd bit which corresponds to utf-8 file name charset
     return generalPurposeBitFlag;
+  }
+
+  private byte generateFirstGeneralPurposeByte(boolean isEncrypted, CompressionMethod compressionMethod,
+                                               CompressionLevel compressionLevel) {
+
+    byte firstByte = 0;
+
+    if (isEncrypted) {
+      firstByte = setBitOfByte(firstByte, 0);
+    }
+
+    if (compressionMethod == CompressionMethod.DEFLATE) {
+      if (compressionLevel == CompressionLevel.NORMAL) {
+        firstByte = unsetBitOfByte(firstByte, 1);
+        firstByte = unsetBitOfByte(firstByte, 2);
+      } else if (compressionLevel == CompressionLevel.MAXIMUM) {
+        firstByte = setBitOfByte(firstByte, 1);
+        firstByte = unsetBitOfByte(firstByte, 2);
+      } else if (compressionLevel == CompressionLevel.FAST) {
+        firstByte = unsetBitOfByte(firstByte, 1);
+        firstByte = setBitOfByte(firstByte, 2);
+      } else if (compressionLevel == CompressionLevel.FASTEST) {
+        firstByte = setBitOfByte(firstByte, 1);
+        firstByte = setBitOfByte(firstByte, 2);
+      }
+    }
+
+    // file name and comment encoded with utf-8 charset
+    firstByte = setBitOfByte(firstByte, 3);
+
+    return firstByte;
   }
 
   private String validateAndGetFileName(String fileNameInZip) throws ZipException {
@@ -117,27 +148,6 @@ public class FileHeaderFactory {
 
     aesDataRecord.setCompressionMethod(parameters.getCompressionMethod());
     return aesDataRecord;
-  }
-
-  private int[] generateGeneralPurposeBitArray(boolean isEncrypted, CompressionMethod compressionMethod) {
-
-    int[] generalPurposeBits = new int[8];
-    if (isEncrypted) {
-      generalPurposeBits[0] = 1;
-    } else {
-      generalPurposeBits[0] = 0;
-    }
-
-    if (compressionMethod == CompressionMethod.DEFLATE) {
-      // Have to set flags for deflate
-    } else {
-      generalPurposeBits[1] = 0;
-      generalPurposeBits[2] = 0;
-    }
-
-    generalPurposeBits[3] = 1;
-
-    return generalPurposeBits;
   }
 
   private int determineFileNameLength(String fileName) {
