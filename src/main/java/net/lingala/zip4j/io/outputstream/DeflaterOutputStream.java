@@ -59,7 +59,6 @@ class DeflaterOutputStream extends CompressedOutputStream {
       if (deflater.finished()) {
         if (len == 4) return;
         if (len < 4) {
-          //TODO Check if this is still valid
           decrementBytesWrittenForThisEntry(4 - len);
           return;
         }

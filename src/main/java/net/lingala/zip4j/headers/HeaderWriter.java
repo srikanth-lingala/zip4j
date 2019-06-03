@@ -29,15 +29,11 @@ import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_COMP_SIZE;
-import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_CRC;
-import static net.lingala.zip4j.util.InternalZipConstants.UPDATE_LFH_UNCOMP_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_LIMIT;
 
 public class HeaderWriter {
@@ -559,92 +555,6 @@ public class HeaderWriter {
     } catch (IOException e) {
       throw new ZipException(e);
     }
-  }
-
-  public void updateLocalFileHeader(LocalFileHeader localFileHeader, long offset, int toUpdate, ZipModel zipModel,
-                                    byte[] bytesToWrite, int noOfDisk, SplitOutputStream outputStream)
-      throws ZipException {
-
-    try {
-      boolean closeFlag = false;
-      SplitOutputStream currOutputStream = null;
-
-      if (noOfDisk != outputStream.getCurrentSplitFileCounter()) {
-        String parentFile = zipModel.getZipFile().getParent();
-        String fileNameWithoutExt = Zip4jUtil.getZipFileNameWithoutExt(zipModel.getZipFile().getName());
-        String fileName = parentFile + System.getProperty("file.separator");
-        if (noOfDisk < 9) {
-          fileName += fileNameWithoutExt + ".z0" + (noOfDisk + 1);
-        } else {
-          fileName += fileNameWithoutExt + ".z" + (noOfDisk + 1);
-        }
-        currOutputStream = new SplitOutputStream(new File(fileName));
-        closeFlag = true;
-      } else {
-        currOutputStream = outputStream;
-      }
-
-      long currOffset = currOutputStream.getFilePointer();
-
-      switch (toUpdate) {
-        case UPDATE_LFH_CRC:
-          currOutputStream.seek(offset + toUpdate);
-          currOutputStream.write(bytesToWrite);
-          break;
-        case UPDATE_LFH_COMP_SIZE:
-        case UPDATE_LFH_UNCOMP_SIZE:
-          updateCompressedSizeInLocalFileHeader(currOutputStream, localFileHeader,
-              offset, toUpdate, bytesToWrite);
-          break;
-        default:
-          break;
-      }
-      if (closeFlag) {
-        currOutputStream.close();
-      } else {
-        outputStream.seek(currOffset);
-      }
-
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
-  }
-
-  private void updateCompressedSizeInLocalFileHeader(SplitOutputStream outputStream, LocalFileHeader localFileHeader,
-                                                     long offset, long toUpdate, byte[] bytesToWrite)
-      throws ZipException {
-
-    try {
-      if (localFileHeader.isWriteCompressedSizeInZip64ExtraRecord()) {
-        if (bytesToWrite.length != 8) {
-          throw new ZipException("attempting to write a non 8-byte compressed size block for a zip64 file");
-        }
-
-        //4 - compressed size
-        //4 - uncomprssed size
-        //2 - file name length
-        //2 - extra field length
-        //file name length
-        //2 - Zip64 signature
-        //2 - size of zip64 data
-        //8 - crc
-        //8 - compressed size
-        //8 - uncompressed size
-        long zip64CompressedSizeOffset = offset + toUpdate + 4 + 4 + 2 + 2 + localFileHeader.getFileNameLength()
-            + 2 + 2 + 8;
-        if (toUpdate == UPDATE_LFH_UNCOMP_SIZE) {
-          zip64CompressedSizeOffset += 8;
-        }
-        outputStream.seek(zip64CompressedSizeOffset);
-        outputStream.write(bytesToWrite);
-      } else {
-        outputStream.seek(offset + toUpdate);
-        outputStream.write(bytesToWrite);
-      }
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
-
   }
 
   private int countNumberOfFileHeaderEntriesOnDisk(List<FileHeader> fileHeaders, int numOfDisk) throws ZipException {

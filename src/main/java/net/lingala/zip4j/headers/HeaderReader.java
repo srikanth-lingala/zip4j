@@ -553,7 +553,6 @@ public class HeaderReader {
       // 4 -> number of the disk with the start of the zip64 end of central directory
       // 4 -> zip64 end of central dir locator signature
       // Refer to Appnote for more information
-      //TODO: Donot hardcode these values. Make use of ZipConstants
       zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
     } catch (IOException e) {
       throw new ZipException(e);

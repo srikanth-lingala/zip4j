@@ -49,7 +49,7 @@ public class FileHeaderFactory {
       fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
     }
 
-    //TODO add file attributes for internally added files
+    //For files added by this library, this attribute will be set after closeEntry is done
     fileHeader.setExternalFileAttributes(new byte[] {0, 0, 0, 0});
     fileHeader.setDirectory(Zip4jUtil.isZipEntryDirectory(fileName));
     fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
