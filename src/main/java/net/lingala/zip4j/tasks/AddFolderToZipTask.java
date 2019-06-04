@@ -6,10 +6,11 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddFolderToZipTask.AddFolderToZipTaskParameters;
-import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
 import java.util.List;
+
+import static net.lingala.zip4j.util.FileUtils.getFilesInDirectoryRecursive;
 
 public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipTaskParameters> {
 
@@ -30,7 +31,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   protected long calculateTotalWork(AddFolderToZipTaskParameters taskParameters) throws ZipException {
     String rootFolderPath = getRootFolderPath(taskParameters.zipParameters, taskParameters.folderToAdd);
     taskParameters.zipParameters.setRootFolderInZip(rootFolderPath);
-    filesToAdd = Zip4jUtil.getFilesInDirectoryRecursive(taskParameters.folderToAdd,
+    filesToAdd = getFilesInDirectoryRecursive(taskParameters.folderToAdd,
         taskParameters.zipParameters.isReadHiddenFiles());
 
     if (taskParameters.zipParameters.isIncludeRootFolder()) {

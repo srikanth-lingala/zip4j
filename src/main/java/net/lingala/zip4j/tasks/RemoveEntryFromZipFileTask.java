@@ -15,8 +15,8 @@ import java.io.RandomAccessFile;
 import java.util.List;
 import java.util.Random;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getIndexOfFileHeader;
 import static net.lingala.zip4j.util.FileUtils.copyFile;
-import static net.lingala.zip4j.util.Zip4jUtil.getIndexOfFileHeader;
 
 public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
 

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 import static net.lingala.zip4j.util.BitUtils.setBitOfByte;
 import static net.lingala.zip4j.util.BitUtils.unsetBitOfByte;
+import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 
 public class FileHeaderFactory {
 
@@ -51,7 +52,7 @@ public class FileHeaderFactory {
 
     //For files added by this library, this attribute will be set after closeEntry is done
     fileHeader.setExternalFileAttributes(new byte[] {0, 0, 0, 0});
-    fileHeader.setDirectory(Zip4jUtil.isZipEntryDirectory(fileName));
+    fileHeader.setDirectory(isZipEntryDirectory(fileName));
     fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {

@@ -89,7 +89,8 @@ public class ZipInputStreamIT extends AbstractIT {
     assertThat(numberOfEntriesExtracted).isEqualTo(FILES_TO_ADD.size());
   }
 
-  private File createZipFile(CompressionMethod compressionMethod, List<File> filesToAdd) throws IOException, ZipException {
+  private File createZipFile(CompressionMethod compressionMethod, List<File> filesToAdd)
+      throws IOException, ZipException {
     return createZipFile(compressionMethod, false, null, null, null, filesToAdd);
   }
 
@@ -108,7 +109,7 @@ public class ZipInputStreamIT extends AbstractIT {
     zipParameters.setEncryptionMethod(encryptionMethod);
     zipParameters.setAesKeyStrength(aesKeyStrength);
 
-    zipFile.createZipFile(filesToAdd, zipParameters);
+    zipFile.addFiles(filesToAdd, zipParameters);
 
     return outputFile;
   }

@@ -18,6 +18,7 @@ package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -37,6 +38,7 @@ import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
 import net.lingala.zip4j.tasks.SetCommentTask;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
@@ -70,6 +72,27 @@ public class ZipFile {
   private char[] password;
 
   /**
+   * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
+   * This constructor does not yet create a zip file if it does not exist. Creation happens when adding files
+   * to this ZipFile instance
+   * @param zipFile
+   */
+  public ZipFile(String zipFile) {
+    this(new File(zipFile), null);
+  }
+
+  /**
+   * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
+   * Input password will be used for any zip operations like adding files or extracting files.
+   * This constructor does not yet create a zip file if it does not exist. Creation happens when adding files
+   * to this ZipFile instance
+   * @param zipFile
+   */
+  public ZipFile(String zipFile, char[] password) {
+    this(new File(zipFile), password);
+  }
+
+  /**
    * Creates a new Zip File Object with the input file.
    * If the zip file does not exist, it is not created at this point.
    *
@@ -87,62 +110,6 @@ public class ZipFile {
   }
 
   /**
-   * Creates a zip file with default zip parameters. If the zip file
-   *    * exists then this method throws an exception.
-   *
-   * @param sourceFile
-   * @throws ZipException
-   */
-  public void createZipFile(File sourceFile) throws ZipException {
-    createZipFile(sourceFile, new ZipParameters());
-  }
-
-  /**
-   * Creates a zip file and adds the source file to the zip file. If the zip file
-   * exists then this method throws an exception. Parameters such as compression type, etc
-   * can be set in the input parameters
-   *
-   * @param sourceFile - File to be added to the zip file
-   * @param parameters - parameters to create the zip file
-   * @throws ZipException
-   */
-  public void createZipFile(File sourceFile, ZipParameters parameters) throws ZipException {
-    createZipFile(Collections.singletonList(sourceFile), parameters, false, -1);
-  }
-
-  /**
-   * Creates a zip file and adds the source file to the zip file. If the zip file
-   * exists then this method throws an exception. Parameters such as compression type, etc
-   * can be set in the input parameters. While the method addFile/addFiles also creates the
-   * zip file if it does not exist, the main functionality of this method is to create a split
-   * zip file. To create a split zip file, set the splitArchive parameter to true with a valid
-   * splitLength. Split Length has to be more than 65536 bytes
-   *
-   * @param sourceFile   - File to be added to the zip file
-   * @param parameters   - parameters to create the zip file
-   * @param splitArchive - if archive has to be split or not
-   * @param splitLength  - if archive has to be split, then length in bytes at which it has to be split
-   * @throws ZipException
-   */
-  public void createZipFile(File sourceFile, ZipParameters parameters,boolean splitArchive, long splitLength)
-      throws ZipException {
-    createZipFile(Collections.singletonList(sourceFile), parameters, splitArchive, splitLength);
-  }
-
-  /**
-   * Creates a zip file and adds the list of source file(s) to the zip file. If the zip file
-   * exists then this method throws an exception. Parameters such as compression type, etc
-   * can be set in the input parameters
-   *
-   * @param sourceFiles - File to be added to the zip file
-   * @param parameters     - parameters to create the zip file
-   * @throws ZipException
-   */
-  public void createZipFile(List<File> sourceFiles, ZipParameters parameters) throws ZipException {
-    createZipFile(sourceFiles, parameters, false, -1);
-  }
-
-  /**
    * Creates a zip file and adds the list of source file(s) to the zip file. If the zip file
    * exists then this method throws an exception. Parameters such as compression type, etc
    * can be set in the input parameters. While the method addFile/addFiles also creates the
@@ -150,27 +117,28 @@ public class ZipFile {
    * zip file. To create a split zip file, set the splitArchive parameter to true with a valid
    * splitLength. Split Length has to be more than 65536 bytes
    *
-   * @param sourceFiles - File to be added to the zip file
+   * @param filesToAdd - File to be added to the zip file
    * @param parameters     - zip parameters for this file list
    * @param splitArchive   - if archive has to be split or not
    * @param splitLength    - if archive has to be split, then length in bytes at which it has to be split
    * @throws ZipException
    */
-  public void createZipFile(List<File> sourceFiles, ZipParameters parameters, boolean splitArchive,
+  public void createSplitZipFile(List<File> filesToAdd, ZipParameters parameters, boolean splitArchive,
                             long splitLength) throws ZipException {
 
     if (zipFile.exists()) {
-      throw new ZipException("zip file: " + zipFile + " already exists. To add files to existing zip file use addFile method");
+      throw new ZipException("zip file: " + zipFile
+          + " already exists. To add files to existing zip file use addFile method");
     }
 
-    if (sourceFiles == null) {
+    if (filesToAdd == null) {
       throw new ZipException("input file List is null, cannot create zip file");
     }
 
     createNewZipModel();
-    this.zipModel.setSplitArchive(splitArchive);
-    this.zipModel.setSplitLength(splitLength);
-    addFiles(sourceFiles, parameters);
+    zipModel.setSplitArchive(splitArchive);
+    zipModel.setSplitLength(splitLength);
+    addFiles(filesToAdd, parameters);
   }
 
   /**
@@ -187,7 +155,7 @@ public class ZipFile {
    * @param splitLength
    * @throws ZipException
    */
-  public void createZipFileFromFolder(File folderToAdd, ZipParameters parameters, boolean splitArchive,
+  public void createSplitZipFileFromFolder(File folderToAdd, ZipParameters parameters, boolean splitArchive,
                                       long splitLength) throws ZipException {
 
     if (folderToAdd == null) {
@@ -204,26 +172,48 @@ public class ZipFile {
     }
 
     createNewZipModel();
-    this.zipModel.setSplitArchive(splitArchive);
+    zipModel.setSplitArchive(splitArchive);
 
     if (splitArchive) {
-      this.zipModel.setSplitLength(splitLength);
+      zipModel.setSplitLength(splitLength);
     }
 
     addFolder(folderToAdd, parameters, false);
   }
 
   /**
-   * Adds input source file to the zip file. If zip file does not exist, then
+   * Adds input source file to the zip file with default zip parameters. If zip file does not exist,
+   * this method creates a new zip file.
+   *
+   * @param fileToAdd - File to tbe added to the zip file
+   * @throws ZipException
+   */
+  public void addFile(File fileToAdd) throws ZipException {
+    addFiles(Collections.singletonList(fileToAdd), new ZipParameters());
+  }
+
+  /**
+   * Adds input source file to the zip file. If zip file does not exist,
    * this method creates a new zip file. Parameters such as compression type, etc
    * can be set in the input parameters.
    *
-   * @param sourceFile - File to tbe added to the zip file
+   * @param fileToAdd - File to tbe added to the zip file
    * @param parameters - zip parameters for this file
    * @throws ZipException
    */
-  public void addFile(File sourceFile, ZipParameters parameters) throws ZipException {
-    addFiles(Collections.singletonList(sourceFile), parameters);
+  public void addFile(File fileToAdd, ZipParameters parameters) throws ZipException {
+    addFiles(Collections.singletonList(fileToAdd), parameters);
+  }
+
+  /**
+   * Adds the list of input files to the zip file with default zip parameters. If zip file does not exist,
+   * this method creates a new zip file.
+   *
+   * @param filesToAdd
+   * @throws ZipException
+   */
+  public void addFiles(List<File> filesToAdd) throws ZipException {
+    addFiles(filesToAdd, new ZipParameters());
   }
 
   /**
@@ -231,19 +221,19 @@ public class ZipFile {
    * this method creates a new zip file. Parameters such as compression type, etc
    * can be set in the input parameters.
    *
-   * @param sourceFiles
+   * @param filesToAdd
    * @param parameters
    * @throws ZipException
    */
-  public void addFiles(List<File> sourceFiles, ZipParameters parameters) throws ZipException {
+  public void addFiles(List<File> filesToAdd, ZipParameters parameters) throws ZipException {
 
     checkZipModel();
 
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
     }
 
-    if (sourceFiles == null) {
+    if (filesToAdd == null) {
       throw new ZipException("input file List is null");
     }
 
@@ -260,7 +250,19 @@ public class ZipFile {
     }
 
     new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password).execute(
-        new AddFilesToZipTaskParameters(sourceFiles, parameters));
+        new AddFilesToZipTaskParameters(filesToAdd, parameters));
+  }
+
+  /**
+   * Adds the folder in the given file object to the zip file with default zip parameters. If zip file does not exist,
+   * then a new zip file is created. If input folder is invalid then an exception
+   * is thrown.
+   *
+   * @param folderToAdd
+   * @throws ZipException
+   */
+  public void addFolder(File folderToAdd) throws ZipException {
+    addFolder(folderToAdd, new ZipParameters());
   }
 
   /**
@@ -297,12 +299,12 @@ public class ZipFile {
 
     checkZipModel();
 
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
     }
 
     if (checkSplitArchive) {
-      if (this.zipModel.isSplitArchive()) {
+      if (zipModel.isSplitArchive()) {
         throw new ZipException("This is a split archive. Zip file format does not allow updating split/spanned files");
       }
     }
@@ -336,7 +338,7 @@ public class ZipFile {
 
     checkZipModel();
 
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
     }
 
@@ -480,7 +482,7 @@ public class ZipFile {
 
     readZipInfo();
 
-    FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
+    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
     extractFile(fileHeader, destinationPath, newFileName);
   }
 
@@ -517,7 +519,7 @@ public class ZipFile {
       return null;
     }
 
-    return Zip4jUtil.getFileHeader(zipModel, fileName);
+    return HeaderUtil.getFileHeader(zipModel, fileName);
   }
 
   /**
@@ -593,7 +595,7 @@ public class ZipFile {
       throw new ZipException("Zip file format does not allow updating split/spanned files");
     }
 
-    FileHeader fileHeader = Zip4jUtil.getFileHeader(zipModel, fileName);
+    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
     if (fileHeader == null) {
       throw new ZipException("could not find file header for file: " + fileName);
     }
@@ -667,7 +669,7 @@ public class ZipFile {
 
     readZipInfo();
 
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       throw new ZipException("zipModel is null, cannot update zip file");
     }
 
@@ -691,15 +693,15 @@ public class ZipFile {
 
     checkZipModel();
 
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       throw new ZipException("zip model is null, cannot read comment");
     }
 
-    if (this.zipModel.getEndOfCentralDirectoryRecord() == null) {
+    if (zipModel.getEndOfCentralDirectoryRecord() == null) {
       throw new ZipException("end of central directory record is null, cannot read comment");
     }
 
-    return this.zipModel.getEndOfCentralDirectoryRecord().getComment();
+    return zipModel.getEndOfCentralDirectoryRecord().getComment();
   }
 
   /**
@@ -710,9 +712,9 @@ public class ZipFile {
    * @throws ZipException
    */
   private void readZipInfo() throws ZipException {
-
     if (!zipFile.exists()) {
-      throw new ZipException("zip file does not exist");
+      createNewZipModel();
+      return;
     }
 
     if (!zipFile.canRead()) {
@@ -734,7 +736,7 @@ public class ZipFile {
    * @throws ZipException
    */
   private void checkZipModel() throws ZipException {
-    if (this.zipModel == null) {
+    if (zipModel == null) {
       readZipInfo();
     } else {
       createNewZipModel();
@@ -802,7 +804,7 @@ public class ZipFile {
    */
   public List<File> getSplitZipFiles() throws ZipException {
     checkZipModel();
-    return Zip4jUtil.getSplitZipFiles(zipModel);
+    return FileUtils.getSplitZipFiles(zipModel);
   }
 
   public ProgressMonitor getProgressMonitor() {

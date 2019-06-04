@@ -41,8 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.lingala.zip4j.headers.HeaderUtil.decodeFileName;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
-import static net.lingala.zip4j.util.Zip4jUtil.decodeFileName;
 
 /**
  * Helper class to read header information for the zip file

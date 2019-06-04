@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getFileHeader;
 import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
 import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
@@ -25,9 +26,8 @@ import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
 import static net.lingala.zip4j.util.CRCUtil.computeFileCRC;
+import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
-import static net.lingala.zip4j.util.Zip4jUtil.getFileHeader;
-import static net.lingala.zip4j.util.Zip4jUtil.getRelativeFileName;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
 
 public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {

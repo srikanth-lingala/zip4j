@@ -2,8 +2,10 @@ package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -14,7 +16,9 @@ import java.nio.file.attribute.DosFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
@@ -28,6 +32,9 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
+import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class FileUtils {
 
@@ -71,6 +78,148 @@ public class FileUtils {
     } else {
       return new byte[4];
     }
+  }
+
+  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles) throws ZipException {
+    if (path == null) {
+      throw new ZipException("input path is null, cannot read files in the directory");
+    }
+
+    List<File> result = new ArrayList<>();
+    File[] filesAndDirs = path.listFiles();
+
+    if (!path.isDirectory() || !path.canRead() || filesAndDirs == null) {
+      return result;
+    }
+
+    for (File file : filesAndDirs) {
+      if (file.isHidden() && !readHiddenFiles) {
+        return result;
+      }
+      result.add(file);
+      if (file.isDirectory()) {
+        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles));
+      }
+    }
+    return result;
+  }
+
+  public static String getZipFileNameWithoutExt(String zipFile) throws ZipException {
+    if (!isStringNotNullAndNotEmpty(zipFile)) {
+      throw new ZipException("zip file name is empty or null, cannot determine zip file name");
+    }
+    String tmpFileName = zipFile;
+    if (zipFile.contains(System.getProperty("file.separator"))) {
+      tmpFileName = zipFile.substring(zipFile.lastIndexOf(System.getProperty("file.separator")));
+    }
+
+    if (tmpFileName.endsWith(".zip")) {
+      tmpFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf("."));
+    }
+    return tmpFileName;
+  }
+
+  public static List<File> getSplitZipFiles(ZipModel zipModel) throws ZipException {
+    if (zipModel == null) {
+      throw new ZipException("cannot get split zip files: zipmodel is null");
+    }
+
+    if (zipModel.getEndOfCentralDirectoryRecord() == null) {
+      return null;
+    }
+
+    if (!zipModel.getZipFile().exists()) {
+      throw new ZipException("zip file does not exist");
+    }
+
+    List<File> splitZipFiles = new ArrayList<>();
+    File currZipFile = zipModel.getZipFile();
+    String partFile;
+
+    if (!zipModel.isSplitArchive()) {
+      splitZipFiles.add(currZipFile);
+      return splitZipFiles;
+    }
+
+    int numberOfThisDisk = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
+
+    if (numberOfThisDisk == 0) {
+      splitZipFiles.add(currZipFile);
+      return splitZipFiles;
+    } else {
+      for (int i = 0; i <= numberOfThisDisk; i++) {
+        if (i == numberOfThisDisk) {
+          splitZipFiles.add(zipModel.getZipFile());
+        } else {
+          String fileExt = ".z0";
+          if (i > 9) {
+            fileExt = ".z";
+          }
+          partFile = (currZipFile.getName().contains("."))
+              ? currZipFile.getPath().substring(0, currZipFile.getPath().lastIndexOf(".")) : currZipFile.getPath();
+          partFile = partFile + fileExt + (i + 1);
+          splitZipFiles.add(new File(partFile));
+        }
+      }
+    }
+    return splitZipFiles;
+  }
+
+  public static String getRelativeFileName(String file, String rootFolderInZip, String rootFolderPath)
+      throws ZipException {
+
+    if (!isStringNotNullAndNotEmpty(file)) {
+      throw new ZipException("input file path/name is empty, cannot calculate relative file name");
+    }
+
+    String fileName;
+    if (isStringNotNullAndNotEmpty(rootFolderPath)) {
+      File rootFolderFile = new File(rootFolderPath);
+      String rootFolderFileRef = rootFolderFile.getPath();
+
+      if (!rootFolderFileRef.endsWith(FILE_SEPARATOR)) {
+        rootFolderFileRef += FILE_SEPARATOR;
+      }
+
+      String tmpFileName = file.substring(rootFolderFileRef.length());
+      if (tmpFileName.startsWith(System.getProperty("file.separator"))) {
+        tmpFileName = tmpFileName.substring(1);
+      }
+
+      File tmpFile = new File(file);
+
+      if (tmpFile.isDirectory()) {
+        tmpFileName = tmpFileName.replaceAll("\\\\", "/");
+        tmpFileName += ZIP_FILE_SEPARATOR;
+      } else {
+        String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
+        bkFileName = bkFileName.replaceAll("\\\\", "/");
+        tmpFileName = bkFileName + tmpFile.getName();
+      }
+
+      fileName = tmpFileName;
+    } else {
+      File relFile = new File(file);
+      if (relFile.isDirectory()) {
+        fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
+      } else {
+        fileName = relFile.getName();
+      }
+    }
+
+    if (isStringNotNullAndNotEmpty(rootFolderInZip)) {
+      fileName = rootFolderInZip + fileName;
+    }
+
+    if (!isStringNotNullAndNotEmpty(fileName)) {
+      throw new ZipException("Error determining file name");
+    }
+
+    return fileName;
+  }
+
+  public static boolean isZipEntryDirectory(String fileNameInZip) {
+    return fileNameInZip.endsWith("/") || fileNameInZip.endsWith("\\");
   }
 
   public static void copyFile(RandomAccessFile randomAccessFile, OutputStream outputStream, long start, long end,

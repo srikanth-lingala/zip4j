@@ -19,7 +19,7 @@ public class ZipFileIT extends AbstractIT {
     ZipParameters zipParameters = new ZipParameters();
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder);
   }
@@ -31,7 +31,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -43,7 +43,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -56,7 +56,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -69,7 +69,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -80,7 +80,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder);
   }
@@ -93,7 +93,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -106,7 +106,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -120,7 +120,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -134,7 +134,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -148,7 +148,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters, true, 65536);
+    zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -160,7 +160,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptFiles(false);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters, true, 70536);
+    zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 70536);
 
     verifyZipFile(generatedZipFile, temporaryFolder);
   }
@@ -172,7 +172,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setEncryptFiles(false);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters, true, 70536);
+    zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 70536);
 
     verifyZipFile(generatedZipFile, temporaryFolder);
   }
@@ -186,7 +186,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters, true, 65536);
+    zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
@@ -200,7 +200,7 @@ public class ZipFileIT extends AbstractIT {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.createZipFile(FILES_TO_ADD, zipParameters, true, 65536);
+    zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
     verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
   }
