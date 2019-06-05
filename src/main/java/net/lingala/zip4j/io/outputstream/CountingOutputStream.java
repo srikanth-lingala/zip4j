@@ -16,7 +16,7 @@ public class CountingOutputStream extends OutputStream {
 
   @Override
   public void write(int b) throws IOException {
-    write((byte) b);
+    write(new byte[] {(byte) b});
   }
 
   @Override
@@ -81,5 +81,10 @@ public class CountingOutputStream extends OutputStream {
     }
 
     return numberOfBytesWritten;
+  }
+
+  @Override
+  public void close() throws IOException {
+    outputStream.close();
   }
 }

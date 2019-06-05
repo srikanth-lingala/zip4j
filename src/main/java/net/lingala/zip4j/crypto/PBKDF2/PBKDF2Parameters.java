@@ -21,14 +21,11 @@ package net.lingala.zip4j.crypto.PBKDF2;
  * see http://rtner.de/software/PBKDF2.html
  */
 public class PBKDF2Parameters {
+
   protected byte[] salt;
-
   protected int iterationCount;
-
   protected String hashAlgorithm;
-
   protected String hashCharset;
-
   protected byte[] derivedKey;
 
   public PBKDF2Parameters() {
@@ -39,17 +36,12 @@ public class PBKDF2Parameters {
     this.derivedKey = null;
   }
 
-  public PBKDF2Parameters(String hashAlgorithm, String hashCharset,
-                          byte[] salt, int iterationCount) {
-    this.hashAlgorithm = hashAlgorithm;
-    this.hashCharset = hashCharset;
-    this.salt = salt;
-    this.iterationCount = iterationCount;
-    this.derivedKey = null;
+  public PBKDF2Parameters(String hashAlgorithm, String hashCharset, byte[] salt, int iterationCount) {
+    this(hashAlgorithm, hashCharset, salt, iterationCount, null);
   }
 
-  public PBKDF2Parameters(String hashAlgorithm, String hashCharset,
-                          byte[] salt, int iterationCount, byte[] derivedKey) {
+  public PBKDF2Parameters(String hashAlgorithm, String hashCharset, byte[] salt, int iterationCount,
+                          byte[] derivedKey) {
     this.hashAlgorithm = hashAlgorithm;
     this.hashCharset = hashCharset;
     this.salt = salt;

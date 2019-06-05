@@ -24,18 +24,12 @@ import static net.lingala.zip4j.util.Zip4jUtil.convertCharArrayToByteArray;
  */
 
 public class PBKDF2Engine {
-  protected PBKDF2Parameters parameters;
 
-  protected PRF prf;
-
-  public PBKDF2Engine() {
-    this.parameters = null;
-    prf = null;
-  }
+  private PBKDF2Parameters parameters;
+  private PRF prf;
 
   public PBKDF2Engine(PBKDF2Parameters parameters) {
-    this.parameters = parameters;
-    prf = null;
+    this(parameters, null);
   }
 
   public PBKDF2Engine(PBKDF2Parameters parameters, PRF prf) {
@@ -48,21 +42,19 @@ public class PBKDF2Engine {
   }
 
   public byte[] deriveKey(char[] inputPassword, int dkLen) {
-    byte[] r = null;
-    byte P[] = null;
+    byte[] r;
+    byte p[];
     if (inputPassword == null) {
       throw new NullPointerException();
     }
 
-    P = convertCharArrayToByteArray(inputPassword);
+    p = convertCharArrayToByteArray(inputPassword);
 
-    assertPRF(P);
+    assertPRF(p);
     if (dkLen == 0) {
       dkLen = prf.getHLen();
     }
-    r = PBKDF2(prf, parameters.getSalt(), parameters.getIterationCount(),
-        dkLen);
-    return r;
+    return PBKDF2(prf, parameters.getSalt(), parameters.getIterationCount(), dkLen);
   }
 
   public boolean verifyKey(char[] inputPassword) {
@@ -83,7 +75,7 @@ public class PBKDF2Engine {
     return true;
   }
 
-  protected void assertPRF(byte[] P) {
+  private void assertPRF(byte[] P) {
     if (prf == null) {
       prf = new MacBasedPRF(parameters.getHashAlgorithm());
     }
@@ -94,7 +86,7 @@ public class PBKDF2Engine {
     return prf;
   }
 
-  protected byte[] PBKDF2(PRF prf, byte[] S, int c, int dkLen) {
+  private byte[] PBKDF2(PRF prf, byte[] S, int c, int dkLen) {
     if (S == null) {
       S = new byte[0];
     }
@@ -116,7 +108,7 @@ public class PBKDF2Engine {
     return T;
   }
 
-  protected int ceil(int a, int b) {
+  private int ceil(int a, int b) {
     int m = 0;
     if (a % b > 0) {
       m = 1;
@@ -124,8 +116,8 @@ public class PBKDF2Engine {
     return a / b + m;
   }
 
-  protected void _F(byte[] dest, int offset, PRF prf, byte[] S, int c,
-                    int blockIndex) {
+  private void _F(byte[] dest, int offset, PRF prf, byte[] S, int c,
+                  int blockIndex) {
     int hLen = prf.getHLen();
     byte U_r[] = new byte[hLen];
 
@@ -141,14 +133,14 @@ public class PBKDF2Engine {
     System.arraycopy(U_r, 0, dest, offset, hLen);
   }
 
-  protected void xor(byte[] dest, byte[] src) {
+  private void xor(byte[] dest, byte[] src) {
     for (int i = 0; i < dest.length; i++) {
       dest[i] ^= src[i];
     }
   }
 
   protected void INT(byte[] dest, int offset, int i) {
-    dest[offset + 0] = (byte) (i / (256 * 256 * 256));
+    dest[offset] = (byte) (i / (256 * 256 * 256));
     dest[offset + 1] = (byte) (i / (256 * 256));
     dest[offset + 2] = (byte) (i / (256));
     dest[offset + 3] = (byte) (i);

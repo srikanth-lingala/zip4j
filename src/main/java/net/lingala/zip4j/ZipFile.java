@@ -19,6 +19,7 @@ package net.lingala.zip4j;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderUtil;
+import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -70,6 +71,7 @@ public class ZipFile {
   private ProgressMonitor progressMonitor;
   private boolean runInThread;
   private char[] password;
+  private HeaderWriter headerWriter = new HeaderWriter();
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -249,7 +251,7 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
         new AddFilesToZipTaskParameters(filesToAdd, parameters));
   }
 
@@ -309,7 +311,7 @@ public class ZipFile {
       }
     }
 
-    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
         new AddFolderToZipTaskParameters(folderToAdd, zipParameters));
   }
 
@@ -346,7 +348,7 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password).execute(
+    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
         new AddStreamToZipTaskParameters(inputStream, parameters));
   }
 

@@ -59,7 +59,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   }
 
   public long getCrc32() {
-    return crc32 & 0xffffffffL;
+    return crc32;
   }
 
   public void setCrc32(long crc32) {

@@ -52,6 +52,7 @@ class ZipEntryOutputStream extends OutputStream {
 
   @Override
   public void close() throws IOException {
-    outputStream.close();
+    // Do nothing
+    // Do not close the outputstream yet. This will be closed by countingOutputStream
   }
 }

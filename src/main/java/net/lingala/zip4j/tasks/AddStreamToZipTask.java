@@ -2,6 +2,8 @@ package net.lingala.zip4j.tasks;
 
 import lombok.AllArgsConstructor;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderWriter;
+import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
@@ -15,8 +17,9 @@ import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 
 public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipTaskParameters> {
 
-  public AddStreamToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password) {
-    super(progressMonitor, runInThread, zipModel, password);
+  public AddStreamToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
+                            HeaderWriter headerWriter) {
+    super(progressMonitor, runInThread, zipModel, password, headerWriter);
   }
 
   @Override
@@ -25,7 +28,9 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
     verifyZipParameters(taskParameters.zipParameters);
 
-    try(ZipOutputStream zipOutputStream = initializeOutputStream()) {
+    try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
+        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
+
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
 

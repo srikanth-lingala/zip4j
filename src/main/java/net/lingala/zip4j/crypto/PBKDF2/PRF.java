@@ -22,9 +22,10 @@ package net.lingala.zip4j.crypto.PBKDF2;
  */
 
 interface PRF {
-  public void init(byte[] P);
 
-  public byte[] doFinal(byte[] M);
+  void init(byte[] P);
 
-  public int getHLen();
+  byte[] doFinal(byte[] M);
+
+  int getHLen();
 }

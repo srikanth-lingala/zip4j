@@ -27,6 +27,7 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
 
   private ZipEntryOutputStream zipEntryOutputStream;
   private T encrypter;
+  private int encryptionHeaderLength = 0;
 
   public CipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
     this.zipEntryOutputStream = zipEntryOutputStream;
@@ -45,10 +46,6 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    zipEntryOutputStream.write(b, off, len);
-  }
-
-  protected void encryptAndWrite(byte[] b, int off, int len) throws IOException {
     try {
       encrypter.encryptData(b, off, len);
     } catch (ZipException e) {
@@ -56,6 +53,11 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     }
 
     zipEntryOutputStream.write(b, off, len);
+  }
+
+  public void writeHeaders(byte[] b) throws IOException {
+    zipEntryOutputStream.write(b);
+    encryptionHeaderLength += b.length;
   }
 
   public void closeEntry() throws IOException {
@@ -67,8 +69,8 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     zipEntryOutputStream.close();
   }
 
-  public long getNumberOfBytesWrittenForThisEntry() {
-    return zipEntryOutputStream.getNumberOfBytesWrittenForThisEntry();
+  public long getNumberOfBytesWrittenForThisEntryExcludingHeaders() {
+    return zipEntryOutputStream.getNumberOfBytesWrittenForThisEntry() - encryptionHeaderLength;
   }
 
   public void decrementBytesWrittenForThisEntry(int value) {

@@ -104,7 +104,7 @@ public class FileUtils {
     return result;
   }
 
-  public static String getZipFileNameWithoutExt(String zipFile) throws ZipException {
+  public static String getZipFileNameWithoutExtension(String zipFile) throws ZipException {
     if (!isStringNotNullAndNotEmpty(zipFile)) {
       throw new ZipException("zip file name is empty or null, cannot determine zip file name");
     }

@@ -72,6 +72,11 @@ public class RawIO {
         | ((b[2] & 0xff) | (b[3] & 0xff) << 8) << 16;
   }
 
+  public int readIntLittleEndian(byte[] b, int pos) {
+    return ((b[pos] & 0xff) | (b[1 + pos] & 0xff) << 8)
+        | ((b[2 + pos] & 0xff) | (b[3 + pos] & 0xff) << 8) << 16;
+  }
+
   public int readShortLittleEndian(RandomAccessFile randomAccessFile) throws IOException {
     randomAccessFile.readFully(shortBuff);
     return readShortLittleEndian(shortBuff, 0);

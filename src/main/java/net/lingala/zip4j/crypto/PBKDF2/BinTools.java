@@ -65,8 +65,6 @@ class BinTools {
     if (c >= 'a' && c <= 'f') {
       return (c - 'a' + 10);
     }
-    throw new IllegalArgumentException(
-        "Input string may only contain hex digits, but found '" + c
-            + "'");
+    throw new IllegalArgumentException("Input string may only contain hex digits, but found '" + c + "'");
   }
 }

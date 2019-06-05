@@ -51,7 +51,7 @@ public class FileHeaderFactory {
     }
 
     //For files added by this library, this attribute will be set after closeEntry is done
-    fileHeader.setExternalFileAttributes(new byte[] {0, 0, 0, 0});
+    fileHeader.setExternalFileAttributes(new byte[4]);
     fileHeader.setDirectory(isZipEntryDirectory(fileName));
     fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
 
@@ -60,6 +60,7 @@ public class FileHeaderFactory {
     }
 
     fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters));
+    fileHeader.setDataDescriptorExists(zipParameters.isWriteExtendedLocalFileHeader());
     return fileHeader;
   }
 
@@ -78,19 +79,18 @@ public class FileHeaderFactory {
     localFileHeader.setCrc32(fileHeader.getCrc32());
     localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
     localFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
+    localFileHeader.setDataDescriptorExists(fileHeader.isDataDescriptorExists());
     return localFileHeader;
   }
 
   private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters) {
     byte[] generalPurposeBitFlag = new byte[2];
-    generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted,
-        zipParameters.getCompressionMethod(), zipParameters.getCompressionLevel());
+    generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted, zipParameters);
     generalPurposeBitFlag[1] |= 1 << 3; // set 3rd bit which corresponds to utf-8 file name charset
     return generalPurposeBitFlag;
   }
 
-  private byte generateFirstGeneralPurposeByte(boolean isEncrypted, CompressionMethod compressionMethod,
-                                               CompressionLevel compressionLevel) {
+  private byte generateFirstGeneralPurposeByte(boolean isEncrypted, ZipParameters zipParameters) {
 
     byte firstByte = 0;
 
@@ -98,24 +98,25 @@ public class FileHeaderFactory {
       firstByte = setBitOfByte(firstByte, 0);
     }
 
-    if (compressionMethod == CompressionMethod.DEFLATE) {
-      if (compressionLevel == CompressionLevel.NORMAL) {
+    if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
+      if (zipParameters.getCompressionLevel() == CompressionLevel.NORMAL) {
         firstByte = unsetBitOfByte(firstByte, 1);
         firstByte = unsetBitOfByte(firstByte, 2);
-      } else if (compressionLevel == CompressionLevel.MAXIMUM) {
+      } else if (zipParameters.getCompressionLevel() == CompressionLevel.MAXIMUM) {
         firstByte = setBitOfByte(firstByte, 1);
         firstByte = unsetBitOfByte(firstByte, 2);
-      } else if (compressionLevel == CompressionLevel.FAST) {
+      } else if (zipParameters.getCompressionLevel() == CompressionLevel.FAST) {
         firstByte = unsetBitOfByte(firstByte, 1);
         firstByte = setBitOfByte(firstByte, 2);
-      } else if (compressionLevel == CompressionLevel.FASTEST) {
+      } else if (zipParameters.getCompressionLevel() == CompressionLevel.FASTEST) {
         firstByte = setBitOfByte(firstByte, 1);
         firstByte = setBitOfByte(firstByte, 2);
       }
     }
 
-    // file name and comment encoded with utf-8 charset
-    firstByte = setBitOfByte(firstByte, 3);
+    if (zipParameters.isWriteExtendedLocalFileHeader()) {
+      firstByte = setBitOfByte(firstByte, 3);
+    }
 
     return firstByte;
   }

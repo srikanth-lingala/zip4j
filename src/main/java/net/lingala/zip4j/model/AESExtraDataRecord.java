@@ -41,31 +41,25 @@ public class AESExtraDataRecord extends ZipHeader {
     return dataSize;
   }
 
-
   public void setDataSize(int dataSize) {
     this.dataSize = dataSize;
   }
-
 
   public int getVersionNumber() {
     return versionNumber;
   }
 
-
   public void setVersionNumber(int versionNumber) {
     this.versionNumber = versionNumber;
   }
-
 
   public String getVendorID() {
     return vendorID;
   }
 
-
   public void setVendorID(String vendorID) {
     this.vendorID = vendorID;
   }
-
 
   public AesKeyStrength getAesKeyStrength() {
     return aesKeyStrength;

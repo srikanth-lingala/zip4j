@@ -17,6 +17,8 @@
 package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.File;
 import java.util.Calendar;
@@ -93,6 +95,18 @@ public class Zip4jUtil {
       bytes[i] = (byte) charArray[i];
     }
     return bytes;
+  }
+
+  public static CompressionMethod getCompressionMethod(LocalFileHeader localFileHeader) {
+    if (localFileHeader.getCompressionMethod() != CompressionMethod.AES_INTERNAL_ONLY) {
+      return localFileHeader.getCompressionMethod();
+    }
+
+    if (localFileHeader.getAesExtraDataRecord() == null) {
+      throw new RuntimeException("AesExtraDataRecord not present in local header for aes encrypted data");
+    }
+
+    return localFileHeader.getAesExtraDataRecord().getCompressionMethod();
   }
 
 }

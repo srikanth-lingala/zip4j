@@ -7,15 +7,46 @@ import java.io.PushbackInputStream;
 abstract class DecompressedInputStream extends InputStream {
 
   private CipherInputStream cipherInputStream;
+  private long bytesRead = 0;
+  private long compressedSize;
   protected byte[] oneByteBuffer = new byte[1];
 
-  public DecompressedInputStream(CipherInputStream cipherInputStream) {
+  public DecompressedInputStream(CipherInputStream cipherInputStream, long compressedSize) {
     this.cipherInputStream = cipherInputStream;
+    this.compressedSize = compressedSize;
+  }
+
+  @Override
+  public int read() throws IOException {
+    int readLen = read(oneByteBuffer);
+
+    if (readLen == -1) {
+      return -1;
+    }
+
+    return oneByteBuffer[0];
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return cipherInputStream.read(b, off, len);
+    if (compressedSize != -1) {
+      if (bytesRead >= compressedSize) {
+        return -1;
+      }
+
+      if (len > compressedSize - bytesRead) {
+        len = (int) (compressedSize - bytesRead);
+      }
+    }
+
+    int readLen = cipherInputStream.read(b, off, len);
+    bytesRead += readLen;
+    return readLen;
   }
 
   public void endOfEntryReached(InputStream inputStream) throws IOException {
@@ -23,10 +54,14 @@ abstract class DecompressedInputStream extends InputStream {
   }
 
   public void pushBackInputStreamIfNecessary(PushbackInputStream pushbackInputStream) throws IOException {
-    return;
+    // Do nothing by default
   }
 
   protected byte[] getLastReadRawDataCache() {
     return cipherInputStream.getLastReadRawDataCache();
+  }
+
+  protected long getCompressedSize() {
+    return compressedSize;
   }
 }

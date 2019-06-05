@@ -25,9 +25,9 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
     return encrypter;
   }
 
-  private void writeAesEncryptionHeaderData(AESEncrpyter encrpyter, OutputStream outputStream) throws IOException {
-    outputStream.write(encrpyter.getSaltBytes());
-    outputStream.write(encrpyter.getDerivedPasswordVerifier());
+  private void writeAesEncryptionHeaderData(AESEncrpyter encrypter, OutputStream outputStream) throws IOException {
+    writeHeaders(encrypter.getSaltBytes());
+    writeHeaders(encrypter.getDerivedPasswordVerifier());
   }
 
   @Override
@@ -44,7 +44,7 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
   public void write(byte[] b, int off, int len) throws IOException {
     if (len >= (AES_BLOCK_SIZE - pendingBufferLength)) {
       System.arraycopy(b, off, pendingBuffer, pendingBufferLength, (AES_BLOCK_SIZE - pendingBufferLength));
-      encryptAndWrite(pendingBuffer, 0, pendingBuffer.length);
+      super.write(pendingBuffer, 0, pendingBuffer.length);
       off = (AES_BLOCK_SIZE - pendingBufferLength);
       len = len - off;
       pendingBufferLength = 0;
@@ -60,17 +60,17 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
       len = len - pendingBufferLength;
     }
 
-    encryptAndWrite(b, off, len);
+    super.write(b, off, len);
   }
 
   @Override
   public void closeEntry() throws IOException {
     if (this.pendingBufferLength != 0) {
-      encryptAndWrite(pendingBuffer, 0, pendingBufferLength);
+      super.write(pendingBuffer, 0, pendingBufferLength);
       pendingBufferLength = 0;
     }
 
-    super.write(getEncrypter().getFinalMac());
+    writeHeaders(getEncrypter().getFinalMac());
     super.closeEntry();
   }
 }

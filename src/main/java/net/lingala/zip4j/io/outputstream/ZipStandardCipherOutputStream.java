@@ -16,7 +16,7 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
   @Override
   protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
     StandardEncrypter encrypter = new StandardEncrypter(password, (zipParameters.getLastModifiedFileTime() & 0x0000ffff) << 16);
-    outputStream.write(encrypter.getHeaderBytes());
+    writeHeaders(encrypter.getHeaderBytes());
     return encrypter;
   }
 
@@ -32,6 +32,6 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    encryptAndWrite(b, off, len);
+    super.write(b, off, len);
   }
 }

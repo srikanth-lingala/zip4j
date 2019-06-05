@@ -42,7 +42,6 @@ public class AESDecrypter implements Decrypter {
   private int nonce = 1;
   private byte[] iv;
   private byte[] counterBlock;
-  private int loopCount = 0;
 
   public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt, byte[] passwordVerifier) throws ZipException {
     this.aesExtraDataRecord = aesExtraDataRecord;
@@ -74,10 +73,6 @@ public class AESDecrypter implements Decrypter {
     System.arraycopy(derivedKey, aesKeyStrength.getKeyLength() + aesKeyStrength.getMacLength(), derivedPasswordVerifier,
         0, PASSWORD_VERIFIER_LENGTH);
 
-    if (derivedPasswordVerifier == null) {
-      throw new ZipException("invalid derived password verifier for AES");
-    }
-
     if (!Arrays.equals(passwordVerifier, derivedPasswordVerifier)) {
       throw new ZipException("Wrong Password", ZipExceptionType.WRONG_PASSWORD);
     }
@@ -91,7 +86,7 @@ public class AESDecrypter implements Decrypter {
   public int decryptData(byte[] buff, int start, int len) throws ZipException {
 
     for (int j = start; j < (start + len); j += AES_BLOCK_SIZE) {
-      loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
+      int loopCount = (j + AES_BLOCK_SIZE <= (start + len)) ?
           AES_BLOCK_SIZE : ((start + len) - j);
 
       mac.update(buff, j, loopCount);
@@ -112,5 +107,9 @@ public class AESDecrypter implements Decrypter {
     PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1", salt, 1000);
     PBKDF2Engine e = new PBKDF2Engine(p);
     return e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
+  }
+
+  public byte[] getCalculatedAuthenticationBytes() {
+    return mac.doFinal();
   }
 }

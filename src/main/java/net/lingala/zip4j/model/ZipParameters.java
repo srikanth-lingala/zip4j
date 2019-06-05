@@ -22,8 +22,6 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
 
-import java.util.TimeZone;
-
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
 public class ZipParameters {
@@ -36,12 +34,12 @@ public class ZipParameters {
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
   private boolean includeRootFolder = true;
   private String rootFolderInZip;
-  private TimeZone timeZone = TimeZone.getDefault();
   private int sourceFileCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
   private int lastModifiedFileTime;
   private long uncompressedSize;
+  private boolean writeExtendedLocalFileHeader = true;
 
   public ZipParameters() {
   }
@@ -55,12 +53,12 @@ public class ZipParameters {
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
     this.rootFolderInZip = zipParameters.getRootFolderInZip();
-    this.timeZone = zipParameters.getTimeZone();
     this.sourceFileCRC = zipParameters.getSourceFileCRC();
     this.defaultFolderPath = zipParameters.getDefaultFolderPath();
     this.fileNameInZip = zipParameters.getFileNameInZip();
     this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
     this.uncompressedSize = zipParameters.getUncompressedSize();
+    this.writeExtendedLocalFileHeader = zipParameters.isWriteExtendedLocalFileHeader();
   }
 
   public CompressionMethod getCompressionMethod() {
@@ -139,14 +137,6 @@ public class ZipParameters {
     this.rootFolderInZip = rootFolderInZip;
   }
 
-  public TimeZone getTimeZone() {
-    return timeZone;
-  }
-
-  public void setTimeZone(TimeZone timeZone) {
-    this.timeZone = timeZone;
-  }
-
   public int getSourceFileCRC() {
     return sourceFileCRC;
   }
@@ -185,5 +175,13 @@ public class ZipParameters {
 
   public void setUncompressedSize(long uncompressedSize) {
     this.uncompressedSize = uncompressedSize;
+  }
+
+  public boolean isWriteExtendedLocalFileHeader() {
+    return writeExtendedLocalFileHeader;
+  }
+
+  public void setWriteExtendedLocalFileHeader(boolean writeExtendedLocalFileHeader) {
+    this.writeExtendedLocalFileHeader = writeExtendedLocalFileHeader;
   }
 }

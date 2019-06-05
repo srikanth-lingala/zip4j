@@ -8,16 +8,18 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import java.io.IOException;
 import java.io.InputStream;
 
-abstract class CipherInputStream extends InputStream {
+abstract class CipherInputStream<T extends Decrypter> extends InputStream {
 
   private ZipEntryInputStream zipEntryInputStream;
-  private Decrypter decrypter;
+  private T decrypter;
   private byte[] lastReadRawDataCache;
   private byte[] singleByteBuffer = new byte[1];
+  private LocalFileHeader localFileHeader;
 
   public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
     this.zipEntryInputStream = zipEntryInputStream;
     this.decrypter = initializeDecrypter(localFileHeader, password);
+    this.localFileHeader = localFileHeader;
 
     if (getCompressionMethod(localFileHeader) == CompressionMethod.DEFLATE) {
       lastReadRawDataCache = new byte[512];
@@ -81,6 +83,10 @@ abstract class CipherInputStream extends InputStream {
     return localFileHeader.getAesExtraDataRecord().getCompressionMethod();
   }
 
+  public T getDecrypter() {
+    return decrypter;
+  }
+
   protected void endOfEntryReached(InputStream inputStream) throws IOException {
     // is optional but useful for AES
   }
@@ -89,5 +95,9 @@ abstract class CipherInputStream extends InputStream {
     return zipEntryInputStream.getNumberOfBytesRead();
   }
 
-  protected abstract Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException;
+  public LocalFileHeader getLocalFileHeader() {
+    return localFileHeader;
+  }
+
+  protected abstract T initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException;
 }

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
-import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExt;
+import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExtension;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_SPLIT_LENGTH;
 
 public class SplitOutputStream extends OutputStream {
@@ -98,7 +98,7 @@ public class SplitOutputStream extends OutputStream {
 
   private void startNextSplitFile() throws IOException {
     try {
-      String zipFileWithoutExt = getZipFileNameWithoutExt(zipFile.getName());
+      String zipFileWithoutExt = getZipFileNameWithoutExtension(zipFile.getName());
       String zipFileName = zipFile.getAbsolutePath();
       String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent()
           + System.getProperty("file.separator");

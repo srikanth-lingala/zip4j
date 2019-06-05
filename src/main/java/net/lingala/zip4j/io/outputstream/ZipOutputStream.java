@@ -29,7 +29,6 @@ public class ZipOutputStream extends OutputStream {
   private CRC32 crc32 = new CRC32();
   private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
-  private boolean writeCrc32 = true;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
     this(outputStream, null);
@@ -55,10 +54,6 @@ public class ZipOutputStream extends OutputStream {
       //because local header data should be written first and then the encryption header data
       //and below initialisation writes encryption header data
       compressedOutputStream = initializeCompressedOutputStream(zipParameters);
-
-      if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-        this.writeCrc32 = false;
-      }
     } catch (IOException e) {
       throw e;
     } catch (ZipException e) {
@@ -91,7 +86,8 @@ public class ZipOutputStream extends OutputStream {
       fileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
       localFileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
 
-      if (writeCrc32) {
+      //Skip writing crc for AES encrypted files
+      if (!fileHeader.isEncrypted() || !EncryptionMethod.AES.equals(fileHeader.getEncryptionMethod())) {
         fileHeader.setCrc32(crc32.getValue());
         localFileHeader.setCrc32(crc32.getValue());
       }
@@ -99,10 +95,10 @@ public class ZipOutputStream extends OutputStream {
       zipModel.getLocalFileHeaders().add(localFileHeader);
       zipModel.getCentralDirectory().getFileHeaders().add(fileHeader);
 
-      headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
-
+      if (localFileHeader.isDataDescriptorExists()) {
+        headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
+      }
       reset();
-
       return fileHeader;
     } catch (ZipException e) {
       throw new IOException(e);

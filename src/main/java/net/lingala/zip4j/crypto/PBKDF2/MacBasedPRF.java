@@ -28,11 +28,9 @@ import java.security.NoSuchProviderException;
  */
 
 public class MacBasedPRF implements PRF {
-  protected Mac mac;
-
-  protected int hLen;
-
-  protected String macAlgorithm;
+  private Mac mac;
+  private int hLen;
+  private String macAlgorithm;
 
   public MacBasedPRF(String macAlgorithm) {
     this.macAlgorithm = macAlgorithm;
@@ -49,21 +47,17 @@ public class MacBasedPRF implements PRF {
     try {
       mac = Mac.getInstance(macAlgorithm, provider);
       hLen = mac.getMacLength();
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    } catch (NoSuchProviderException e) {
+    } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
       throw new RuntimeException(e);
     }
   }
 
   public byte[] doFinal(byte[] M) {
-    byte[] r = mac.doFinal(M);
-    return r;
+    return mac.doFinal(M);
   }
 
   public byte[] doFinal() {
-    byte[] r = mac.doFinal();
-    return r;
+    return mac.doFinal();
   }
 
   public int getHLen() {
@@ -79,13 +73,11 @@ public class MacBasedPRF implements PRF {
   }
 
   public void update(byte[] U) {
-
     try {
       mac.update(U);
     } catch (IllegalStateException e) {
       throw new RuntimeException(e);
     }
-
   }
 
   public void update(byte[] U, int start, int len) {
