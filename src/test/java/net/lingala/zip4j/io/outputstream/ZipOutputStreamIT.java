@@ -24,7 +24,7 @@ public class ZipOutputStreamIT extends AbstractIT {
   }
 
   @Test
-  public void testZipOutputStreamSttoreWithStandardEncryption() throws IOException, ZipException {
+  public void testZipOutputStreamStoreWithStandardEncryption() throws IOException, ZipException {
     testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.ZIP_STANDARD, null);
   }
 
@@ -84,7 +84,7 @@ public class ZipOutputStreamIT extends AbstractIT {
         zos.closeEntry();
       }
     }
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   private ZipOutputStream initializeZipOutputStream(boolean encrypt) throws IOException {

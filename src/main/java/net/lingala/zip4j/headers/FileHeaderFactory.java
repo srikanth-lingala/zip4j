@@ -45,9 +45,9 @@ public class FileHeaderFactory {
     fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart : 0);
 
     if (zipParameters.getLastModifiedFileTime() > 0) {
-      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime()));
+      fileHeader.setLastModifiedTime(Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime()));
     } else {
-      fileHeader.setLastModifiedTime((int) Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
+      fileHeader.setLastModifiedTime(Zip4jUtil.javaToDosTime(System.currentTimeMillis()));
     }
 
     //For files added by this library, this attribute will be set after closeEntry is done

@@ -59,7 +59,8 @@ public class FileUtils {
 
     if (Files.exists(file)) {
       try {
-        Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToJavaTme(fileHeader.getLastModifiedTime())));
+        Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToJavaTme(
+            (int) fileHeader.getLastModifiedTime())));
       } catch (IOException e) {
         // Ignore
       }

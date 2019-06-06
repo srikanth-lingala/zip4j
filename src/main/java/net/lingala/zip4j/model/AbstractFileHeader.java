@@ -10,7 +10,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private int versionNeededToExtract;
   private byte[] generalPurposeFlag;
   private CompressionMethod compressionMethod;
-  private int lastModifiedTime;
+  private long lastModifiedTime;
   private long crc32 = 0;
   private byte[] crcRawData;
   private long compressedSize = 0;
@@ -50,11 +50,11 @@ public abstract class AbstractFileHeader extends ZipHeader {
     this.compressionMethod = compressionMethod;
   }
 
-  public int getLastModifiedTime() {
+  public long getLastModifiedTime() {
     return lastModifiedTime;
   }
 
-  public void setLastModifiedTime(int lastModifiedTime) {
+  public void setLastModifiedTime(long lastModifiedTime) {
     this.lastModifiedTime = lastModifiedTime;
   }
 

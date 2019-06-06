@@ -32,28 +32,45 @@ public class RawIO {
     return readLongLittleEndian(longBuff, 0);
   }
 
+  public long readLongLittleEndian(RandomAccessFile randomAccessFile, int readLen) throws IOException {
+    resetBytesToZeros(longBuff);
+    randomAccessFile.readFully(longBuff, 0, readLen);
+    return readLongLittleEndian(longBuff, 0);
+  }
+
   public long readLongLittleEndian(InputStream inputStream) throws IOException {
-    readFully(inputStream, longBuff);
+    readFully(inputStream, longBuff, longBuff.length);
+    return readLongLittleEndian(longBuff, 0);
+  }
+
+  public long readLongLittleEndian(InputStream inputStream, int readLen) throws IOException {
+    resetBytesToZeros(longBuff);
+    readFully(inputStream, longBuff, readLen);
     return readLongLittleEndian(longBuff, 0);
   }
 
   public long readLongLittleEndian(byte[] array, int pos) {
+    if (array.length < 8) {
+      resetBytesToZeros(longBuff);
+      System.arraycopy(array, 0, longBuff, 0, array.length);
+    }
+
     long temp = 0;
-    temp |= array[pos + 7] & 0xff;
+    temp |= longBuff[pos + 7] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 6] & 0xff;
+    temp |= longBuff[pos + 6] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 5] & 0xff;
+    temp |= longBuff[pos + 5] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 4] & 0xff;
+    temp |= longBuff[pos + 4] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 3] & 0xff;
+    temp |= longBuff[pos + 3] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 2] & 0xff;
+    temp |= longBuff[pos + 2] & 0xff;
     temp <<= 8;
-    temp |= array[pos + 1] & 0xff;
+    temp |= longBuff[pos + 1] & 0xff;
     temp <<= 8;
-    temp |= array[pos] & 0xff;
+    temp |= longBuff[pos] & 0xff;
     return temp;
   }
 
@@ -63,13 +80,12 @@ public class RawIO {
   }
 
   public int readIntLittleEndian(InputStream inputStream) throws IOException {
-    readFully(inputStream, intBuff);
+    readFully(inputStream, intBuff, 4);
     return readIntLittleEndian(intBuff);
   }
 
   public int readIntLittleEndian(byte[] b) {
-    return ((b[0] & 0xff) | (b[1] & 0xff) << 8)
-        | ((b[2] & 0xff) | (b[3] & 0xff) << 8) << 16;
+    return readIntLittleEndian(b, 0);
   }
 
   public int readIntLittleEndian(byte[] b, int pos) {
@@ -83,7 +99,7 @@ public class RawIO {
   }
 
   public int readShortLittleEndian(InputStream inputStream) throws IOException {
-    readFully(inputStream, shortBuff);
+    readFully(inputStream, shortBuff, shortBuff.length);
     return readShortLittleEndian(shortBuff, 0);
   }
 
@@ -139,10 +155,16 @@ public class RawIO {
     array[pos] = (byte) (value & 0xFF);
   }
 
-  private void readFully(InputStream inputStream, byte[] buff) throws IOException {
-    int readLen = inputStream.read(buff);
-    if (readLen != buff.length) {
+  private void readFully(InputStream inputStream, byte[] buff, int readLen) throws IOException {
+    int actualReadLength = inputStream.read(buff, 0, readLen);
+    if (actualReadLength != readLen) {
       throw new IOException("Could not fill buffer");
+    }
+  }
+
+  private void resetBytesToZeros(byte[] b) {
+    for(int i = 0; i < b.length; i++) {
+      b[i] = 0;
     }
   }
 }

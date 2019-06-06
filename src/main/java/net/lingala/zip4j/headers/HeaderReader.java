@@ -163,11 +163,11 @@ public class HeaderReader {
         fileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(zip4jRaf));
 
         zip4jRaf.readFully(intBuff);
-        fileHeader.setCrc32(rawIO.readIntLittleEndian(intBuff));
+        fileHeader.setCrc32(rawIO.readLongLittleEndian(intBuff, 0));
         fileHeader.setCrcRawData(intBuff);
 
-        fileHeader.setCompressedSize(rawIO.readIntLittleEndian(zip4jRaf));
-        fileHeader.setUncompressedSize(rawIO.readIntLittleEndian(zip4jRaf));
+        fileHeader.setCompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
+        fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
 
         int fileNameLength = rawIO.readShortLittleEndian(zip4jRaf);
         fileHeader.setFileNameLength(fileNameLength);
@@ -542,11 +542,11 @@ public class HeaderReader {
       localFileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(inputStream));
 
       inputStream.read(intBuff);
-      localFileHeader.setCrc32(rawIO.readIntLittleEndian(intBuff));
+      localFileHeader.setCrc32(rawIO.readLongLittleEndian(intBuff, 0));
       localFileHeader.setCrcRawData(intBuff.clone());
 
-      localFileHeader.setCompressedSize(rawIO.readIntLittleEndian(inputStream));
-      localFileHeader.setUncompressedSize(rawIO.readIntLittleEndian(inputStream));
+      localFileHeader.setCompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
+      localFileHeader.setUncompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
 
       int fileNameLength = rawIO.readShortLittleEndian(inputStream);
       localFileHeader.setFileNameLength(fileNameLength);
@@ -604,7 +604,7 @@ public class HeaderReader {
 
     byte[] intBuff = new byte[4];
     inputStream.read(intBuff);
-    int sigOrCrc = rawIO.readIntLittleEndian(intBuff);
+    long sigOrCrc = rawIO.readLongLittleEndian(intBuff, 0);
 
     //According to zip specification, presence of extra data record header signature is optional.
     //If this signature is present, read it and read the next 4 bytes for crc
@@ -612,7 +612,7 @@ public class HeaderReader {
     if (sigOrCrc == HeaderSignature.EXTRA_DATA_RECORD.getValue()) {
       dataDescriptor.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
       inputStream.read(intBuff);
-      dataDescriptor.setCrc32(rawIO.readIntLittleEndian(intBuff));
+      dataDescriptor.setCrc32(rawIO.readLongLittleEndian(intBuff, 0));
     } else {
       dataDescriptor.setCrc32(sigOrCrc);
     }

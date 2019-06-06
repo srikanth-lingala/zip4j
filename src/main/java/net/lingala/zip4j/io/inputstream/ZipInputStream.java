@@ -174,7 +174,7 @@ public class ZipInputStream extends InputStream {
         && localFileHeader.getCompressionMethod() == CompressionMethod.STORE
         && localFileHeader.getUncompressedSize() == 0) {
       throw new IOException("Invalid local file header for: " + localFileHeader.getFileName()
-          + ". Uncompressed size has to be set for entry of compression type store and which is not a directory");
+          + ". Uncompressed size has to be set for entry of compression type store which is not a directory");
     }
   }
 
@@ -206,7 +206,7 @@ public class ZipInputStream extends InputStream {
       crcFromLFH = dataDescriptor.getCrc32();
     }
 
-    if (crcFromLFH != (int) crc32.getValue()) {
+    if (crcFromLFH != crc32.getValue()) {
       throw new IOException("Reached end of entry, but crc verification failed");
     }
   }

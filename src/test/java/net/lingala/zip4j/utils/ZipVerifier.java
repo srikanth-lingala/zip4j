@@ -1,33 +1,32 @@
 package net.lingala.zip4j.utils;
 
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import org.junit.rules.TemporaryFolder;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static net.lingala.zip4j.TestUtils.getFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipVerifier {
 
-  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder)
-      throws ZipException, IOException {
-    verifyZipFile(generatedZipFile, temporaryFolder, null);
+  public static void verifyZipFile(File generatedZipFile) throws IOException {
+    verifyZipFile(generatedZipFile, null);
   }
 
-  public static void verifyZipFile(File generatedZipFile, TemporaryFolder temporaryFolder, char[] password)
-      throws ZipException, IOException {
+  public static void verifyZipFile(File generatedZipFile, char[] password) throws IOException {
     assertThat(generatedZipFile).isNotNull();
 
-    ZipFile zipFile = new ZipFile(generatedZipFile, password);
-
-    File folderToExtractTo = temporaryFolder.newFolder();
-    zipFile.extractAll(folderToExtractTo.getAbsolutePath());
-
-    verifyAllFiles(folderToExtractTo);
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(generatedZipFile), password)) {
+      byte[] b = new byte[InternalZipConstants.BUFF_SIZE];
+      while (zipInputStream.getNextEntry() != null) {
+        while (zipInputStream.read(b) != -1) {
+          // Do nothing
+        }
+      }
+    }
   }
 
   public static void verifyFileContent(File sourceFile, File extractedFile) throws IOException {
@@ -38,14 +37,6 @@ public class ZipVerifier {
 
     assertThat(extractedFileContent).as("Files do not match for file name: " + extractedFile.getName())
         .isEqualTo(sourceFileContent);
-  }
-
-  private static void verifyAllFiles(File folderContainingExtractedFiles) throws IOException {
-    File[] allFiles = folderContainingExtractedFiles.listFiles();
-
-    for (File fileToVerify : allFiles) {
-      verifyFileContent(getFileFromResources(fileToVerify.getName()), fileToVerify);
-    }
   }
 
 }

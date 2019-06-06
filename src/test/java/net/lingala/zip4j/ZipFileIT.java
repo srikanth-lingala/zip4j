@@ -21,7 +21,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder);
+    verifyZipFile(generatedZipFile);
   }
 
   @Test
@@ -33,7 +33,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -45,7 +45,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -58,7 +58,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -71,7 +71,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -82,7 +82,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder);
+    verifyZipFile(generatedZipFile);
   }
 
   @Test
@@ -95,7 +95,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -108,7 +108,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -122,7 +122,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -136,7 +136,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -150,7 +150,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -162,7 +162,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 70536);
 
-    verifyZipFile(generatedZipFile, temporaryFolder);
+    verifyZipFile(generatedZipFile);
   }
 
   @Test
@@ -174,7 +174,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 70536);
 
-    verifyZipFile(generatedZipFile, temporaryFolder);
+    verifyZipFile(generatedZipFile);
   }
 
   @Test
@@ -188,7 +188,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -202,7 +202,7 @@ public class ZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.createSplitZipFile(FILES_TO_ADD, zipParameters, true, 65536);
 
-    verifyZipFile(generatedZipFile, temporaryFolder, PASSWORD);
+    verifyZipFile(generatedZipFile, PASSWORD);
   }
 
 }

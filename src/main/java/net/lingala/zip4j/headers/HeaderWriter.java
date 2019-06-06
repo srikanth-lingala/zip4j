@@ -41,10 +41,10 @@ import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_LIMIT;
 
 public class HeaderWriter {
 
-  private static final int ZIP64_EXTRA_BUF = 50;
   private static final short ZIP64_EXTRA_DATA_RECORD_SIZE = 32;
 
   private RawIO rawIO = new RawIO();
+  private byte[] longBuff = new byte[8];
 
   public void writeLocalFileHeader(ZipModel zipModel, LocalFileHeader localFileHeader, OutputStream outputStream)
       throws ZipException {
@@ -58,27 +58,27 @@ public class HeaderWriter {
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getVersionNeededToExtract());
       byteArrayOutputStream.write(localFileHeader.getGeneralPurposeFlag());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getCompressionMethod().getCode());
-      rawIO.writeIntLittleEndian(byteArrayOutputStream, localFileHeader.getLastModifiedTime());
+      rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getLastModifiedTime());
+      byteArrayOutputStream.write(longBuff, 0, 4);
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc32());
       long uncompressedSize = localFileHeader.getUncompressedSize();
 
-      byte[] longByte = new byte[8];
-      if (uncompressedSize + ZIP64_EXTRA_BUF >= ZIP_64_LIMIT) {
-        rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
+      if (uncompressedSize >= ZIP_64_LIMIT) {
+        rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
 
         //Set the uncompressed size to ZipConstants.ZIP_64_LIMIT as
         //these values will be stored in Zip64 extra record
-        byteArrayOutputStream.write(longByte, 0, 4);
-        byteArrayOutputStream.write(longByte, 0, 4);
+        byteArrayOutputStream.write(longBuff, 0, 4);
+        byteArrayOutputStream.write(longBuff, 0, 4);
 
         zipModel.setZip64Format(true);
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(true);
       } else {
-        rawIO.writeLongLittleEndian(longByte, 0, localFileHeader.getCompressedSize());
-        byteArrayOutputStream.write(longByte, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getCompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
 
-        rawIO.writeLongLittleEndian(longByte, 0, localFileHeader.getUncompressedSize());
-        byteArrayOutputStream.write(longByte, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getUncompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
 
         zipModel.setZip64Format(false);
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(false);
@@ -150,8 +150,11 @@ public class HeaderWriter {
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getCompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getUncompressedSize());
       } else {
-        rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCompressedSize());
-        rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getUncompressedSize());
+        rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getCompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
+
+        rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getUncompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
       }
 
       outputStream.write(byteArrayOutputStream.toByteArray());
@@ -285,7 +288,7 @@ public class HeaderWriter {
       throws ZipException {
 
     try {
-      if (fileHeader.getUncompressedSize() + ZIP64_EXTRA_BUF >= ZIP_64_LIMIT) {
+      if (fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {
         //4 - compressed size
         //4 - uncompressed size
         //2 - file name length
@@ -394,7 +397,6 @@ public class HeaderWriter {
     }
 
     try {
-      byte[] longByte = new byte[8];
       final byte[] emptyShortByte = {0, 0};
 
       boolean writeZip64ExtendedInfo = false;
@@ -405,21 +407,21 @@ public class HeaderWriter {
       byteArrayOutputStream.write(fileHeader.getGeneralPurposeFlag());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getCompressionMethod().getCode());
 
-      int lastModifiedTime = fileHeader.getLastModifiedTime();
-      rawIO.writeIntLittleEndian(byteArrayOutputStream, lastModifiedTime);
+      rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getLastModifiedTime());
+      byteArrayOutputStream.write(longBuff, 0, 4);
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) (fileHeader.getCrc32()));
 
       if (fileHeader.getCompressedSize() >= ZIP_64_LIMIT ||
-          fileHeader.getUncompressedSize() + ZIP64_EXTRA_BUF >= ZIP_64_LIMIT) {
-        rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
-        byteArrayOutputStream.write(longByte, 0, 4);
-        byteArrayOutputStream.write(longByte, 0, 4);
+          fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {
+        rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
+        byteArrayOutputStream.write(longBuff, 0, 4);
+        byteArrayOutputStream.write(longBuff, 0, 4);
         writeZip64ExtendedInfo = true;
       } else {
-        rawIO.writeLongLittleEndian(longByte, 0, fileHeader.getCompressedSize());
-        byteArrayOutputStream.write(longByte, 0, 4);
-        rawIO.writeLongLittleEndian(longByte, 0, fileHeader.getUncompressedSize());
-        byteArrayOutputStream.write(longByte, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getCompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getUncompressedSize());
+        byteArrayOutputStream.write(longBuff, 0, 4);
       }
 
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getFileNameLength());
@@ -428,11 +430,11 @@ public class HeaderWriter {
       //NOTE: this data is not written now, but written at a later point
       byte[] offsetLocalHeaderBytes = new byte[4];
       if (fileHeader.getOffsetLocalHeader() > ZIP_64_LIMIT) {
-        rawIO.writeLongLittleEndian(longByte, 0, ZIP_64_LIMIT);
-        System.arraycopy(longByte, 0, offsetLocalHeaderBytes, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
+        System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
       } else {
-        rawIO.writeLongLittleEndian(longByte, 0, fileHeader.getOffsetLocalHeader());
-        System.arraycopy(longByte, 0, offsetLocalHeaderBytes, 0, 4);
+        rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getOffsetLocalHeader());
+        System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
       }
 
       int extraFieldLength = 0;
