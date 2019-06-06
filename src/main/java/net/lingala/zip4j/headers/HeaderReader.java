@@ -58,7 +58,7 @@ public class HeaderReader {
     zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
 
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory
-    zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndofCentralDirectoryLocator(zip4jRaf, rawIO));
+    zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndOfCentralDirectoryLocator(zip4jRaf, rawIO));
 
     if (zipModel.isZip64Format()) {
       zipModel.setZip64EndOfCentralDirectoryRecord(readZip64EndCentralDirRec(zip4jRaf, rawIO));
@@ -295,33 +295,24 @@ public class HeaderReader {
       ExtraDataRecord extraDataRecord = new ExtraDataRecord();
       int header = rawIO.readShortLittleEndian(extraFieldBuf, counter);
       extraDataRecord.setHeader(header);
-      counter = counter + 2;
+      counter += 2;
+
       int sizeOfRec = rawIO.readShortLittleEndian(extraFieldBuf, counter);
-
-      if ((2 + sizeOfRec) > extraFieldLength) {
-        sizeOfRec = rawIO.readShortBigEndian(extraFieldBuf, counter);
-        if ((2 + sizeOfRec) > extraFieldLength) {
-          //If this is the case, then extra data record is corrupt
-          //skip reading any further extra data records
-          break;
-        }
-      }
-
       extraDataRecord.setSizeOfData(sizeOfRec);
-      counter = counter + 2;
+      counter += 2;
 
       if (sizeOfRec > 0) {
         byte[] data = new byte[sizeOfRec];
         System.arraycopy(extraFieldBuf, counter, data, 0, sizeOfRec);
         extraDataRecord.setData(data);
       }
-      counter = counter + sizeOfRec;
+      counter += sizeOfRec;
       extraDataRecords.add(extraDataRecord);
     }
     return extraDataRecords.size() > 0 ? extraDataRecords : null;
   }
 
-  private Zip64EndOfCentralDirectoryLocator readZip64EndofCentralDirectoryLocator(RandomAccessFile zip4jRaf,
+  private Zip64EndOfCentralDirectoryLocator readZip64EndOfCentralDirectoryLocator(RandomAccessFile zip4jRaf,
                                                                                   RawIO rawIO) throws ZipException {
     try {
       Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator = new Zip64EndOfCentralDirectoryLocator();
@@ -457,7 +448,7 @@ public class HeaderReader {
         continue;
       }
 
-      if (HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.equals(extraDataRecord.getSignature())) {
+      if (HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue() == extraDataRecord.getHeader()) {
 
         Zip64ExtendedInfo zip64ExtendedInfo = new Zip64ExtendedInfo();
         byte[] extraData = extraDataRecord.getData();

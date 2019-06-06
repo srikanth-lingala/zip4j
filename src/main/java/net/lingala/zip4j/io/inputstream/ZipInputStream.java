@@ -122,8 +122,8 @@ public class ZipInputStream extends InputStream {
     //First signal the end of data for this entry so that ciphers can read any header data if applicable
     decompressedInputStream.endOfEntryReached(inputStream);
 
-    DataDescriptor dataDescriptor = readExtendedLocalFileHeaderIfPresent();
-    verifyCrc(dataDescriptor);
+    readExtendedLocalFileHeaderIfPresent();
+    verifyCrc();
     resetFields();
   }
 
@@ -155,13 +155,16 @@ public class ZipInputStream extends InputStream {
     return new StoreInputStream(cipherInputStream, localFileHeader.getUncompressedSize());
   }
 
-  private DataDescriptor readExtendedLocalFileHeaderIfPresent() throws IOException {
+  private void readExtendedLocalFileHeaderIfPresent() throws IOException {
     if (!isExtendedLocalFileHeaderPresent(localFileHeader)) {
-      return null;
+      return;
     }
 
-    return headerReader.readDataDescriptor(inputStream,
+    DataDescriptor dataDescriptor = headerReader.readDataDescriptor(inputStream,
         checkIfZip64ExtraDataRecordPresentInLFH(localFileHeader.getExtraDataRecords()));
+    localFileHeader.setCompressedSize(dataDescriptor.getCompressedSize());
+    localFileHeader.setUncompressedSize(dataDescriptor.getUncompressedSize());
+    localFileHeader.setCrc32(dataDescriptor.getCrc32());
   }
 
   private boolean isExtendedLocalFileHeaderPresent(LocalFileHeader localFileHeader) {
@@ -184,7 +187,7 @@ public class ZipInputStream extends InputStream {
     }
 
     for (ExtraDataRecord extraDataRecord : extraDataRecords) {
-      if (extraDataRecord.getSignature() == HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE) {
+      if (extraDataRecord.getHeader() == HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue()) {
         return true;
       }
     }
@@ -192,21 +195,13 @@ public class ZipInputStream extends InputStream {
     return false;
   }
 
-  private void verifyCrc(DataDescriptor dataDescriptor) throws IOException {
+  private void verifyCrc() throws IOException {
     if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
       // Verification will be done in this case by AesCipherInputStream
       return;
     }
 
-    long crcFromLFH = localFileHeader.getCrc32();
-    if (isExtendedLocalFileHeaderPresent(localFileHeader)) {
-      if (dataDescriptor == null) {
-        throw new IOException("extended local file header flag is set, but could not locate data descriptor");
-      }
-      crcFromLFH = dataDescriptor.getCrc32();
-    }
-
-    if (crcFromLFH != crc32.getValue()) {
+    if (localFileHeader.getCrc32() != crc32.getValue()) {
       throw new IOException("Reached end of entry, but crc verification failed");
     }
   }

@@ -41,7 +41,7 @@ import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_LIMIT;
 
 public class HeaderWriter {
 
-  private static final short ZIP64_EXTRA_DATA_RECORD_SIZE = 32;
+  private static final short ZIP64_EXTRA_DATA_RECORD_SIZE = 28;
 
   private RawIO rawIO = new RawIO();
   private byte[] longBuff = new byte[8];
@@ -88,7 +88,7 @@ public class HeaderWriter {
 
       int extraFieldLength = 0;
       if (zipModel.isZip64Format()) {
-        extraFieldLength += 20;
+        extraFieldLength += 32;
       }
       if (localFileHeader.getAesExtraDataRecord() != null) {
         extraFieldLength += 11;
