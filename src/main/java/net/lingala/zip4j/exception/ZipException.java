@@ -20,7 +20,7 @@ public class ZipException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  private ZipExceptionType exceptionType;
+  private Type type = Type.UNKNOWN;
 
   public ZipException(String message) {
     super(message);
@@ -34,12 +34,18 @@ public class ZipException extends Exception {
     super(message, rootException);
   }
 
-  public ZipException(String message, ZipExceptionType exceptionType) {
+  public ZipException(String message, Type type) {
     super(message);
-    this.exceptionType = exceptionType;
+    this.type = type;
   }
 
-  public ZipExceptionType getExceptionType() {
-    return exceptionType;
+  public Type getType() {
+    return type;
+  }
+
+  public enum Type {
+    WRONG_PASSWORD,
+    TASK_CANCELLED_EXCEPTION,
+    UNKNOWN
   }
 }

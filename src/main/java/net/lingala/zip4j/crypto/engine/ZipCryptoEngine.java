@@ -35,9 +35,6 @@ public class ZipCryptoEngine {
     }
   }
 
-  public ZipCryptoEngine() {
-  }
-
   public void initKeys(char[] password) {
     keys[0] = 305419896;
     keys[1] = 591751049;

@@ -21,7 +21,6 @@ import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Engine;
 import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
 import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.exception.ZipExceptionType;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 
@@ -74,7 +73,7 @@ public class AESDecrypter implements Decrypter {
         0, PASSWORD_VERIFIER_LENGTH);
 
     if (!Arrays.equals(passwordVerifier, derivedPasswordVerifier)) {
-      throw new ZipException("Wrong Password", ZipExceptionType.WRONG_PASSWORD);
+      throw new ZipException("Wrong Password", ZipException.Type.WRONG_PASSWORD);
     }
 
     aesEngine = new AESEngine(aesKey);

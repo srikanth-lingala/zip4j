@@ -359,7 +359,7 @@ public class FileUtils {
 
   private static byte setBitIfApplicable(boolean applicable, byte b, int pos) {
     if (applicable) {
-      b = BitUtils.setBitOfByte(b, pos);
+      b = BitUtils.setBit(b, pos);
     }
 
     return b;

@@ -18,7 +18,6 @@ package net.lingala.zip4j.crypto;
 
 import net.lingala.zip4j.crypto.engine.ZipCryptoEngine;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.exception.ZipExceptionType;
 
 import static net.lingala.zip4j.util.InternalZipConstants.STD_DEC_HDR_SIZE;
 
@@ -61,7 +60,7 @@ public class StandardDecrypter implements Decrypter {
       throw new IllegalStateException("Invalid CRC in File Header");
 
     if (password == null || password.length <= 0) {
-      throw new ZipException("Wrong password!", ZipExceptionType.WRONG_PASSWORD);
+      throw new ZipException("Wrong password!", ZipException.Type.WRONG_PASSWORD);
     }
 
     zipCryptoEngine.initKeys(password);

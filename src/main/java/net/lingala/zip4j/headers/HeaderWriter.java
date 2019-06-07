@@ -60,7 +60,7 @@ public class HeaderWriter {
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getCompressionMethod().getCode());
       rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getLastModifiedTime());
       byteArrayOutputStream.write(longBuff, 0, 4);
-      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc32());
+      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc());
       long uncompressedSize = localFileHeader.getUncompressedSize();
 
       if (uncompressedSize >= ZIP_64_LIMIT) {
@@ -144,7 +144,7 @@ public class HeaderWriter {
 
     try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) HeaderSignature.EXTRA_DATA_RECORD.getValue());
-      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc32());
+      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc());
 
       if (localFileHeader.isWriteCompressedSizeInZip64ExtraRecord()) {
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getCompressedSize());
@@ -270,7 +270,7 @@ public class HeaderWriter {
       long currOffset = currOutputStream.getFilePointer();
 
       currOutputStream.seek(fileHeader.getOffsetLocalHeader() + InternalZipConstants.UPDATE_LFH_CRC);
-      rawIO.writeIntLittleEndian(outputStream, (int) fileHeader.getCrc32());
+      rawIO.writeIntLittleEndian(outputStream, (int) fileHeader.getCrc());
 
       updateFileSizesInLocalFileHeader(currOutputStream, fileHeader);
 
@@ -409,7 +409,7 @@ public class HeaderWriter {
 
       rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getLastModifiedTime());
       byteArrayOutputStream.write(longBuff, 0, 4);
-      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) (fileHeader.getCrc32()));
+      rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) (fileHeader.getCrc()));
 
       if (fileHeader.getCompressedSize() >= ZIP_64_LIMIT ||
           fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {

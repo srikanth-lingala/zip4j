@@ -164,7 +164,7 @@ public class ZipInputStream extends InputStream {
         checkIfZip64ExtraDataRecordPresentInLFH(localFileHeader.getExtraDataRecords()));
     localFileHeader.setCompressedSize(dataDescriptor.getCompressedSize());
     localFileHeader.setUncompressedSize(dataDescriptor.getUncompressedSize());
-    localFileHeader.setCrc32(dataDescriptor.getCrc32());
+    localFileHeader.setCrc(dataDescriptor.getCrc32());
   }
 
   private boolean isExtendedLocalFileHeaderPresent(LocalFileHeader localFileHeader) {
@@ -201,7 +201,7 @@ public class ZipInputStream extends InputStream {
       return;
     }
 
-    if (localFileHeader.getCrc32() != crc32.getValue()) {
+    if (localFileHeader.getCrc() != crc32.getValue()) {
       throw new IOException("Reached end of entry, but crc verification failed");
     }
   }

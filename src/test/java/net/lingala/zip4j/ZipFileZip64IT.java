@@ -31,7 +31,7 @@ public class ZipFileZip64IT extends AbstractIT {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip("single_large_entry.txt");
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
-    zipParameters.setUncompressedSize(entrySize);
+    zipParameters.setEntrySize(entrySize);
 
     createZip64FileWithSingleFile(entrySize, zipParameters);
 

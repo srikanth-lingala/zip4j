@@ -88,8 +88,8 @@ public class ZipOutputStream extends OutputStream {
 
       //Skip writing crc for AES encrypted files
       if (!fileHeader.isEncrypted() || !EncryptionMethod.AES.equals(fileHeader.getEncryptionMethod())) {
-        fileHeader.setCrc32(crc32.getValue());
-        localFileHeader.setCrc32(crc32.getValue());
+        fileHeader.setCrc(crc32.getValue());
+        localFileHeader.setCrc(crc32.getValue());
       }
 
       zipModel.getLocalFileHeaders().add(localFileHeader);
@@ -187,7 +187,7 @@ public class ZipOutputStream extends OutputStream {
 
   private void verifyZipParameters(ZipParameters zipParameters) {
     if (zipParameters.getCompressionMethod() == CompressionMethod.STORE
-        && zipParameters.getUncompressedSize() == 0
+        && zipParameters.getEntrySize() == 0
         && !isEntryDirectory(zipParameters.getFileNameInZip())) {
       throw new IllegalArgumentException("uncompressed size should be set for zip entries of compression type store");
     }

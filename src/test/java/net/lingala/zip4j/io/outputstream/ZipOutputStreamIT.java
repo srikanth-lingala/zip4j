@@ -70,7 +70,7 @@ public class ZipOutputStreamIT extends AbstractIT {
       for (File fileToAdd : FILES_TO_ADD) {
 
         if (zipParameters.getCompressionMethod() == CompressionMethod.STORE) {
-          zipParameters.setUncompressedSize(fileToAdd.length());
+          zipParameters.setEntrySize(fileToAdd.length());
         }
 
         zipParameters.setFileNameInZip(fileToAdd.getName());

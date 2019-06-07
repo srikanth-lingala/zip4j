@@ -35,7 +35,7 @@ public class AESEngine {
     init(key);
   }
 
-  public void init(byte[] key) throws ZipException {
+  private void init(byte[] key) throws ZipException {
     workingKey = generateWorkingKey(key);
   }
 
@@ -53,7 +53,8 @@ public class AESEngine {
     t = 0;
     int i = 0;
     while (i < key.length) {
-      W[t >> 2][t & 3] = (key[i] & 0xff) | ((key[i + 1] & 0xff) << 8) | ((key[i + 2] & 0xff) << 16) | (key[i + 3] << 24);
+      W[t >> 2][t & 3] = (key[i] & 0xff) | ((key[i + 1] & 0xff) << 8) | ((key[i + 2] & 0xff) << 16)
+          | (key[i + 3] << 24);
       i += 4;
       t++;
     }
@@ -96,7 +97,7 @@ public class AESEngine {
     return AES_BLOCK_SIZE;
   }
 
-  private final void stateIn(byte[] bytes, int off) {
+  private void stateIn(byte[] bytes, int off) {
     int index = off;
 
     C0 = (bytes[index++] & 0xff);
@@ -120,7 +121,7 @@ public class AESEngine {
     C3 |= bytes[index++] << 24;
   }
 
-  private final void stateOut(byte[] bytes, int off) {
+  private void stateOut(byte[] bytes, int off) {
     int index = off;
 
     bytes[index++] = (byte) C0;
@@ -144,7 +145,7 @@ public class AESEngine {
     bytes[index++] = (byte) (C3 >> 24);
   }
 
-  private final void encryptBlock(int[][] KW) {
+  private void encryptBlock(int[][] KW) {
     int r, r0, r1, r2, r3;
 
     C0 ^= KW[0][0];

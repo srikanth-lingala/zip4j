@@ -13,8 +13,8 @@ import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.StandardCharsets;
 
-import static net.lingala.zip4j.util.BitUtils.setBitOfByte;
-import static net.lingala.zip4j.util.BitUtils.unsetBitOfByte;
+import static net.lingala.zip4j.util.BitUtils.setBit;
+import static net.lingala.zip4j.util.BitUtils.unsetBit;
 import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 
 public class FileHeaderFactory {
@@ -35,6 +35,10 @@ public class FileHeaderFactory {
     }
 
     if (zipParameters.isEncryptFiles()) {
+      if (zipParameters.getEncryptionMethod() == null || zipParameters.getEncryptionMethod() == EncryptionMethod.NONE) {
+        throw new ZipException("Encryption method has to be set when encryptFiles flag is set in zip parameters");
+      }
+
       fileHeader.setEncrypted(true);
       fileHeader.setEncryptionMethod(zipParameters.getEncryptionMethod());
     }
@@ -53,10 +57,10 @@ public class FileHeaderFactory {
     //For files added by this library, this attribute will be set after closeEntry is done
     fileHeader.setExternalFileAttributes(new byte[4]);
     fileHeader.setDirectory(isZipEntryDirectory(fileName));
-    fileHeader.setUncompressedSize(zipParameters.getUncompressedSize());
+    fileHeader.setUncompressedSize(zipParameters.getEntrySize());
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-      fileHeader.setCrc32(zipParameters.getSourceFileCRC());
+      fileHeader.setCrc(zipParameters.getEntryCRC());
     }
 
     fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters));
@@ -76,7 +80,7 @@ public class FileHeaderFactory {
     localFileHeader.setEncrypted(fileHeader.isEncrypted());
     localFileHeader.setEncryptionMethod(fileHeader.getEncryptionMethod());
     localFileHeader.setAesExtraDataRecord(fileHeader.getAesExtraDataRecord());
-    localFileHeader.setCrc32(fileHeader.getCrc32());
+    localFileHeader.setCrc(fileHeader.getCrc());
     localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
     localFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
     localFileHeader.setDataDescriptorExists(fileHeader.isDataDescriptorExists());
@@ -86,7 +90,7 @@ public class FileHeaderFactory {
   private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters) {
     byte[] generalPurposeBitFlag = new byte[2];
     generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted, zipParameters);
-    generalPurposeBitFlag[1] |= 1 << 3; // set 3rd bit which corresponds to utf-8 file name charset
+    generalPurposeBitFlag[1] = setBit(generalPurposeBitFlag[1], 3); // set 3rd bit which corresponds to utf-8 file name charset
     return generalPurposeBitFlag;
   }
 
@@ -95,27 +99,27 @@ public class FileHeaderFactory {
     byte firstByte = 0;
 
     if (isEncrypted) {
-      firstByte = setBitOfByte(firstByte, 0);
+      firstByte = setBit(firstByte, 0);
     }
 
     if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
       if (zipParameters.getCompressionLevel() == CompressionLevel.NORMAL) {
-        firstByte = unsetBitOfByte(firstByte, 1);
-        firstByte = unsetBitOfByte(firstByte, 2);
+        firstByte = unsetBit(firstByte, 1);
+        firstByte = unsetBit(firstByte, 2);
       } else if (zipParameters.getCompressionLevel() == CompressionLevel.MAXIMUM) {
-        firstByte = setBitOfByte(firstByte, 1);
-        firstByte = unsetBitOfByte(firstByte, 2);
+        firstByte = setBit(firstByte, 1);
+        firstByte = unsetBit(firstByte, 2);
       } else if (zipParameters.getCompressionLevel() == CompressionLevel.FAST) {
-        firstByte = unsetBitOfByte(firstByte, 1);
-        firstByte = setBitOfByte(firstByte, 2);
+        firstByte = unsetBit(firstByte, 1);
+        firstByte = setBit(firstByte, 2);
       } else if (zipParameters.getCompressionLevel() == CompressionLevel.FASTEST) {
-        firstByte = setBitOfByte(firstByte, 1);
-        firstByte = setBitOfByte(firstByte, 2);
+        firstByte = setBit(firstByte, 1);
+        firstByte = setBit(firstByte, 2);
       }
     }
 
     if (zipParameters.isWriteExtendedLocalFileHeader()) {
-      firstByte = setBitOfByte(firstByte, 3);
+      firstByte = setBit(firstByte, 3);
     }
 
     return firstByte;
@@ -145,7 +149,7 @@ public class FileHeaderFactory {
     } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_256) {
       aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
     } else {
-      throw new ZipException("invalid AES key strength, cannot generate AES Extra data record");
+      throw new ZipException("invalid AES key strength");
     }
 
     aesDataRecord.setCompressionMethod(parameters.getCompressionMethod());

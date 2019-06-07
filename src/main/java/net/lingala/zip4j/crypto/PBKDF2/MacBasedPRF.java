@@ -20,7 +20,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 
 /*
  * Source referred from Matthias Gartner's PKCS#5 implementation -
@@ -38,16 +37,6 @@ public class MacBasedPRF implements PRF {
       mac = Mac.getInstance(macAlgorithm);
       hLen = mac.getMacLength();
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public MacBasedPRF(String macAlgorithm, String provider) {
-    this.macAlgorithm = macAlgorithm;
-    try {
-      mac = Mac.getInstance(macAlgorithm, provider);
-      hLen = mac.getMacLength();
-    } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
       throw new RuntimeException(e);
     }
   }

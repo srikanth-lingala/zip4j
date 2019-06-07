@@ -146,10 +146,13 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws ZipException {
+
+
+
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
     clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((fileToAdd.lastModified())));
     clonedZipParameters.setFileNameInZip(fileToAdd.getName());
-    clonedZipParameters.setUncompressedSize(fileToAdd.length());
+    clonedZipParameters.setEntrySize(fileToAdd.length());
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
     clonedZipParameters.setLastModifiedFileTime((int) fileToAdd.lastModified());
 
@@ -160,7 +163,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     if (!fileToAdd.isDirectory()) {
       if (clonedZipParameters.isEncryptFiles() && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
         progressMonitor.setCurrentTask(CALCULATE_CRC);
-        clonedZipParameters.setSourceFileCRC((int) computeFileCRC(fileToAdd, progressMonitor));
+        clonedZipParameters.setEntryCRC((int) computeFileCRC(fileToAdd, progressMonitor));
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 

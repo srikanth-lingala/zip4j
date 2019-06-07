@@ -34,11 +34,11 @@ public class ZipParameters {
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
   private boolean includeRootFolder = true;
   private String rootFolderInZip;
-  private int sourceFileCRC;
+  private long entryCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
   private int lastModifiedFileTime;
-  private long uncompressedSize;
+  private long entrySize;
   private boolean writeExtendedLocalFileHeader = true;
 
   public ZipParameters() {
@@ -53,11 +53,11 @@ public class ZipParameters {
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
     this.rootFolderInZip = zipParameters.getRootFolderInZip();
-    this.sourceFileCRC = zipParameters.getSourceFileCRC();
+    this.entryCRC = zipParameters.getEntryCRC();
     this.defaultFolderPath = zipParameters.getDefaultFolderPath();
     this.fileNameInZip = zipParameters.getFileNameInZip();
     this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
-    this.uncompressedSize = zipParameters.getUncompressedSize();
+    this.entrySize = zipParameters.getEntrySize();
     this.writeExtendedLocalFileHeader = zipParameters.isWriteExtendedLocalFileHeader();
   }
 
@@ -137,12 +137,12 @@ public class ZipParameters {
     this.rootFolderInZip = rootFolderInZip;
   }
 
-  public int getSourceFileCRC() {
-    return sourceFileCRC;
+  public long getEntryCRC() {
+    return entryCRC;
   }
 
-  public void setSourceFileCRC(int sourceFileCRC) {
-    this.sourceFileCRC = sourceFileCRC;
+  public void setEntryCRC(long entryCRC) {
+    this.entryCRC = entryCRC;
   }
 
   public String getDefaultFolderPath() {
@@ -169,12 +169,12 @@ public class ZipParameters {
     this.lastModifiedFileTime = lastModifiedFileTime;
   }
 
-  public long getUncompressedSize() {
-    return uncompressedSize;
+  public long getEntrySize() {
+    return entrySize;
   }
 
-  public void setUncompressedSize(long uncompressedSize) {
-    this.uncompressedSize = uncompressedSize;
+  public void setEntrySize(long entrySize) {
+    this.entrySize = entrySize;
   }
 
   public boolean isWriteExtendedLocalFileHeader() {
