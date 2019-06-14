@@ -8,6 +8,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.CRC32;
 
 import static net.lingala.zip4j.TestUtils.getFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,11 +57,26 @@ public class CrcUtilIT extends AbstractIT {
   }
 
   @Test
-  public void testComputeFileCrcGetsValueSuccessfully() throws ZipException {
-    assertThat(CrcUtil.computeFileCrc(getFileFromResources("sample.pdf"), progressMonitor)).isEqualTo(2730662664L);
-    assertThat(CrcUtil.computeFileCrc(getFileFromResources("sample_text1.txt"), progressMonitor))
-        .isEqualTo(3543527034L);
-    assertThat(CrcUtil.computeFileCrc(getFileFromResources("sample_text_large.txt"), progressMonitor))
-        .isEqualTo(4081718931L);
+  public void testComputeFileCrcGetsValueSuccessfully() throws ZipException, IOException {
+    testComputeFileCrcForFile(getFileFromResources("sample.pdf"));
+    testComputeFileCrcForFile(getFileFromResources("sample_text1.txt"));
+    testComputeFileCrcForFile(getFileFromResources("sample_text_large.txt"));
+  }
+
+  private void testComputeFileCrcForFile(File file) throws ZipException, IOException {
+    long actualFileCrc = calculateFileCrc(file);
+    assertThat(CrcUtil.computeFileCrc(file, progressMonitor)).isEqualTo(actualFileCrc);
+  }
+
+  private long calculateFileCrc(File file) throws IOException {
+    try(InputStream inputStream = new FileInputStream(file)) {
+      byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+      int readLen = -1;
+      CRC32 crc32 = new CRC32();
+      while((readLen = inputStream.read(buffer)) != -1) {
+        crc32.update(buffer, 0, readLen);
+      }
+      return crc32.getValue();
+    }
   }
 }
