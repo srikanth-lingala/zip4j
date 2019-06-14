@@ -25,19 +25,21 @@ import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
-import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExtension;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_LIMIT;
+import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class HeaderWriter {
 
@@ -49,17 +51,15 @@ public class HeaderWriter {
   public void writeLocalFileHeader(ZipModel zipModel, LocalFileHeader localFileHeader, OutputStream outputStream)
       throws ZipException {
 
-    if (localFileHeader == null) {
-      throw new ZipException("input parameters are null, cannot write local file header");
-    }
-
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getSignature().getValue());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getVersionNeededToExtract());
       byteArrayOutputStream.write(localFileHeader.getGeneralPurposeFlag());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getCompressionMethod().getCode());
+
       rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getLastModifiedTime());
       byteArrayOutputStream.write(longBuff, 0, 4);
+
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getCrc());
       long uncompressedSize = localFileHeader.getUncompressedSize();
 
@@ -84,7 +84,15 @@ public class HeaderWriter {
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(false);
       }
 
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) localFileHeader.getFileNameLength());
+      byte[] fileNameBytes = new byte[0];
+      if (isStringNotNullAndNotEmpty(localFileHeader.getFileName())) {
+        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+        if (BitUtils.isBitSet(localFileHeader.getGeneralPurposeFlag()[1], 3)) {
+          charset = StandardCharsets.UTF_8;
+        }
+        fileNameBytes = localFileHeader.getFileName().getBytes(charset);
+      }
+      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileNameBytes.length);
 
       int extraFieldLength = 0;
       if (zipModel.isZip64Format()) {
@@ -95,7 +103,9 @@ public class HeaderWriter {
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) (extraFieldLength));
 
-      byteArrayOutputStream.write(localFileHeader.getFileName().getBytes(StandardCharsets.UTF_8));
+      if (fileNameBytes.length > 0) {
+        byteArrayOutputStream.write(fileNameBytes);
+      }
 
       //Zip64 should be the first extra data record that should be written
       //This is NOT according to any specification but if this is changed
@@ -104,10 +114,6 @@ public class HeaderWriter {
       if (zipModel.isZip64Format()) {
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (short) HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue());
-
-        //Zip64 extra data record size
-        //hardcoded it to 16 for local file header as we will just write
-        //compressed and uncompressed file sizes
         rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE);
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getCompressedSize());
@@ -234,9 +240,7 @@ public class HeaderWriter {
 
       writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO);
       writeZipHeaderBytes(zipModel, outputStream, byteArrayOutputStream.toByteArray());
-    } catch (ZipException e) {
-      throw e;
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new ZipException(e);
     }
   }
@@ -289,8 +293,10 @@ public class HeaderWriter {
 
     try {
       if (fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {
-        //4 - compressed size
-        //4 - uncompressed size
+        rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
+        outputStream.write(longBuff, 0, 4);
+        outputStream.write(longBuff, 0, 4);
+
         //2 - file name length
         //2 - extra field length
         //variable - file name which can be determined by fileNameLength
@@ -298,7 +304,10 @@ public class HeaderWriter {
         //2 - size of zip64 data
         //8 - uncompressed size
         //8 - compressed size
-        long zip64CompressedSizeOffset = 4 + 4 + 2 + 2 + fileHeader.getFileNameLength() + 2 + 2;
+        int zip64CompressedSizeOffset = 2 + 2 + fileHeader.getFileNameLength() + 2 + 2 + 2;
+        if (outputStream.skipBytes(zip64CompressedSizeOffset) != zip64CompressedSizeOffset) {
+          throw new ZipException("Unable to skip " + zip64CompressedSizeOffset + " bytes to update LFH");
+        }
         rawIO.writeLongLittleEndian(outputStream, fileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(outputStream, fileHeader.getCompressedSize());
       } else {
@@ -391,14 +400,12 @@ public class HeaderWriter {
 
   private void writeFileHeader(ZipModel zipModel, FileHeader fileHeader, ByteArrayOutputStream byteArrayOutputStream,
                               RawIO rawIO) throws ZipException {
-
     if (fileHeader == null) {
       throw new ZipException("input parameters is null, cannot write local file header");
     }
 
     try {
       final byte[] emptyShortByte = {0, 0};
-
       boolean writeZip64ExtendedInfo = false;
 
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) fileHeader.getSignature().getValue());
@@ -406,13 +413,11 @@ public class HeaderWriter {
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getVersionNeededToExtract());
       byteArrayOutputStream.write(fileHeader.getGeneralPurposeFlag());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getCompressionMethod().getCode());
-
       rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getLastModifiedTime());
       byteArrayOutputStream.write(longBuff, 0, 4);
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) (fileHeader.getCrc()));
 
-      if (fileHeader.getCompressedSize() >= ZIP_64_LIMIT ||
-          fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {
+      if (fileHeader.getCompressedSize() >= ZIP_64_LIMIT || fileHeader.getUncompressedSize() >= ZIP_64_LIMIT) {
         rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
         byteArrayOutputStream.write(longBuff, 0, 4);
         byteArrayOutputStream.write(longBuff, 0, 4);
@@ -424,7 +429,15 @@ public class HeaderWriter {
         byteArrayOutputStream.write(longBuff, 0, 4);
       }
 
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getFileNameLength());
+      byte[] fileNameBytes = new byte[0];
+      if (isStringNotNullAndNotEmpty(fileHeader.getFileName())) {
+        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+        if (BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
+          charset = StandardCharsets.UTF_8;
+        }
+        fileNameBytes = fileHeader.getFileName().getBytes(charset);
+      }
+      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileNameBytes.length);
 
       //Compute offset bytes before extra field is written for Zip64 compatibility
       //NOTE: this data is not written now, but written at a later point
@@ -432,6 +445,7 @@ public class HeaderWriter {
       if (fileHeader.getOffsetLocalHeader() > ZIP_64_LIMIT) {
         rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_LIMIT);
         System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
+        writeZip64ExtendedInfo = true;
       } else {
         rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getOffsetLocalHeader());
         System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
@@ -446,8 +460,16 @@ public class HeaderWriter {
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) (extraFieldLength));
 
-      //Skip file comment length for now
-      byteArrayOutputStream.write(emptyShortByte);
+      String fileComment = fileHeader.getFileComment();
+      byte[] fileCommentBytes = new byte[0];
+      if (isStringNotNullAndNotEmpty(fileComment)) {
+        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+        if (BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
+          charset = StandardCharsets.UTF_8;
+        }
+        fileCommentBytes = fileComment.getBytes(charset);
+      }
+      rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileCommentBytes.length);
 
       //Skip disk number start for now
       rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) fileHeader.getDiskNumberStart());
@@ -461,7 +483,9 @@ public class HeaderWriter {
       //offset local header - this data is computed above
       byteArrayOutputStream.write(offsetLocalHeaderBytes);
 
-      byteArrayOutputStream.write(fileHeader.getFileName().getBytes(StandardCharsets.UTF_8));
+      if (fileNameBytes.length > 0) {
+        byteArrayOutputStream.write(fileNameBytes);
+      }
 
       if (writeZip64ExtendedInfo) {
         zipModel.setZip64Format(true);
@@ -491,6 +515,10 @@ public class HeaderWriter {
 
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (short) aesExtraDataRecord.getCompressionMethod().getCode());
+      }
+
+      if (fileCommentBytes.length > 0) {
+        byteArrayOutputStream.write(fileCommentBytes);
       }
     } catch (Exception e) {
       throw new ZipException(e);
@@ -599,7 +627,7 @@ public class HeaderWriter {
       }
 
       String comment = zipModel.getEndOfCentralDirectoryRecord().getComment();
-      if (Zip4jUtil.isStringNotNullAndNotEmpty(comment)) {
+      if (isStringNotNullAndNotEmpty(comment)) {
         byte[] commentBytes = comment.getBytes(StandardCharsets.UTF_8);
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (short) commentBytes.length);
         byteArrayOutputStream.write(commentBytes);

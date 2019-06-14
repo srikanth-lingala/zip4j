@@ -35,15 +35,9 @@ public class HeaderUtil {
       throw new ZipException("input parameters is null, cannot determine index of file header");
     }
 
-    if (zipModel.getCentralDirectory() == null) {
-      throw new ZipException("central directory is null, cannot determine index of file header");
-    }
-
-    if (zipModel.getCentralDirectory().getFileHeaders() == null) {
-      throw new ZipException("file Headers are null, cannot determine index of file header");
-    }
-
-    if (zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
+    if (zipModel.getCentralDirectory() == null
+        || zipModel.getCentralDirectory().getFileHeaders() == null
+        || zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
       return -1;
     }
 
@@ -66,6 +60,18 @@ public class HeaderUtil {
       }
     }
     return -1;
+  }
+
+  public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded) {
+    if (isUtf8Encoded) {
+      return new String(data, StandardCharsets.UTF_8);
+    }
+
+    try {
+      return new String(data, ZIP_STANDARD_CHARSET);
+    } catch (UnsupportedEncodingException e) {
+      return new String(data);
+    }
   }
 
   private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {
@@ -105,17 +111,5 @@ public class HeaderUtil {
     }
 
     return null;
-  }
-
-  public static String decodeFileName(byte[] data, boolean isUtf8Encoded) {
-    if (isUtf8Encoded) {
-      return new String(data, StandardCharsets.UTF_8);
-    }
-
-    try {
-      return new String(data, ZIP_STANDARD_CHARSET);
-    } catch (UnsupportedEncodingException e) {
-      return new String(data);
-    }
   }
 }

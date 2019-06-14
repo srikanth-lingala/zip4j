@@ -48,7 +48,7 @@ public class SplitInputStream extends InputStream {
 
   public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
 
-    if (isSplitZipArchive && currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1) {
+    if (isSplitZipArchive && (currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1)) {
       openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
     }
 

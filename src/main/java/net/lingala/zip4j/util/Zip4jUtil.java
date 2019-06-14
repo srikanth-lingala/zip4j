@@ -29,12 +29,10 @@ public class Zip4jUtil {
     return str != null && str.trim().length() > 0;
   }
 
-  public static boolean createDirectoryIfNotExists(String path) throws ZipException {
-    if (!isStringNotNullAndNotEmpty(path)) {
-      throw new ZipException(new NullPointerException("output path is null"));
+  public static boolean createDirectoryIfNotExists(File file) throws ZipException {
+    if (file == null) {
+      throw new ZipException("output path is null");
     }
-
-    File file = new File(path);
 
     if (file.exists()) {
       if (!file.isDirectory()) {
@@ -49,12 +47,6 @@ public class Zip4jUtil {
     return true;
   }
 
-  /**
-   * Converts input time from Java to DOS format
-   *
-   * @param time
-   * @return time in DOS format
-   */
   public static long javaToDosTime(long time) {
 
     Calendar cal = Calendar.getInstance();
@@ -69,12 +61,6 @@ public class Zip4jUtil {
         cal.get(Calendar.SECOND) >> 1;
   }
 
-  /**
-   * Converts time in dos format to Java format
-   *
-   * @param dosTime
-   * @return time in java format
-   */
   public static long dosToJavaTme(int dosTime) {
     int sec = 2 * (dosTime & 0x1f);
     int min = (dosTime >> 5) & 0x3f;

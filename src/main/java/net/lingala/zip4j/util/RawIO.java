@@ -33,7 +33,7 @@ public class RawIO {
   }
 
   public long readLongLittleEndian(RandomAccessFile randomAccessFile, int readLen) throws IOException {
-    resetBytesToZeros(longBuff);
+    resetBytes(longBuff);
     randomAccessFile.readFully(longBuff, 0, readLen);
     return readLongLittleEndian(longBuff, 0);
   }
@@ -44,14 +44,14 @@ public class RawIO {
   }
 
   public long readLongLittleEndian(InputStream inputStream, int readLen) throws IOException {
-    resetBytesToZeros(longBuff);
+    resetBytes(longBuff);
     readFully(inputStream, longBuff, readLen);
     return readLongLittleEndian(longBuff, 0);
   }
 
   public long readLongLittleEndian(byte[] array, int pos) {
     if (array.length < 8) {
-      resetBytesToZeros(longBuff);
+      resetBytes(longBuff);
     }
     System.arraycopy(array, pos, longBuff, 0, array.length < 8 ? array.length : 8);
 
@@ -107,14 +107,6 @@ public class RawIO {
     return (buff[position] & 0xff) | (buff[1 + position] & 0xff) << 8;
   }
 
-  public short readShortBigEndian(byte[] array, int pos) {
-    short temp = 0;
-    temp |= array[pos] & 0xff;
-    temp <<= 8;
-    temp |= array[pos + 1] & 0xff;
-    return temp;
-  }
-
   public void writeShortLittleEndian(OutputStream outputStream, short value) throws IOException {
     writeShortLittleEndian(shortBuff, 0, value);
     outputStream.write(shortBuff);
@@ -162,7 +154,7 @@ public class RawIO {
     }
   }
 
-  private void resetBytesToZeros(byte[] b) {
+  private void resetBytes(byte[] b) {
     for(int i = 0; i < b.length; i++) {
       b[i] = 0;
     }

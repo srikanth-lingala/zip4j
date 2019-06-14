@@ -28,8 +28,6 @@ public abstract class AbstractIT {
   @Before
   public void before() throws IOException {
     generatedZipFile = temporaryFolder.newFile("output.zip");
-    System.out.println("Generating zip file at location:" + generatedZipFile);
-
     File[] allTempFiles = temporaryFolder.getRoot().listFiles();
     Arrays.stream(allTempFiles).forEach(File::delete);
   }

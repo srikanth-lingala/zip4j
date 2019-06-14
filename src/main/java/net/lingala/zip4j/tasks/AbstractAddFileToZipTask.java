@@ -26,7 +26,7 @@ import static net.lingala.zip4j.model.enums.EncryptionMethod.ZIP_STANDARD;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
-import static net.lingala.zip4j.util.CRCUtil.computeFileCRC;
+import static net.lingala.zip4j.util.CrcUtil.computeFileCrc;
 import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
@@ -163,7 +163,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     if (!fileToAdd.isDirectory()) {
       if (clonedZipParameters.isEncryptFiles() && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
         progressMonitor.setCurrentTask(CALCULATE_CRC);
-        clonedZipParameters.setEntryCRC((int) computeFileCRC(fileToAdd, progressMonitor));
+        clonedZipParameters.setEntryCRC((int) computeFileCrc(fileToAdd, progressMonitor));
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 

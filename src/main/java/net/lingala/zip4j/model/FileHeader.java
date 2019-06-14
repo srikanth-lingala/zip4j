@@ -16,16 +16,22 @@
 
 package net.lingala.zip4j.model;
 
+import net.lingala.zip4j.headers.HeaderSignature;
+
 public class FileHeader extends AbstractFileHeader {
 
   private int versionMadeBy;
-  private int fileCommentLength;
+  private int fileCommentLength = 0;
   private int diskNumberStart;
   private byte[] internalFileAttributes;
   private byte[] externalFileAttributes;
   private long offsetLocalHeader;
   private String fileComment;
   private boolean isDirectory;
+
+  public FileHeader() {
+    setSignature(HeaderSignature.CENTRAL_DIRECTORY);
+  }
 
   public int getVersionMadeBy() {
     return versionMadeBy;

@@ -1,7 +1,6 @@
 package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
@@ -38,32 +37,28 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class FileUtils {
 
-  private static final String OS = System.getProperty("os.name").toLowerCase();
-
   public static void setFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes == null || fileAttributes.length == 0) {
       return;
     }
 
-    if (isWindows()) {
+    String os = System.getProperty("os.name").toLowerCase();
+    if (isWindows(os)) {
       applyWindowsFileAttributes(file, fileAttributes);
-    } else if (isMac() || isUnix()) {
+    } else if (isMac(os) || isUnix(os)) {
       applyPosixFileAttributes(file, fileAttributes);
     }
   }
 
-  public static void setFileLastModifiedTime(Path file, FileHeader fileHeader) {
-    if (fileHeader.getLastModifiedTime() <= 0) {
+  public static void setFileLastModifiedTime(Path file, long lastModifiedTime) {
+    if (lastModifiedTime <= 0 || !Files.exists(file)) {
       return;
     }
 
-    if (Files.exists(file)) {
-      try {
-        Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToJavaTme(
-            (int) fileHeader.getLastModifiedTime())));
-      } catch (IOException e) {
-        // Ignore
-      }
+    try {
+      Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToJavaTme((int) lastModifiedTime)));
+    } catch (Exception e) {
+      // Ignore
     }
   }
 
@@ -72,9 +67,10 @@ public class FileUtils {
       return new byte[4];
     }
 
-    if (isWindows()) {
+    String os = System.getProperty("os.name").toLowerCase();
+    if (isWindows(os)) {
       return getWindowsFileAttributes(file);
-    } else if (isMac() || isUnix()) {
+    } else if (isMac(os) || isUnix(os)) {
       return getPosixFileAttributes(file);
     } else {
       return new byte[4];
@@ -95,7 +91,7 @@ public class FileUtils {
 
     for (File file : filesAndDirs) {
       if (file.isHidden() && !readHiddenFiles) {
-        return result;
+        continue;
       }
       result.add(file);
       if (file.isDirectory()) {
@@ -111,7 +107,7 @@ public class FileUtils {
     }
     String tmpFileName = zipFile;
     if (zipFile.contains(System.getProperty("file.separator"))) {
-      tmpFileName = zipFile.substring(zipFile.lastIndexOf(System.getProperty("file.separator")));
+      tmpFileName = zipFile.substring(zipFile.lastIndexOf(System.getProperty("file.separator")) + 1);
     }
 
     if (tmpFileName.endsWith(".zip")) {
@@ -166,12 +162,7 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderInZip, String rootFolderPath)
-      throws ZipException {
-
-    if (!isStringNotNullAndNotEmpty(file)) {
-      throw new ZipException("input file path/name is empty, cannot calculate relative file name");
-    }
+  public static String getRelativeFileName(String file, String rootFolderInZip, String rootFolderPath) {
 
     String fileName;
     if (isStringNotNullAndNotEmpty(rootFolderPath)) {
@@ -210,10 +201,6 @@ public class FileUtils {
 
     if (isStringNotNullAndNotEmpty(rootFolderInZip)) {
       fileName = rootFolderInZip + fileName;
-    }
-
-    if (!isStringNotNullAndNotEmpty(fileName)) {
-      throw new ZipException("Error determining file name");
     }
 
     return fileName;
@@ -296,7 +283,7 @@ public class FileUtils {
 
     try {
       Set<PosixFilePermission> posixFilePermissions = new HashSet<>();
-      addIfBitSet(fileAttributes[3], 0, posixFilePermissions, OWNER_READ);
+      addIfBitSet(fileAttributes[3], 0, posixFilePermissions, PosixFilePermission.OWNER_READ);
       addIfBitSet(fileAttributes[2], 7, posixFilePermissions, PosixFilePermission.OWNER_WRITE);
       addIfBitSet(fileAttributes[2], 6, posixFilePermissions, PosixFilePermission.OWNER_EXECUTE);
       addIfBitSet(fileAttributes[2], 5, posixFilePermissions, PosixFilePermission.GROUP_READ);
@@ -372,16 +359,16 @@ public class FileUtils {
     }
   }
 
-  private static boolean isWindows() {
-    return (OS.contains("win"));
+  private static boolean isWindows(String os) {
+    return (os.contains("win"));
   }
 
-  private static boolean isMac() {
-    return (OS.contains("mac"));
+  private static boolean isMac(String os) {
+    return (os.contains("mac"));
   }
 
-  private static boolean isUnix() {
-    return (OS.contains("nux"));
+  private static boolean isUnix(String os) {
+    return (os.contains("nux"));
   }
 
 }

@@ -164,7 +164,7 @@ public class ZipInputStream extends InputStream {
         checkIfZip64ExtraDataRecordPresentInLFH(localFileHeader.getExtraDataRecords()));
     localFileHeader.setCompressedSize(dataDescriptor.getCompressedSize());
     localFileHeader.setUncompressedSize(dataDescriptor.getUncompressedSize());
-    localFileHeader.setCrc(dataDescriptor.getCrc32());
+    localFileHeader.setCrc(dataDescriptor.getCrc());
   }
 
   private boolean isExtendedLocalFileHeaderPresent(LocalFileHeader localFileHeader) {

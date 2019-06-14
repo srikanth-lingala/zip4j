@@ -30,9 +30,12 @@ public class AESExtraDataRecord extends ZipHeader {
 
   public AESExtraDataRecord() {
     setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
-    dataSize = -1;
-    versionNumber = -1;
-    vendorID = null;
+    dataSize = 7;
+    // Always set the version number to 2 as we do not store CRC for any AES encrypted files
+    // only MAC is stored and as per the specification, if version number is 2, then MAC is read
+    // and CRC is ignored
+    versionNumber = 2;
+    vendorID = "AE";
     aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
     compressionMethod = CompressionMethod.DEFLATE;
   }

@@ -133,27 +133,20 @@ public class FileHeaderFactory {
   }
 
   private AESExtraDataRecord generateAESExtraDataRecord(ZipParameters parameters) throws ZipException {
-    AESExtraDataRecord aesDataRecord = new AESExtraDataRecord();
-    aesDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
-    aesDataRecord.setDataSize(7);
-    aesDataRecord.setVendorID("AE");
-    // Always set the version number to 2 as we do not store CRC for any AES encrypted files
-    // only MAC is stored and as per the specification, if version number is 2, then MAC is read
-    // and CRC is ignored
-    aesDataRecord.setVersionNumber(2);
+    AESExtraDataRecord aesExtraDataRecord = new AESExtraDataRecord();
 
     if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
-      aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
+      aesExtraDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
     } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_192) {
-      aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_192);
+      aesExtraDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_192);
     } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_256) {
-      aesDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+      aesExtraDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
     } else {
       throw new ZipException("invalid AES key strength");
     }
 
-    aesDataRecord.setCompressionMethod(parameters.getCompressionMethod());
-    return aesDataRecord;
+    aesExtraDataRecord.setCompressionMethod(parameters.getCompressionMethod());
+    return aesExtraDataRecord;
   }
 
   private int determineFileNameLength(String fileName) {

@@ -49,7 +49,7 @@ import java.io.RandomAccessFile;
 import java.util.Collections;
 import java.util.List;
 
-import static net.lingala.zip4j.util.UnzipUtil.createZipInputStreamFor;
+import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
 
 /**
  * Base class to handle zip files. Some of the operations supported
@@ -366,7 +366,7 @@ public class ZipFile {
       throw new ZipException("output path is null or invalid");
     }
 
-    if (!Zip4jUtil.createDirectoryIfNotExists(destinationPath)) {
+    if (!Zip4jUtil.createDirectoryIfNotExists(new File(destinationPath))) {
       throw new ZipException("invalid output path");
     }
 
@@ -775,7 +775,7 @@ public class ZipFile {
       throw new ZipException("zip model is null, cannot get inputstream");
     }
 
-    return createZipInputStreamFor(zipModel, fileHeader, password);
+    return createZipInputStream(zipModel, fileHeader, password);
   }
 
   /**

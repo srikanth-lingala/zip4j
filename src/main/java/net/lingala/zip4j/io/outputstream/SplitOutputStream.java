@@ -189,6 +189,10 @@ public class SplitOutputStream extends OutputStream {
     raf.seek(pos);
   }
 
+  public int skipBytes(int n) throws IOException {
+    return raf.skipBytes(n);
+  }
+
   public void close() throws IOException {
     raf.close();
   }

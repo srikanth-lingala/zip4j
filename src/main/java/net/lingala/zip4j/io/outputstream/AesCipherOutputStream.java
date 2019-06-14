@@ -21,11 +21,11 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
   @Override
   protected AESEncrpyter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
     AESEncrpyter encrypter = new AESEncrpyter(password, zipParameters.getAesKeyStrength());
-    writeAesEncryptionHeaderData(encrypter, outputStream);
+    writeAesEncryptionHeaderData(encrypter);
     return encrypter;
   }
 
-  private void writeAesEncryptionHeaderData(AESEncrpyter encrypter, OutputStream outputStream) throws IOException {
+  private void writeAesEncryptionHeaderData(AESEncrpyter encrypter) throws IOException {
     writeHeaders(encrypter.getSaltBytes());
     writeHeaders(encrypter.getDerivedPasswordVerifier());
   }

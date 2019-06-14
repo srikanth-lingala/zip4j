@@ -42,7 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.lingala.zip4j.headers.HeaderUtil.decodeFileName;
+import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
+import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
 
 /**
@@ -152,10 +153,9 @@ public class HeaderReader {
 
         byte[] generalPurposeFlags = new byte[2];
         zip4jRaf.readFully(generalPurposeFlags);
-        BigInteger firstByteAsBigInteger = BigInteger.valueOf(generalPurposeFlags[0]);
-        fileHeader.setEncrypted(firstByteAsBigInteger.testBit(0));
-        fileHeader.setDataDescriptorExists(firstByteAsBigInteger.testBit(3));
-        fileHeader.setFileNameUTF8Encoded(BigInteger.valueOf(generalPurposeFlags[1]).testBit(11));
+        fileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
+        fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
+        fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
         fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
 
         fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
@@ -190,10 +190,10 @@ public class HeaderReader {
         if (fileNameLength > 0) {
           byte[] fileNameBuff = new byte[fileNameLength];
           zip4jRaf.readFully(fileNameBuff);
-          String fileName = decodeFileName(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
+          String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
 
-          if (fileName.contains(":" + System.getProperty("file.separator"))) {
-            fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);
+          if (fileName.contains(":\\")) {
+            fileName = fileName.substring(fileName.indexOf(":\\") + 2);
           }
 
           fileHeader.setFileName(fileName);
@@ -204,12 +204,12 @@ public class HeaderReader {
 
         readExtraDataRecords(zip4jRaf, fileHeader);
         readZip64ExtendedInfo(fileHeader, rawIO);
-        readAndSaveAESExtraDataRecord(fileHeader, rawIO);
+        readAesExtraDataRecord(fileHeader, rawIO);
 
         if (fileCommentLength > 0) {
           byte[] fileCommentBuff = new byte[fileCommentLength];
           zip4jRaf.readFully(fileCommentBuff);
-          fileHeader.setFileComment(new String(fileCommentBuff));
+          fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded()));
         }
 
         fileHeaders.add(fileHeader);
@@ -236,7 +236,7 @@ public class HeaderReader {
   }
 
   private void readExtraDataRecords(RandomAccessFile zip4jRaf, FileHeader fileHeader)
-      throws ZipException {
+      throws IOException {
     int extraFieldLength = fileHeader.getExtraFieldLength();
     if (extraFieldLength <= 0) {
       return;
@@ -246,7 +246,7 @@ public class HeaderReader {
   }
 
   private void readExtraDataRecords(InputStream inputStream, LocalFileHeader localFileHeader)
-      throws ZipException {
+      throws IOException {
     int extraFieldLength = localFileHeader.getExtraFieldLength();
     if (extraFieldLength <= 0) {
       return;
@@ -257,35 +257,27 @@ public class HeaderReader {
   }
 
   private List<ExtraDataRecord> readExtraDataRecords(RandomAccessFile zip4jRaf, int extraFieldLength)
-      throws ZipException {
+      throws IOException {
 
     if (extraFieldLength <= 0) {
       return null;
     }
 
-    try {
-      byte[] extraFieldBuf = new byte[extraFieldLength];
-      zip4jRaf.read(extraFieldBuf);
-      return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
+    byte[] extraFieldBuf = new byte[extraFieldLength];
+    zip4jRaf.read(extraFieldBuf);
+    return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
   }
 
   private List<ExtraDataRecord> readExtraDataRecords(InputStream inputStream, int extraFieldLength)
-      throws ZipException {
+      throws IOException {
 
     if (extraFieldLength <= 0) {
       return null;
     }
 
-    try {
-      byte[] extraFieldBuf = new byte[extraFieldLength];
-      inputStream.read(extraFieldBuf);
-      return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
+    byte[] extraFieldBuf = new byte[extraFieldLength];
+    inputStream.read(extraFieldBuf);
+    return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
   }
 
   private List<ExtraDataRecord> parseExtraDataRecords(byte[] extraFieldBuf, int extraFieldLength) {
@@ -335,7 +327,7 @@ public class HeaderReader {
       zip64EndOfCentralDirectoryLocator.setTotalNumberOfDiscs(rawIO.readIntLittleEndian(zip4jRaf));
 
       return zip64EndOfCentralDirectoryLocator;
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new ZipException(e);
     }
   }
@@ -347,8 +339,8 @@ public class HeaderReader {
       throw new ZipException("invalid zip64 end of central directory locator");
     }
 
-    long offSetStartOfZip64CentralDir =
-        zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord();
+    long offSetStartOfZip64CentralDir = zipModel.getZip64EndOfCentralDirectoryLocator()
+        .getOffsetZip64EndOfCentralDirectoryRecord();
 
     if (offSetStartOfZip64CentralDir < 0) {
       throw new ZipException("invalid offset for start of end of central directory record");
@@ -392,30 +384,21 @@ public class HeaderReader {
   }
 
   private void readZip64ExtendedInfo(FileHeader fileHeader, RawIO rawIO) throws ZipException {
-    if (fileHeader == null) {
-      throw new ZipException("file header is null in reading Zip64 Extended Info");
-    }
-
     if (fileHeader.getExtraDataRecords() == null || fileHeader.getExtraDataRecords().size() <= 0) {
       return;
     }
 
     Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(fileHeader.getExtraDataRecords(), rawIO);
 
-    if (zip64ExtendedInfo != null) {
-      fileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
-      if (zip64ExtendedInfo.getUncompressedSize() != -1)
-        fileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
-
-      if (zip64ExtendedInfo.getCompressedSize() != -1)
-        fileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
-
-      if (zip64ExtendedInfo.getOffsetLocalHeader() != -1)
-        fileHeader.setOffsetLocalHeader(zip64ExtendedInfo.getOffsetLocalHeader());
-
-      if (zip64ExtendedInfo.getDiskNumberStart() != -1)
-        fileHeader.setDiskNumberStart(zip64ExtendedInfo.getDiskNumberStart());
+    if (zip64ExtendedInfo == null) {
+      return;
     }
+
+    fileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
+    fileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
+    fileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
+    fileHeader.setOffsetLocalHeader(zip64ExtendedInfo.getOffsetLocalHeader());
+    fileHeader.setDiskNumberStart(zip64ExtendedInfo.getDiskNumberStart());
   }
 
   private void readZip64ExtendedInfo(LocalFileHeader localFileHeader, RawIO rawIO) throws ZipException {
@@ -429,15 +412,13 @@ public class HeaderReader {
 
     Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(localFileHeader.getExtraDataRecords(), rawIO);
 
-    if (zip64ExtendedInfo != null) {
-      localFileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
-
-      if (zip64ExtendedInfo.getUncompressedSize() != -1)
-        localFileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
-
-      if (zip64ExtendedInfo.getCompressedSize() != -1)
-        localFileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
+    if (zip64ExtendedInfo == null) {
+      return;
     }
+
+    localFileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
+    localFileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
+    localFileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
   }
 
   private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO)
@@ -474,7 +455,7 @@ public class HeaderReader {
         }
 
         if (counter < extraDataRecord.getSizeOfData()) {
-          zip64ExtendedInfo.setDiskNumberStart(rawIO.readIntLittleEndian(extraData));
+          zip64ExtendedInfo.setDiskNumberStart(rawIO.readIntLittleEndian(extraData, counter));
         }
 
         return zip64ExtendedInfo;
@@ -522,10 +503,9 @@ public class HeaderReader {
       if (inputStream.read(generalPurposeFlags) != 2) {
         throw new ZipException("Could not read enough bytes for generalPurposeFlags");
       }
-      BigInteger firstByteAsBigInteger = BigInteger.valueOf(generalPurposeFlags[0]);
-      localFileHeader.setEncrypted(firstByteAsBigInteger.testBit(0));
-      localFileHeader.setDataDescriptorExists(firstByteAsBigInteger.testBit(3));
-      localFileHeader.setFileNameUTF8Encoded(BigInteger.valueOf(generalPurposeFlags[1]).testBit(11));
+      localFileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
+      localFileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
+      localFileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
       localFileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
 
       localFileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(
@@ -550,7 +530,7 @@ public class HeaderReader {
         // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
 //				String fileName = new String(fileNameBuf, "Cp850");
 //				String fileName = Zip4jUtil.getCp850EncodedString(fileNameBuf);
-        String fileName = decodeFileName(fileNameBuf, localFileHeader.isFileNameUTF8Encoded());
+        String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded());
 
         if (fileName == null) {
           throw new ZipException("file name is null, cannot assign file name to local file header");
@@ -567,7 +547,7 @@ public class HeaderReader {
 
       readExtraDataRecords(inputStream, localFileHeader);
       readZip64ExtendedInfo(localFileHeader, rawIO);
-      readAndSaveAESExtraDataRecord(localFileHeader, rawIO);
+      readAesExtraDataRecord(localFileHeader, rawIO);
 
       if (localFileHeader.isEncrypted()) {
 
@@ -603,9 +583,9 @@ public class HeaderReader {
     if (sigOrCrc == HeaderSignature.EXTRA_DATA_RECORD.getValue()) {
       dataDescriptor.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
       inputStream.read(intBuff);
-      dataDescriptor.setCrc32(rawIO.readLongLittleEndian(intBuff, 0));
+      dataDescriptor.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
     } else {
-      dataDescriptor.setCrc32(sigOrCrc);
+      dataDescriptor.setCrc(sigOrCrc);
     }
 
     if (isZip64Format) {
@@ -619,31 +599,31 @@ public class HeaderReader {
     return dataDescriptor;
   }
 
-  private void readAndSaveAESExtraDataRecord(FileHeader fileHeader, RawIO rawIO) throws ZipException {
+  private void readAesExtraDataRecord(FileHeader fileHeader, RawIO rawIO) throws ZipException {
     if (fileHeader.getExtraDataRecords() == null || fileHeader.getExtraDataRecords().size() <= 0) {
       return;
     }
 
-    AESExtraDataRecord aesExtraDataRecord = readAESExtraDataRecord(fileHeader.getExtraDataRecords(), rawIO);
+    AESExtraDataRecord aesExtraDataRecord = readAesExtraDataRecord(fileHeader.getExtraDataRecords(), rawIO);
     if (aesExtraDataRecord != null) {
       fileHeader.setAesExtraDataRecord(aesExtraDataRecord);
       fileHeader.setEncryptionMethod(EncryptionMethod.AES);
     }
   }
 
-  private void readAndSaveAESExtraDataRecord(LocalFileHeader localFileHeader, RawIO rawIO) throws ZipException {
+  private void readAesExtraDataRecord(LocalFileHeader localFileHeader, RawIO rawIO) throws ZipException {
     if (localFileHeader.getExtraDataRecords() == null || localFileHeader.getExtraDataRecords().size() <= 0) {
       return;
     }
 
-    AESExtraDataRecord aesExtraDataRecord = readAESExtraDataRecord(localFileHeader.getExtraDataRecords(), rawIO);
+    AESExtraDataRecord aesExtraDataRecord = readAesExtraDataRecord(localFileHeader.getExtraDataRecords(), rawIO);
     if (aesExtraDataRecord != null) {
       localFileHeader.setAesExtraDataRecord(aesExtraDataRecord);
       localFileHeader.setEncryptionMethod(EncryptionMethod.AES);
     }
   }
 
-  private AESExtraDataRecord readAESExtraDataRecord(List<ExtraDataRecord> extraDataRecords, RawIO rawIO)
+  private AESExtraDataRecord readAesExtraDataRecord(List<ExtraDataRecord> extraDataRecords, RawIO rawIO)
       throws ZipException {
 
     if (extraDataRecords == null) {

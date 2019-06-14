@@ -14,13 +14,19 @@ import static net.lingala.zip4j.util.FileUtils.setFileLastModifiedTime;
 
 public class UnzipUtil {
 
-  public static ZipInputStream createZipInputStreamFor(ZipModel zipModel, FileHeader fileHeader, char[] password)
+  public static ZipInputStream createZipInputStream(ZipModel zipModel, FileHeader fileHeader, char[] password)
       throws ZipException {
     try {
       SplitInputStream splitInputStream = new SplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
           zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
-      return new ZipInputStream(splitInputStream, password);
+
+      ZipInputStream zipInputStream = new ZipInputStream(splitInputStream, password);
+      if (zipInputStream.getNextEntry() == null) {
+        throw new ZipException("Could not locate local file header for corresponding file header");
+      }
+
+      return zipInputStream;
     } catch (IOException e) {
       throw new ZipException(e);
     }
@@ -28,7 +34,7 @@ public class UnzipUtil {
 
   public static void applyFileAttributes(FileHeader fileHeader, Path file) {
     setFileAttributes(file, fileHeader.getExternalFileAttributes());
-    setFileLastModifiedTime(file, fileHeader);
+    setFileLastModifiedTime(file, fileHeader.getLastModifiedTime());
   }
 
 }

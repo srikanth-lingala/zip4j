@@ -18,16 +18,16 @@ package net.lingala.zip4j.model;
 
 public class DataDescriptor extends ZipHeader {
 
-  private long crc32;
+  private long crc;
   private long compressedSize;
   private long uncompressedSize;
 
-  public long getCrc32() {
-    return crc32;
+  public long getCrc() {
+    return crc;
   }
 
-  public void setCrc32(long crc32) {
-    this.crc32 = crc32;
+  public void setCrc(long crc) {
+    this.crc = crc;
   }
 
   public long getCompressedSize() {
