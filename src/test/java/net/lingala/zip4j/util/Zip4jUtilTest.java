@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -91,12 +92,18 @@ public class Zip4jUtilTest {
 
   @Test
   public void testJavaToDosTime() {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
     assertThat(Zip4jUtil.javaToDosTime(1560526564503L)).isEqualTo(1322159234);
+    TimeZone.setDefault(defaultTimeZone);
   }
 
   @Test
   public void testDosToJavaTime() {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
     assertThat(Zip4jUtil.dosToJavaTme(1322159234)).isEqualTo((1560526564503L / 1000) * 1000);
+    TimeZone.setDefault(defaultTimeZone);
   }
 
   @Test

@@ -28,13 +28,12 @@ public class FileUtilsTestLinuxAndMac {
   private static final String ACTUAL_OS = System.getProperty("os.name");
 
   @Before
-  public void beforeClass() {
+  public void setup() {
     System.setProperty("os.name", "linux");
   }
 
   @After
   public void cleanup() {
-    System.out.println(ACTUAL_OS);
     System.setProperty("os.name", ACTUAL_OS);
   }
 
