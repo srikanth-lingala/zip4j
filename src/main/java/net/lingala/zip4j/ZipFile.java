@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
+import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 /**
  * Base class to handle zip files. Some of the operations supported
@@ -133,7 +134,7 @@ public class ZipFile {
           + " already exists. To add files to existing zip file use addFile method");
     }
 
-    if (filesToAdd == null) {
+    if (filesToAdd == null || filesToAdd.size() == 0) {
       throw new ZipException("input file List is null, cannot create zip file");
     }
 
@@ -187,7 +188,34 @@ public class ZipFile {
    * Adds input source file to the zip file with default zip parameters. If zip file does not exist,
    * this method creates a new zip file.
    *
-   * @param fileToAdd - File to tbe added to the zip file
+   * @param fileToAdd - File with path to be added to the zip file
+   * @throws ZipException
+   */
+  public void addFile(String fileToAdd) throws ZipException {
+    addFile(fileToAdd, new ZipParameters());
+  }
+
+  /**
+   * Adds input source file to the zip file with provided zip parameters. If zip file does not exist,
+   * this method creates a new zip file.
+   *
+   * @param fileToAdd - File with path to be added to the zip file
+   * @param zipParameters - parameters for the entry to be added to zip
+   * @throws ZipException
+   */
+  public void addFile(String fileToAdd, ZipParameters zipParameters) throws ZipException {
+    if (!isStringNotNullAndNotEmpty(fileToAdd)) {
+      throw new ZipException("file to add is null or empty");
+    }
+
+    addFiles(Collections.singletonList(new File(fileToAdd)), zipParameters);
+  }
+
+  /**
+   * Adds input source file to the zip file with default zip parameters. If zip file does not exist,
+   * this method creates a new zip file.
+   *
+   * @param fileToAdd - File to be added to the zip file
    * @throws ZipException
    */
   public void addFile(File fileToAdd) throws ZipException {
@@ -199,7 +227,7 @@ public class ZipFile {
    * this method creates a new zip file. Parameters such as compression type, etc
    * can be set in the input parameters.
    *
-   * @param fileToAdd - File to tbe added to the zip file
+   * @param fileToAdd - File to be added to the zip file
    * @param parameters - zip parameters for this file
    * @throws ZipException
    */
@@ -229,14 +257,8 @@ public class ZipFile {
    */
   public void addFiles(List<File> filesToAdd, ZipParameters parameters) throws ZipException {
 
-    checkZipModel();
-
-    if (zipModel == null) {
-      throw new ZipException("internal error: zip model is null");
-    }
-
-    if (filesToAdd == null) {
-      throw new ZipException("input file List is null");
+    if (filesToAdd == null || filesToAdd.size() == 0) {
+      throw new ZipException("input file List is null or empty");
     }
 
     if (parameters == null) {
@@ -245,6 +267,12 @@ public class ZipFile {
 
     if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
+    }
+
+    checkZipModel();
+
+    if (zipModel == null) {
+      throw new ZipException("internal error: zip model is null");
     }
 
     if (zipFile.exists() && zipModel.isSplitArchive()) {
@@ -280,6 +308,18 @@ public class ZipFile {
   public void addFolder(File folderToAdd, ZipParameters zipParameters) throws ZipException {
     if (folderToAdd == null) {
       throw new ZipException("input path is null, cannot add folder to zip file");
+    }
+
+    if (!folderToAdd.exists()) {
+      throw new ZipException("folder does not exist");
+    }
+
+    if (!folderToAdd.isDirectory()) {
+      throw new ZipException("input folder is not a directory");
+    }
+
+    if (!folderToAdd.canRead()) {
+      throw new ZipException("cannot read input folder");
     }
 
     if (zipParameters == null) {
@@ -362,7 +402,7 @@ public class ZipFile {
    */
   public void extractAll(String destinationPath) throws ZipException {
 
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(destinationPath)) {
+    if (!isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("output path is null or invalid");
     }
 
@@ -417,15 +457,15 @@ public class ZipFile {
       throw new ZipException("input file header is null, cannot extract file");
     }
 
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(destinationPath)) {
+    if (!isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("destination path is empty or null, cannot extract file");
     }
-
-    readZipInfo();
 
     if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
+
+    readZipInfo();
 
     new ExtractFileTask(progressMonitor, runInThread, zipModel, password).execute(
         new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName));
@@ -474,12 +514,8 @@ public class ZipFile {
    */
   public void extractFile(String fileName, String destinationPath, String newFileName) throws ZipException {
 
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileName)) {
+    if (!isStringNotNullAndNotEmpty(fileName)) {
       throw new ZipException("file to extract is null or empty, cannot extract file");
-    }
-
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(destinationPath)) {
-      throw new ZipException("destination string path is empty or null, cannot extract file");
     }
 
     readZipInfo();
@@ -512,7 +548,7 @@ public class ZipFile {
    * @throws ZipException
    */
   public FileHeader getFileHeader(String fileName) throws ZipException {
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileName)) {
+    if (!isStringNotNullAndNotEmpty(fileName)) {
       throw new ZipException("input file name is emtpy or null, cannot get FileHeader");
     }
 
@@ -585,7 +621,7 @@ public class ZipFile {
    */
   public void removeFile(String fileName) throws ZipException {
 
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileName)) {
+    if (!isStringNotNullAndNotEmpty(fileName)) {
       throw new ZipException("file name is empty or null, cannot remove file");
     }
 
@@ -615,7 +651,7 @@ public class ZipFile {
    */
   public void removeFile(FileHeader fileHeader) throws ZipException {
     if (fileHeader == null) {
-      throw new ZipException("file header is null, cannot remove file");
+      throw new ZipException("input file header is null, cannot remove file");
     }
 
     if (zipModel == null) {
@@ -707,55 +743,6 @@ public class ZipFile {
   }
 
   /**
-   * Reads the zip header information for this zip file. If the zip file
-   * does not exist, then this method throws an exception.<br><br>
-   * <b>Note:</b> This method does not read local file header information
-   *
-   * @throws ZipException
-   */
-  private void readZipInfo() throws ZipException {
-    if (!zipFile.exists()) {
-      createNewZipModel();
-      return;
-    }
-
-    if (!zipFile.canRead()) {
-      throw new ZipException("no read access for the input zip file");
-    }
-
-    try (RandomAccessFile randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue())) {
-      HeaderReader headerReader = new HeaderReader();
-      zipModel = headerReader.readAllHeaders(randomAccessFile);
-      zipModel.setZipFile(zipFile);
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
-  }
-
-  /**
-   * Loads the zip model if zip model is null and if zip file exists.
-   *
-   * @throws ZipException
-   */
-  private void checkZipModel() throws ZipException {
-    if (zipModel == null) {
-      readZipInfo();
-    } else {
-      createNewZipModel();
-    }
-  }
-
-  /**
-   * Creates a new instance of zip model
-   *
-   * @throws ZipException
-   */
-  private void createNewZipModel() {
-    zipModel = new ZipModel();
-    zipModel.setZipFile(zipFile);
-  }
-
-  /**
    * Returns an input stream for reading the contents of the Zip file corresponding
    * to the input FileHeader. Throws an exception if the FileHeader does not exist
    * in the ZipFile
@@ -809,6 +796,55 @@ public class ZipFile {
     return FileUtils.getSplitZipFiles(zipModel);
   }
 
+  /**
+   * Reads the zip header information for this zip file. If the zip file
+   * does not exist, then this method throws an exception.<br><br>
+   * <b>Note:</b> This method does not read local file header information
+   *
+   * @throws ZipException
+   */
+  private void readZipInfo() throws ZipException {
+    if (!zipFile.exists()) {
+      createNewZipModel();
+      return;
+    }
+
+    if (!zipFile.canRead()) {
+      throw new ZipException("no read access for the input zip file");
+    }
+
+    try (RandomAccessFile randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue())) {
+      HeaderReader headerReader = new HeaderReader();
+      zipModel = headerReader.readAllHeaders(randomAccessFile);
+      zipModel.setZipFile(zipFile);
+    } catch (IOException e) {
+      throw new ZipException(e);
+    }
+  }
+
+  /**
+   * Loads the zip model if zip model is null and if zip file exists.
+   *
+   * @throws ZipException
+   */
+  private void checkZipModel() throws ZipException {
+    if (zipModel == null) {
+      readZipInfo();
+    } else {
+      createNewZipModel();
+    }
+  }
+
+  /**
+   * Creates a new instance of zip model
+   *
+   * @throws ZipException
+   */
+  private void createNewZipModel() {
+    zipModel = new ZipModel();
+    zipModel.setZipFile(zipFile);
+  }
+
   public ProgressMonitor getProgressMonitor() {
     return progressMonitor;
   }
@@ -823,5 +859,10 @@ public class ZipFile {
 
   public File getFile() {
     return zipFile;
+  }
+
+  @Override
+  public String toString() {
+    return zipFile.toString();
   }
 }

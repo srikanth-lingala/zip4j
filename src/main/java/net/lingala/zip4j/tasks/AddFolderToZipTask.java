@@ -25,7 +25,6 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   @Override
   protected void executeTask(AddFolderToZipTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws ZipException {
-    verifyZipParameters(taskParameters.zipParameters, taskParameters.folderToAdd);
     addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters);
   }
 
@@ -50,24 +49,6 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
 
     return folderToAdd.getAbsoluteFile().getParentFile() != null ?
         folderToAdd.getAbsoluteFile().getParentFile().getAbsolutePath() : "";
-  }
-
-  private void verifyZipParameters(ZipParameters zipParameters, File folderToAdd) throws ZipException {
-    if (folderToAdd == null || zipParameters == null) {
-      throw new ZipException("one of the input parameters is null, cannot add folder to zip");
-    }
-
-    if (!folderToAdd.exists()) {
-      throw new ZipException("input folder does not exist");
-    }
-
-    if (!folderToAdd.isDirectory()) {
-      throw new ZipException("input file is not a folder, user addFileToZip method to add files");
-    }
-
-    if (!folderToAdd.canRead()) {
-      throw new ZipException("cannot read folder: " + folderToAdd.getAbsolutePath());
-    }
   }
 
   @AllArgsConstructor
