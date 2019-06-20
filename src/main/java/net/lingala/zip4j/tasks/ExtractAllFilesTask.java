@@ -23,7 +23,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws ZipException {
-    try (ZipInputStream zipInputStream = createZipInputStream()) {
+    try (ZipInputStream zipInputStream = prepareZipInputStream()) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
@@ -55,20 +55,35 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return totalWork;
   }
 
-  private ZipInputStream createZipInputStream() throws ZipException {
+  private ZipInputStream prepareZipInputStream() throws ZipException {
     try {
       SplitInputStream splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
           getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+
+      FileHeader fileHeader = getFirstFileHeader(getZipModel());
+      if (fileHeader != null) {
+        splitInputStream.prepareExtractionForFileHeader(fileHeader);
+      }
+
       return new ZipInputStream(splitInputStream, password);
     } catch (IOException e) {
       throw new ZipException(e);
     }
   }
 
+  private FileHeader getFirstFileHeader(ZipModel zipModel) {
+    if (zipModel.getCentralDirectory() == null
+        || zipModel.getCentralDirectory().getFileHeaders() == null
+        || zipModel.getCentralDirectory().getFileHeaders().size() == 0) {
+      return null;
+    }
+
+    return zipModel.getCentralDirectory().getFileHeaders().get(0);
+  }
+
   @AllArgsConstructor
   public static class ExtractAllFilesTaskParameters {
     private String outputPath;
-
   }
 
 }

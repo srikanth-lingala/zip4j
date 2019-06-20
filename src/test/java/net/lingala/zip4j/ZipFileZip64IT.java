@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.utils.AbstractIT;
 import net.lingala.zip4j.utils.SlowTests;
+import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -18,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import static net.lingala.zip4j.utils.ZipVerifier.verifyZipFile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTests.class)
@@ -35,7 +35,7 @@ public class ZipFileZip64IT extends AbstractIT {
 
     createZip64FileWithSingleFile(entrySize, zipParameters);
 
-    verifyZipFile(generatedZipFile);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZip64HeadersPresent();
   }
 

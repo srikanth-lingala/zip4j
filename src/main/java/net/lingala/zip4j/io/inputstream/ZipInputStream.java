@@ -202,7 +202,7 @@ public class ZipInputStream extends InputStream {
     }
 
     if (localFileHeader.getCrc() != crc32.getValue()) {
-      throw new IOException("Reached end of entry, but crc verification failed");
+      throw new IOException("Reached end of entry, but crc verification failed for " + localFileHeader.getFileName());
     }
   }
 

@@ -104,7 +104,7 @@ public class SplitOutputStream extends OutputStream {
           + System.getProperty("file.separator");
 
       String fileExtension = ".z0" + (currSplitFileCounter + 1);
-      if (currSplitFileCounter > 9) {
+      if (currSplitFileCounter >= 9) {
         fileExtension = ".z" + (currSplitFileCounter + 1);
       }
 

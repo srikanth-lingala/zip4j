@@ -14,7 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static net.lingala.zip4j.utils.ZipVerifier.verifyZipFile;
+import static net.lingala.zip4j.utils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 
 public class ZipOutputStreamIT extends AbstractIT {
 
@@ -84,7 +84,7 @@ public class ZipOutputStreamIT extends AbstractIT {
         zos.closeEntry();
       }
     }
-    verifyZipFile(generatedZipFile, PASSWORD);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
   }
 
   private ZipOutputStream initializeZipOutputStream(boolean encrypt) throws IOException {

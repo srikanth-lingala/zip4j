@@ -19,10 +19,14 @@ public class SplitInputStream extends InputStream {
   private byte[] singleByteArray = new byte[1];
 
   public SplitInputStream(File zipFile, boolean isSplitZipArchive, int lastSplitZipFileNumber) throws FileNotFoundException {
-    this.randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());;
+    this.randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());
     this.zipFile = zipFile;
     this.isSplitZipArchive = isSplitZipArchive;
     this.lastSplitZipFileNumber = lastSplitZipFileNumber;
+
+    if (isSplitZipArchive) {
+      currentSplitFileCounter = lastSplitZipFileNumber;
+    }
   }
 
   @Override
@@ -42,24 +46,10 @@ public class SplitInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    int readLen = readDataFromStream(b, off, len);
-    return readLen;
-  }
-
-  public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
-
-    if (isSplitZipArchive && (currentSplitFileCounter != fileHeader.getDiskNumberStart() - 1)) {
-      openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
-    }
-
-    randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
-  }
-
-  private int readDataFromStream(byte[] b, int off, int len) throws IOException {
     int readLen = randomAccessFile.read(b, off, len);
 
-    if (readLen == -1 && isSplitZipArchive) {
-      openRandomAccessFileForIndex(currentSplitFileCounter);
+    if ((readLen != len || readLen == -1) && isSplitZipArchive) {
+      openRandomAccessFileForIndex(currentSplitFileCounter + 1);
       currentSplitFileCounter++;
 
       if (readLen < 0) readLen = 0;
@@ -68,6 +58,16 @@ public class SplitInputStream extends InputStream {
     }
 
     return readLen;
+  }
+
+  public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
+
+    if (isSplitZipArchive && (currentSplitFileCounter != fileHeader.getDiskNumberStart())) {
+      openRandomAccessFileForIndex(fileHeader.getDiskNumberStart());
+      currentSplitFileCounter = fileHeader.getDiskNumberStart();
+    }
+
+    randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
   }
 
   private void openRandomAccessFileForIndex(int zipFileIndex) throws IOException {

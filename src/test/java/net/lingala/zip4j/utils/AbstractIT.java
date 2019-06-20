@@ -21,6 +21,7 @@ public abstract class AbstractIT {
   );
 
   protected File generatedZipFile;
+  protected File outputFolder;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -28,6 +29,7 @@ public abstract class AbstractIT {
   @Before
   public void before() throws IOException {
     generatedZipFile = temporaryFolder.newFile("output.zip");
+    outputFolder = temporaryFolder.newFolder("output");
     File[] allTempFiles = temporaryFolder.getRoot().listFiles();
     Arrays.stream(allTempFiles).forEach(File::delete);
   }

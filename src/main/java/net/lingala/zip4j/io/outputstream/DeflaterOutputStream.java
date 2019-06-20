@@ -81,7 +81,7 @@ class DeflaterOutputStream extends CompressedOutputStream {
       }
     }
     firstBytesRead = false;
-
+    deflater.end();
     super.closeEntry();
   }
 }

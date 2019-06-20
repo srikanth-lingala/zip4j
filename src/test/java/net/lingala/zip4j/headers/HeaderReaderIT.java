@@ -177,6 +177,21 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
+  public void testReadAllWithStandardZipEncryption() throws ZipException, IOException {
+    ZipModel actualZipModel = generateZipHeadersFile(3, EncryptionMethod.ZIP_STANDARD);
+
+    try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
+        RandomAccessFileMode.READ.getValue())) {
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
+        assertThat(fileHeader.isEncrypted()).isTrue();
+        assertThat(fileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.ZIP_STANDARD);
+        assertThat(fileHeader.getAesExtraDataRecord()).isNull();
+      }
+    }
+  }
+
+  @Test
   public void testReadAllZip64Format() throws IOException, ZipException {
     ZipModel actualZipModel = generateZipModel(1);
     long entrySize = InternalZipConstants.ZIP_64_LIMIT + 1;

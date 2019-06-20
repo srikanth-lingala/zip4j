@@ -141,7 +141,9 @@ public class ZipFile {
     createNewZipModel();
     zipModel.setSplitArchive(splitArchive);
     zipModel.setSplitLength(splitLength);
-    addFiles(filesToAdd, parameters);
+
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
+        new AddFilesToZipTaskParameters(filesToAdd, parameters));
   }
 
   /**

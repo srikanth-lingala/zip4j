@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import static net.lingala.zip4j.TestUtils.getFileFromResources;
-import static net.lingala.zip4j.utils.ZipVerifier.verifyFileContent;
+import static net.lingala.zip4j.utils.ZipFileVerifier.verifyFileContent;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipInputStreamIT extends AbstractIT {
@@ -64,7 +64,7 @@ public class ZipInputStreamIT extends AbstractIT {
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
-  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
+  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException, ZipException {
     LocalFileHeader localFileHeader;
     int readLen;
     byte[] readBuffer = new byte[4096];

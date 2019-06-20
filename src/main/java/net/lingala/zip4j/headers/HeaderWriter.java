@@ -274,7 +274,8 @@ public class HeaderWriter {
       long currOffset = currOutputStream.getFilePointer();
 
       currOutputStream.seek(fileHeader.getOffsetLocalHeader() + InternalZipConstants.UPDATE_LFH_CRC);
-      rawIO.writeIntLittleEndian(outputStream, (int) fileHeader.getCrc());
+      rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getCrc());
+      currOutputStream.write(longBuff, 0, 4);
 
       updateFileSizesInLocalFileHeader(currOutputStream, fileHeader);
 

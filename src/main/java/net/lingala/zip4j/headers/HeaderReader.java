@@ -212,6 +212,14 @@ public class HeaderReader {
           fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded()));
         }
 
+        if (fileHeader.isEncrypted()) {
+          if (fileHeader.getAesExtraDataRecord() != null) {
+            fileHeader.setEncryptionMethod(EncryptionMethod.AES);
+          } else {
+            fileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+          }
+        }
+
         fileHeaders.add(fileHeader);
       }
 
