@@ -1,5 +1,8 @@
-package net.lingala.zip4j.utils;
+package net.lingala.zip4j;
 
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -9,7 +12,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.lingala.zip4j.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
 
 public abstract class AbstractIT {
 
@@ -34,4 +37,11 @@ public abstract class AbstractIT {
     Arrays.stream(allTempFiles).forEach(File::delete);
   }
 
+  protected ZipParameters createZipParameters(EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) {
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(encryptionMethod);
+    zipParameters.setAesKeyStrength(aesKeyStrength);
+    return zipParameters;
+  }
 }

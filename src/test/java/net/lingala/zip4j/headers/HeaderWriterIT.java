@@ -1,5 +1,6 @@
 package net.lingala.zip4j.headers;
 
+import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
@@ -17,7 +18,6 @@ import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
-import net.lingala.zip4j.utils.AbstractIT;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

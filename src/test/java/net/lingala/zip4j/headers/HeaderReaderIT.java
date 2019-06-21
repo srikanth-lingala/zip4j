@@ -1,5 +1,6 @@
 package net.lingala.zip4j.headers;
 
+import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.CentralDirectory;
@@ -13,7 +14,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.utils.AbstractIT;
 import org.junit.Test;
 
 import java.io.File;

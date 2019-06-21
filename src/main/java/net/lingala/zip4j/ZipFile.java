@@ -49,6 +49,7 @@ import java.io.RandomAccessFile;
 import java.util.Collections;
 import java.util.List;
 
+import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
@@ -270,6 +271,8 @@ public class ZipFile {
     if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
+
+    assertFilesExist(filesToAdd);
 
     checkZipModel();
 
@@ -832,8 +835,6 @@ public class ZipFile {
   private void checkZipModel() throws ZipException {
     if (zipModel == null) {
       readZipInfo();
-    } else {
-      createNewZipModel();
     }
   }
 

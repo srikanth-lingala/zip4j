@@ -325,7 +325,7 @@ public class HeaderWriter {
     if (outputStream instanceof SplitOutputStream) {
       return ((SplitOutputStream) outputStream).isSplitZipFile();
     } else if (outputStream instanceof CountingOutputStream) {
-      return ((CountingOutputStream) outputStream).isSplitOutputStream();
+      return ((CountingOutputStream) outputStream).isSplitZipFile();
     }
 
     return false;
@@ -347,6 +347,7 @@ public class HeaderWriter {
     try {
       if (outputStream instanceof CountingOutputStream) {
         if (((CountingOutputStream) outputStream).checkBuffSizeAndStartNextSplitFile(buff.length)) {
+          //TODO check if this is correct
           finalizeZipFile(zipModel, outputStream);
           return;
         }

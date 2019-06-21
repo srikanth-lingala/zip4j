@@ -1,5 +1,6 @@
 package net.lingala.zip4j.io.inputstream;
 
+import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
@@ -7,7 +8,6 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.utils.AbstractIT;
 import org.junit.Test;
 
 import java.io.File;
@@ -16,7 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static net.lingala.zip4j.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
 import static net.lingala.zip4j.utils.ZipFileVerifier.verifyFileContent;
 import static org.assertj.core.api.Assertions.assertThat;
 

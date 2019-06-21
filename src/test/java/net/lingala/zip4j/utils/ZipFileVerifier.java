@@ -22,19 +22,40 @@ public class ZipFileVerifier {
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
                                                        int expectedNumberOfEntries) throws ZipException {
+    verifyZipFileByExtractingAllFiles(zipFileToExtract, password, outputFolder, expectedNumberOfEntries, true);
+  }
+
+  public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
+                                                       int expectedNumberOfEntries, boolean verifyFileContents)
+      throws ZipException {
+
     assertThat(zipFileToExtract).isNotNull();
     assertThat(zipFileToExtract).exists();
 
     ZipFile zipFile = new ZipFile(zipFileToExtract, password);
     zipFile.extractAll(outputFolder.getPath());
+    assertThat(zipFile.getFileHeaders().size()).as("Number of file headers").isEqualTo(expectedNumberOfEntries);
 
     List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, true);
     assertThat(extractedFiles).hasSize(expectedNumberOfEntries);
+
+    if (verifyFileContents) {
+      verifyFolderContentsSameAsSourceFiles(outputFolder);
+    }
   }
 
   public static void verifyFileContent(File sourceFile, File extractedFile) throws ZipException {
     assertThat(extractedFile.length()).isEqualTo(sourceFile.length());
     verifyFileCrc(sourceFile, extractedFile);
+  }
+
+  private static void verifyFolderContentsSameAsSourceFiles(File outputFolder) throws ZipException {
+    File[] filesInOutputFolder = outputFolder.listFiles();
+
+    for (File file : filesInOutputFolder) {
+      File sourceFile = TestUtils.getFileFromResources(file.getName());
+      verifyFileContent(sourceFile, file);
+    }
   }
 
   private static long getUncompressedSize(LocalFileHeader localFileHeader) {

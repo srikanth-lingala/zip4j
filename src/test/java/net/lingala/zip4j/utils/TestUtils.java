@@ -1,4 +1,4 @@
-package net.lingala.zip4j;
+package net.lingala.zip4j.utils;
 
 import java.io.File;
 

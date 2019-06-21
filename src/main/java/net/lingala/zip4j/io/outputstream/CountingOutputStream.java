@@ -31,7 +31,7 @@ public class CountingOutputStream extends OutputStream {
   }
 
   public int getCurrentSplitFileCounter() {
-    if (isSplitOutputStream()) {
+    if (isSplitZipFile()) {
       return ((SplitOutputStream) outputStream).getCurrentSplitFileCounter();
     }
 
@@ -39,7 +39,7 @@ public class CountingOutputStream extends OutputStream {
   }
 
   public long getOffsetForNextEntry() throws IOException {
-    if (isSplitOutputStream()) {
+    if (outputStream instanceof SplitOutputStream) {
       return ((SplitOutputStream) outputStream).getFilePointer();
     }
 
@@ -47,20 +47,20 @@ public class CountingOutputStream extends OutputStream {
   }
 
   public long getSplitLength() {
-    if (isSplitOutputStream()) {
+    if (isSplitZipFile()) {
       return ((SplitOutputStream) outputStream).getSplitLength();
     }
 
     return 0;
   }
 
-  public boolean isSplitOutputStream() {
+  public boolean isSplitZipFile() {
     return outputStream instanceof SplitOutputStream
         && ((SplitOutputStream)outputStream).isSplitZipFile();
   }
 
   public long getNumberOfBytesWritten() throws IOException {
-    if (isSplitOutputStream()) {
+    if (outputStream instanceof SplitOutputStream) {
       return ((SplitOutputStream) outputStream).getFilePointer();
     }
 
@@ -68,7 +68,7 @@ public class CountingOutputStream extends OutputStream {
   }
 
   public boolean checkBuffSizeAndStartNextSplitFile(int bufferSize) throws ZipException {
-    if (!isSplitOutputStream()) {
+    if (!isSplitZipFile()) {
       return false;
     }
 
@@ -76,7 +76,7 @@ public class CountingOutputStream extends OutputStream {
   }
 
   public long getFilePointer() throws IOException {
-    if (isSplitOutputStream()) {
+    if (outputStream instanceof SplitOutputStream) {
       return ((SplitOutputStream) outputStream).getFilePointer();
     }
 

@@ -1,8 +1,8 @@
 package net.lingala.zip4j.util;
 
+import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.utils.AbstractIT;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
 
-import static net.lingala.zip4j.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

@@ -8,7 +8,6 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.utils.AbstractIT;
 import net.lingala.zip4j.utils.SlowTests;
 import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
@@ -35,7 +34,7 @@ public class ZipFileZip64IT extends AbstractIT {
 
     createZip64FileWithSingleFile(entrySize, zipParameters);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
     verifyZip64HeadersPresent();
   }
 

@@ -1,7 +1,7 @@
 package net.lingala.zip4j.util;
 
+import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
-import net.lingala.zip4j.utils.AbstractIT;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

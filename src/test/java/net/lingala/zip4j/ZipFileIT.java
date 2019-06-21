@@ -5,7 +5,6 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.utils.AbstractIT;
 import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
 

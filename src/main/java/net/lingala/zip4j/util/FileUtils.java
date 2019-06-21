@@ -258,6 +258,14 @@ public class FileUtils {
     }
   }
 
+  public static void assertFilesExist(List<File> files) throws ZipException {
+    for (File file : files) {
+      if (!file.exists()) {
+        throw new ZipException("File does not exist: " + file);
+      }
+    }
+  }
+
   private static void applyWindowsFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes[0] == 0) {
       // No file attributes defined in the archive

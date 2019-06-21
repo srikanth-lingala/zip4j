@@ -122,7 +122,7 @@ public class ZipOutputStream extends OutputStream {
       zipModel = new ZipModel();
     }
 
-    if (countingOutputStream.isSplitOutputStream()) {
+    if (countingOutputStream.isSplitZipFile()) {
       zipModel.setSplitArchive(true);
       zipModel.setSplitLength(countingOutputStream.getSplitLength());
     }
@@ -131,7 +131,7 @@ public class ZipOutputStream extends OutputStream {
   }
 
   private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws ZipException, IOException {
-    fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitOutputStream(),
+    fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitZipFile(),
         countingOutputStream.getCurrentSplitFileCounter());
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
@@ -146,7 +146,7 @@ public class ZipOutputStream extends OutputStream {
   }
 
   private void writeSplitZipHeaderIfApplicable() throws IOException {
-    if (!countingOutputStream.isSplitOutputStream()) {
+    if (!countingOutputStream.isSplitZipFile()) {
       return;
     }
 
