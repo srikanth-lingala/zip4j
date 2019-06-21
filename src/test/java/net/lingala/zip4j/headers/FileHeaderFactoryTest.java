@@ -48,7 +48,7 @@ public class FileHeaderFactoryTest {
     assertThat(fileHeader.getAesExtraDataRecord()).isNull();
     assertThat(fileHeader.getLastModifiedTime()).isNotZero();
     assertThat(fileHeader.getCompressedSize()).isEqualTo(0);
-    assertThat(fileHeader.getUncompressedSize()).isEqualTo(0);
+    assertThat(fileHeader.getUncompressedSize()).isEqualTo(-1);
   }
 
   @Test

@@ -302,7 +302,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
-    verifyFoldersInZip(fileHeaders, generatedZipFile);
+    verifyFoldersInZip(fileHeaders, generatedZipFile, null);
   }
 
   @Test
@@ -316,7 +316,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
-    verifyFoldersInZip(fileHeaders, generatedZipFile);
+    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
   }
 
   @Test
@@ -330,7 +330,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipDoesNotContainPath(fileHeaders, "test-files/");
-    verifyFoldersInZip(fileHeaders, generatedZipFile);
+    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
   }
 
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
@@ -356,9 +356,10 @@ public class AddFilesToZipIT extends AbstractIT {
     }
   }
 
-  private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile) throws IOException {
+  private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile, char[] password)
+      throws IOException {
     verifyFoldersInFileHeaders(fileHeaders);
-    verifyFoldersInLocalFileHeaders(generatedZipFile);
+    verifyFoldersInLocalFileHeaders(generatedZipFile, password);
   }
 
   private void verifyFoldersInFileHeaders(List<FileHeader> fileHeaders) {
@@ -367,8 +368,9 @@ public class AddFilesToZipIT extends AbstractIT {
     });
   }
 
-  private void verifyFoldersInLocalFileHeaders(File generatedZipFile) throws IOException {
-    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(generatedZipFile))) {
+  private void verifyFoldersInLocalFileHeaders(File generatedZipFile, char[] password) throws IOException {
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(generatedZipFile), password)) {
+
       LocalFileHeader localFileHeader;
       while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
         if (localFileHeader.isDirectory()) {
