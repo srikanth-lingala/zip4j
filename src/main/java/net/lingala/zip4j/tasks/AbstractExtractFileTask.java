@@ -3,6 +3,7 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.UnzipUtil;
@@ -43,6 +44,8 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
           + fileHeader.getFileName());
     }
 
+    verifyNextEntry(zipInputStream, fileHeader);
+
     if (fileHeader.isDirectory()) {
       File file = new File(completePath);
       if (!file.exists()) {
@@ -64,11 +67,6 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
-      if (inputStream.getNextEntry() == null) {
-        throw new ZipException("Could not read corresponding localfileheader for file header: "
-            + fileHeader.getFileName());
-      }
-
       while ((readLength = inputStream.read(buff)) != -1) {
         outputStream.write(buff, 0, readLength);
         progressMonitor.updateWorkCompleted(readLength);
@@ -79,6 +77,23 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile.toPath());
+  }
+
+  private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws ZipException {
+    try {
+      LocalFileHeader localFileHeader = zipInputStream.getNextEntry();
+
+      if (localFileHeader == null) {
+        throw new ZipException("Could not read corresponding local file header for file header: "
+            + fileHeader.getFileName());
+      }
+
+      if (!fileHeader.getFileName().equals(localFileHeader.getFileName())) {
+        throw new ZipException("File header and local file header mismatch");
+      }
+    } catch (IOException e) {
+      throw new ZipException(e);
+    }
   }
 
   private void checkOutputDirectoryStructure(FileHeader fileHeader, String outPath, String newFileName)

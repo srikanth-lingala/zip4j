@@ -496,6 +496,7 @@ public class HeaderReader {
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream) throws IOException {
     try {
+      byte[] b = new byte[150];
       LocalFileHeader localFileHeader = new LocalFileHeader();
       byte[] intBuff = new byte[4];
 
@@ -549,6 +550,7 @@ public class HeaderReader {
         }
 
         localFileHeader.setFileName(fileName);
+        localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
       } else {
         localFileHeader.setFileName(null);
       }

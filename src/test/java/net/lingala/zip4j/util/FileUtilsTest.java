@@ -211,7 +211,7 @@ public class FileUtilsTest {
 
   @Test
   public void testGetRelativeFileNameWhenRootFoldersAreNull() {
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", null, null)).isEqualTo("somefile.txt");
+    assertThat(FileUtils.getRelativeFileName("somefile.txt", null)).isEqualTo("somefile.txt");
   }
 
   @Test

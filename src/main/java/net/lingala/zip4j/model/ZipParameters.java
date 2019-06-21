@@ -20,9 +20,6 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.Zip4jUtil;
-
-import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
 public class ZipParameters {
 
@@ -33,12 +30,11 @@ public class ZipParameters {
   private boolean readHiddenFiles = true;
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
   private boolean includeRootFolder = true;
-  private String rootFolderInZip;
   private long entryCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
   private int lastModifiedFileTime;
-  private long entrySize;
+  private long entrySize = -1;
   private boolean writeExtendedLocalFileHeader = true;
 
   public ZipParameters() {
@@ -52,7 +48,6 @@ public class ZipParameters {
     this.readHiddenFiles = zipParameters.isReadHiddenFiles();
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
-    this.rootFolderInZip = zipParameters.getRootFolderInZip();
     this.entryCRC = zipParameters.getEntryCRC();
     this.defaultFolderPath = zipParameters.getDefaultFolderPath();
     this.fileNameInZip = zipParameters.getFileNameInZip();
@@ -119,22 +114,6 @@ public class ZipParameters {
 
   public void setIncludeRootFolder(boolean includeRootFolder) {
     this.includeRootFolder = includeRootFolder;
-  }
-
-  public String getRootFolderInZip() {
-    return rootFolderInZip;
-  }
-
-  public void setRootFolderInZip(String rootFolderInZip) {
-    if (Zip4jUtil.isStringNotNullAndNotEmpty(rootFolderInZip)) {
-
-      if (!rootFolderInZip.endsWith("\\") && !rootFolderInZip.endsWith("/")) {
-        rootFolderInZip = rootFolderInZip + FILE_SEPARATOR;
-      }
-
-      rootFolderInZip = rootFolderInZip.replaceAll("\\\\", "/");
-    }
-    this.rootFolderInZip = rootFolderInZip;
   }
 
   public long getEntryCRC() {

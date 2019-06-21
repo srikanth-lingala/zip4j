@@ -25,6 +25,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private AESExtraDataRecord aesExtraDataRecord;
   private boolean fileNameUTF8Encoded;
   private List<ExtraDataRecord> extraDataRecords;
+  private boolean isDirectory;
 
   public int getVersionNeededToExtract() {
     return versionNeededToExtract;
@@ -168,5 +169,13 @@ public abstract class AbstractFileHeader extends ZipHeader {
 
   public void setExtraDataRecords(List<ExtraDataRecord> extraDataRecords) {
     this.extraDataRecords = extraDataRecords;
+  }
+
+  public boolean isDirectory() {
+    return isDirectory;
+  }
+
+  public void setDirectory(boolean directory) {
+    isDirectory = directory;
   }
 }

@@ -254,7 +254,7 @@ public class HeaderWriter {
 
     try {
       boolean closeFlag = false;
-      SplitOutputStream currOutputStream = null;
+      SplitOutputStream currOutputStream;
 
       if (fileHeader.getDiskNumberStart() != outputStream.getCurrentSplitFileCounter()) {
         String parentFile = zipModel.getZipFile().getParent();
@@ -312,8 +312,11 @@ public class HeaderWriter {
         rawIO.writeLongLittleEndian(outputStream, fileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(outputStream, fileHeader.getCompressedSize());
       } else {
-        rawIO.writeIntLittleEndian(outputStream, (int) fileHeader.getCompressedSize());
-        rawIO.writeIntLittleEndian(outputStream, (int) fileHeader.getUncompressedSize());
+        rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getCompressedSize());
+        outputStream.write(longBuff, 0, 4);
+
+        rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getUncompressedSize());
+        outputStream.write(longBuff, 0, 4);
       }
     } catch (IOException e) {
       throw new ZipException(e);

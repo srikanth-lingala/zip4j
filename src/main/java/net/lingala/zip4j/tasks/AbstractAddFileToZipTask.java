@@ -100,8 +100,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
       //If an entry already exists, we have to remove that entry first and then add content again.
       //In this case, add corresponding work
-      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getRootFolderInZip(),
-          zipParameters.getDefaultFolderPath());
+      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
       FileHeader fileHeader = getFileHeader(getZipModel(), relativeFileName);
       if (fileHeader != null) {
         totalWork += (getZipModel().getZipFile().length() - fileHeader.getCompressedSize());
@@ -146,21 +145,27 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws ZipException {
-
-
-
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
     clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((fileToAdd.lastModified())));
     clonedZipParameters.setFileNameInZip(fileToAdd.getName());
-    clonedZipParameters.setEntrySize(fileToAdd.length());
+
+    if (fileToAdd.isDirectory()) {
+      clonedZipParameters.setEntrySize(0);
+    } else {
+      clonedZipParameters.setEntrySize(fileToAdd.length());
+    }
+
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
     clonedZipParameters.setLastModifiedFileTime((int) fileToAdd.lastModified());
 
-    String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getRootFolderInZip(),
-        zipParameters.getRootFolderInZip());
+    String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
     clonedZipParameters.setFileNameInZip(relativeFileName);
 
-    if (!fileToAdd.isDirectory()) {
+    if (fileToAdd.isDirectory()) {
+      clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+      clonedZipParameters.setEncryptionMethod(EncryptionMethod.NONE);
+      clonedZipParameters.setEncryptFiles(false);
+    } else {
       if (clonedZipParameters.isEncryptFiles() && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
         progressMonitor.setCurrentTask(CALCULATE_CRC);
         clonedZipParameters.setEntryCRC((int) computeFileCrc(fileToAdd, progressMonitor));
@@ -182,8 +187,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     }
 
     for (File file : files) {
-      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getRootFolderInZip(),
-          zipParameters.getDefaultFolderPath());
+      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getDefaultFolderPath());
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
       if (fileHeader != null) {

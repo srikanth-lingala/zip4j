@@ -175,7 +175,7 @@ public class ZipInputStream extends InputStream {
   private void verifyLocalFileHeader(LocalFileHeader localFileHeader) throws IOException {
     if (!isEntryDirectory(localFileHeader.getFileName())
         && localFileHeader.getCompressionMethod() == CompressionMethod.STORE
-        && localFileHeader.getUncompressedSize() == 0) {
+        && localFileHeader.getUncompressedSize() < 0) {
       throw new IOException("Invalid local file header for: " + localFileHeader.getFileName()
           + ". Uncompressed size has to be set for entry of compression type store which is not a directory");
     }

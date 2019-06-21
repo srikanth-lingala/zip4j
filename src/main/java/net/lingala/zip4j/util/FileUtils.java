@@ -162,7 +162,7 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderInZip, String rootFolderPath) {
+  public static String getRelativeFileName(String file, String rootFolderPath) {
 
     String fileName;
     if (isStringNotNullAndNotEmpty(rootFolderPath)) {
@@ -197,10 +197,6 @@ public class FileUtils {
       } else {
         fileName = relFile.getName();
       }
-    }
-
-    if (isStringNotNullAndNotEmpty(rootFolderInZip)) {
-      fileName = rootFolderInZip + fileName;
     }
 
     return fileName;

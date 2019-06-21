@@ -27,7 +27,6 @@ public class FileHeader extends AbstractFileHeader {
   private byte[] externalFileAttributes;
   private long offsetLocalHeader;
   private String fileComment;
-  private boolean isDirectory;
 
   public FileHeader() {
     setSignature(HeaderSignature.CENTRAL_DIRECTORY);
@@ -87,13 +86,5 @@ public class FileHeader extends AbstractFileHeader {
 
   public void setFileComment(String fileComment) {
     this.fileComment = fileComment;
-  }
-
-  public boolean isDirectory() {
-    return isDirectory;
-  }
-
-  public void setDirectory(boolean directory) {
-    isDirectory = directory;
   }
 }

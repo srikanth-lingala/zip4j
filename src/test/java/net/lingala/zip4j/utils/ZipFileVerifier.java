@@ -53,6 +53,10 @@ public class ZipFileVerifier {
     File[] filesInOutputFolder = outputFolder.listFiles();
 
     for (File file : filesInOutputFolder) {
+      if (file.isDirectory()) {
+        continue;
+      }
+
       File sourceFile = TestUtils.getFileFromResources(file.getName());
       verifyFileContent(sourceFile, file);
     }

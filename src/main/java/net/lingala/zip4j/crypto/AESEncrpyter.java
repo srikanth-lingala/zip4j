@@ -49,11 +49,11 @@ public class AESEncrpyter implements Encrypter {
 
   public AESEncrpyter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
     if (password == null || password.length == 0) {
-      throw new ZipException("input password is empty or null in AES encrypter constructor");
+      throw new ZipException("input password is empty or null");
     }
     if (aesKeyStrength != AesKeyStrength.KEY_STRENGTH_128 &&
         aesKeyStrength != AesKeyStrength.KEY_STRENGTH_256) {
-      throw new ZipException("Invalid key strength in AES encrypter constructor");
+      throw new ZipException("Invalid AES key strength");
     }
 
     this.password = password;

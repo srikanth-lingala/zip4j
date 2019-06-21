@@ -1,8 +1,11 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.AbstractFileHeader;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -14,9 +17,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -167,6 +174,165 @@ public class AddFilesToZipIT extends AbstractIT {
         EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
   }
 
+  @Test
+  public void testAddFilesWithoutParametersWhenZipFileDoesNotExistCreatesSuccessfully() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    zipFile.addFiles(asList(
+          TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
+          TestUtils.getFileFromResources("zero_byte_file.txt")
+    ));
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
+    verifyZipFileContainsFiles(generatedZipFile, asList("file_PDF_1MB.pdf", "zero_byte_file.txt"),
+        CompressionMethod.DEFLATE, null, null);
+  }
+
+  @Test
+  public void testAddFilesWhenZipFileDoesNotExistCreatesSuccessfully() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    zipFile.addFiles(asList(
+        TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
+        TestUtils.getFileFromResources("sample_text1.txt")
+    ), new ZipParameters());
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
+    verifyZipFileContainsFiles(generatedZipFile, asList("file_PDF_1MB.pdf", "sample_text1.txt"),
+        CompressionMethod.DEFLATE, null, null);
+  }
+
+  @Test
+  public void testAddFilesWithZeroByteFileWithAes128Encryption() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("zero_byte_file.txt")), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("zero_byte_file.txt"),
+        CompressionMethod.DEFLATE, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+  }
+
+  @Test
+  public void testAddFilesWithAes256Encryption() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
+    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.AES,
+        AesKeyStrength.KEY_STRENGTH_256);
+  }
+
+  @Test
+  public void testAddFilesWhenFilesAlreadyExistsRemovesFiles() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    char[] newPassword = "SOME_OTHER_PASSWORD".toCharArray();
+    zipFile = new ZipFile(generatedZipFile, newPassword);
+    zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, newPassword, outputFolder, FILES_TO_ADD.size());
+    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.ZIP_STANDARD,
+        null);
+  }
+
+  @Test
+  public void testAddFilesThrowsExceptionForAES192() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Invalid AES key strength");
+
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_192);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+  }
+
+  @Test
+  public void testAddFilesWithDifferentEncryptionType() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("sample.pdf")), zipParameters);
+
+    zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+
+    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("file_PDF_1MB.pdf")), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 2);
+  }
+
+  @Test
+  public void testAddFilesWithUtf8Characters() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFiles(asList(
+        TestUtils.getFileFromResources("sample.pdf"),
+        TestUtils.getFileFromResources("бореиская.txt"),
+        TestUtils.getFileFromResources("zero_byte_file.txt"),
+        TestUtils.getFileFromResources("sample_text1.txt"),
+        TestUtils.getFileFromResources("가나다.abc")
+    ), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 5);
+    List<String> fileNamesThatShouldExistInZip = asList(
+        "sample.pdf",
+        "бореиская.txt",
+        "zero_byte_file.txt",
+        "sample_text1.txt",
+        "가나다.abc"
+    );
+    verifyZipFileContainsFiles(generatedZipFile, fileNamesThatShouldExistInZip, CompressionMethod.DEFLATE,
+        EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+  }
+
+  @Test
+  public void testAddFolderWithoutZipParameters() throws ZipException, IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    zipFile.addFolder(TestUtils.getFileFromResources(""));
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile);
+  }
+
+  @Test
+  public void testAddFolderWithStoreAndAes128() throws ZipException, IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile);
+  }
+
+  @Test
+  public void testAddFolderWithDeflateAndAes256AndWithoutRootFolder() throws ZipException, IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setIncludeRootFolder(false);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipDoesNotContainPath(fileHeaders, "test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile);
+  }
+
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
                                           CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
                                           AesKeyStrength aesKeyStrength) throws ZipException {
@@ -190,6 +356,44 @@ public class AddFilesToZipIT extends AbstractIT {
     }
   }
 
+  private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile) throws IOException {
+    verifyFoldersInFileHeaders(fileHeaders);
+    verifyFoldersInLocalFileHeaders(generatedZipFile);
+  }
+
+  private void verifyFoldersInFileHeaders(List<FileHeader> fileHeaders) {
+    fileHeaders.stream().filter(FileHeader::isDirectory).forEach(e -> {
+      verifyFolderEntryInZip(e);
+    });
+  }
+
+  private void verifyFoldersInLocalFileHeaders(File generatedZipFile) throws IOException {
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(generatedZipFile))) {
+      LocalFileHeader localFileHeader;
+      while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
+        if (localFileHeader.isDirectory()) {
+          verifyFolderEntryInZip(localFileHeader);
+        }
+      }
+    }
+  }
+
+  private void verifyFolderEntryInZip(AbstractFileHeader fileHeader) {
+    assertThat(fileHeader.getCrc()).isZero();
+    assertThat(fileHeader.getCompressedSize()).isZero();
+    assertThat(fileHeader.getUncompressedSize()).isZero();
+    assertThat(fileHeader.getCompressionMethod()).isEqualTo(CompressionMethod.STORE);
+    assertThat(fileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.NONE);
+  }
+
+  private void verifyAllFilesInZipContainsPath(List<FileHeader> fileHeaders, String pathToBeChecked) {
+    fileHeaders.forEach(e -> assertThat(e.getFileName()).startsWith(pathToBeChecked));
+  }
+
+  private void verifyAllFilesInZipDoesNotContainPath(List<FileHeader> fileHeaders, String pathToBeChecked) {
+    fileHeaders.forEach(e -> assertThat(e.getFileName()).doesNotStartWith(pathToBeChecked));
+  }
+
   private void verifyAllFilesAreOf(List<FileHeader> fileHeaders, CompressionMethod compressionMethod,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) {
     for (FileHeader fileHeader : fileHeaders) {
@@ -199,7 +403,7 @@ public class AddFilesToZipIT extends AbstractIT {
         assertThat(fileHeader.getAesExtraDataRecord()).isNull();
       } else {
         CompressionMethod shouldBeCompressionMethod = getShouldBeCompressionMethod(
-            encryptionMethod == EncryptionMethod.AES, compressionMethod);
+            encryptionMethod == EncryptionMethod.AES, compressionMethod, fileHeader.getUncompressedSize());
         assertThat(fileHeader.getCompressionMethod()).isEqualTo(shouldBeCompressionMethod);
 
         if (encryptionMethod == null) {
@@ -217,14 +421,28 @@ public class AddFilesToZipIT extends AbstractIT {
     }
   }
 
+  private List<FileHeader> getFileHeaders(File generatedZipFile) throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+
+    assertThat(fileHeaders.size()).isNotZero();
+
+    return fileHeaders;
+  }
+
   private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength) {
     assertThat(aesExtraDataRecord).isNotNull();
     assertThat(aesExtraDataRecord.getAesKeyStrength()).isEqualTo(aesKeyStrength);
   }
 
-  private CompressionMethod getShouldBeCompressionMethod(boolean isAesEncrypted, CompressionMethod compressionMethod) {
+  private CompressionMethod getShouldBeCompressionMethod(boolean isAesEncrypted, CompressionMethod compressionMethod,
+                                                         long uncompressedSize) {
     if (isAesEncrypted) {
       return CompressionMethod.AES_INTERNAL_ONLY;
+    }
+
+    if (uncompressedSize == 0) {
+      return CompressionMethod.STORE;
     }
 
     return compressionMethod;
