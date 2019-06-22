@@ -141,19 +141,11 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
   private void updateSplitZipModel(ZipModel zipModel, long totalFileSize) {
     zipModel.setSplitArchive(false);
-    //updateSplitFileHeader(zipModel, totalFileSize);
     updateSplitEndCentralDirectory(zipModel);
 
     if (zipModel.isZip64Format()) {
       updateSplitZip64EndCentralDirLocator(zipModel, totalFileSize);
       updateSplitZip64EndCentralDirRec(zipModel, totalFileSize);
-    }
-  }
-
-  private void updateSplitFileHeader(ZipModel zipModel, long totalFileSize) {
-    for (FileHeader fileHeader : zipModel.getCentralDirectory().getFileHeaders()) {
-      fileHeader.setOffsetLocalHeader(fileHeader.getOffsetLocalHeader() + totalFileSize);
-      fileHeader.setDiskNumberStart(0);
     }
   }
 

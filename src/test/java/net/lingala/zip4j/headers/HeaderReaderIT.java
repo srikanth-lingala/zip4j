@@ -47,7 +47,7 @@ public class HeaderReaderIT extends AbstractIT {
     try(RandomAccessFile randomAccessFile = initializeRandomAccessFile(actualZipModel.getZipFile())) {
       ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
       verifyZipModel(readZipModel, 10, false);
-      assertThat(readZipModel.getEndOfCentralDirectoryRecord().getComment()).isNull();
+      assertThat(readZipModel.getEndOfCentralDirectoryRecord().getComment()).isEmpty();
     }
   }
 
