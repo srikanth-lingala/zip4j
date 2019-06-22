@@ -1,5 +1,6 @@
 package net.lingala.zip4j;
 
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractIT {
 
@@ -43,5 +45,19 @@ public abstract class AbstractIT {
     zipParameters.setEncryptionMethod(encryptionMethod);
     zipParameters.setAesKeyStrength(aesKeyStrength);
     return zipParameters;
+  }
+
+  protected void verifyFileHeadersContainsFiles(List<FileHeader> fileHeaders, List<String> fileNames) {
+    for (String fileName : fileNames) {
+      boolean fileFound = false;
+      for (FileHeader fileHeader : fileHeaders) {
+        if (fileHeader.getFileName().equals(fileName)) {
+          fileFound = true;
+          break;
+        }
+      }
+
+      assertThat(fileFound).as("File with name %s not found in zip file", fileName).isTrue();
+    }
   }
 }

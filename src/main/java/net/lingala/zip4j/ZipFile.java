@@ -539,7 +539,7 @@ public class ZipFile {
   public List<FileHeader> getFileHeaders() throws ZipException {
     readZipInfo();
     if (zipModel == null || zipModel.getCentralDirectory() == null) {
-      return null;
+      return Collections.emptyList();
     }
     return zipModel.getCentralDirectory().getFileHeaders();
   }
@@ -611,7 +611,6 @@ public class ZipFile {
     }
 
     return zipModel.isSplitArchive();
-
   }
 
   /**
@@ -779,6 +778,10 @@ public class ZipFile {
    * @since 1.2.3
    */
   public boolean isValidZipFile() {
+    if (!zipFile.exists()) {
+      return false;
+    }
+
     try {
       readZipInfo();
       return true;

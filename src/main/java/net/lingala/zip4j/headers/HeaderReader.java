@@ -496,7 +496,6 @@ public class HeaderReader {
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream) throws IOException {
     try {
-      byte[] b = new byte[150];
       LocalFileHeader localFileHeader = new LocalFileHeader();
       byte[] intBuff = new byte[4];
 

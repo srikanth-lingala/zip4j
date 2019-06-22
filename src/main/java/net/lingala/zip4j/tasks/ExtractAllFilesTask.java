@@ -31,7 +31,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
           continue;
         }
 
-        //splitInputStream.prepareExtractionForFileHeader(fileHeader);
+        splitInputStream.prepareExtractionForFileHeader(fileHeader);
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
         verifyIfTaskIsCancelled();
       }

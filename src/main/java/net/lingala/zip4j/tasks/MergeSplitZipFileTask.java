@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.copyFile;
 
@@ -42,9 +43,10 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
       long totalBytesWritten = 0;
       int totalNumberOfSplitFiles = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
       if (totalNumberOfSplitFiles <= 0) {
-        throw new ZipException("corrupt zip model, archive not a split zip file");
+        throw new ZipException("zip archive not a split zip file");
       }
 
+      int splitSignatureOverhead = 0;
       for (int i = 0; i <= totalNumberOfSplitFiles; i++) {
         try (RandomAccessFile randomAccessFile = createSplitZipFileStream(zipModel, i)) {
           int start = 0;
@@ -52,6 +54,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
           if (i == 0) {
             if (rawIO.readIntLittleEndian(randomAccessFile) == HeaderSignature.SPLIT_ZIP.getValue()) {
+              splitSignatureOverhead = 4;
               start = 4;
             } else {
               randomAccessFile.seek(0);
@@ -64,6 +67,8 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
           copyFile(randomAccessFile, outputStream, start, end, progressMonitor);
           totalBytesWritten += (end - start);
+          updateFileHeaderOffsetsForIndex(zipModel.getCentralDirectory().getFileHeaders(),
+              i == 0 ? 0 : totalBytesWritten, i, splitSignatureOverhead);
           verifyIfTaskIsCancelled();
         }
       }
@@ -91,8 +96,18 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
     return totalSize;
   }
 
+  private void updateFileHeaderOffsetsForIndex(List<FileHeader> fileHeaders, long offsetToAdd, int index,
+                                               int splitSignatureOverhead) {
+    for (FileHeader fileHeader : fileHeaders) {
+      if (fileHeader.getDiskNumberStart() == index) {
+        fileHeader.setOffsetLocalHeader(fileHeader.getOffsetLocalHeader() + offsetToAdd - splitSignatureOverhead);
+        fileHeader.setDiskNumberStart(0);
+      }
+    }
+  }
+
   private File getNextSplitZipFile(ZipModel zipModel, int partNumber) {
-    if (partNumber == zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk() - 1) {
+    if (partNumber == zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk()) {
       return zipModel.getZipFile();
     }
 
@@ -126,7 +141,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
   private void updateSplitZipModel(ZipModel zipModel, long totalFileSize) {
     zipModel.setSplitArchive(false);
-    updateSplitFileHeader(zipModel, totalFileSize);
+    //updateSplitFileHeader(zipModel, totalFileSize);
     updateSplitEndCentralDirectory(zipModel);
 
     if (zipModel.isZip64Format()) {

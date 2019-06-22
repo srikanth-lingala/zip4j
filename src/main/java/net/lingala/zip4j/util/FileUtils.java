@@ -149,7 +149,7 @@ public class FileUtils {
           splitZipFiles.add(zipModel.getZipFile());
         } else {
           String fileExt = ".z0";
-          if (i > 9) {
+          if (i >= 9) {
             fileExt = ".z";
           }
           partFile = (currZipFile.getName().contains("."))

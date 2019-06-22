@@ -19,8 +19,10 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -333,6 +335,92 @@ public class AddFilesToZipIT extends AbstractIT {
     verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
   }
 
+  @Test
+  public void testAddStreamToZipThrowsExceptionWhenFileNameIsNull() throws ZipException, IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(TestUtils.getFileFromResources("бореиская.txt"));
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip(null);
+
+    expectedException.expectMessage("fileNameInZip is null or empty");
+    expectedException.expect(ZipException.class);
+
+    zipFile.addStream(inputStream, zipParameters);
+  }
+
+  @Test
+  public void testAddStreamToZipThrowsExceptionWhenFileNameIsEmpty() throws ZipException, IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(TestUtils.getFileFromResources("бореиская.txt"));
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("");
+
+    expectedException.expectMessage("fileNameInZip is null or empty");
+    expectedException.expect(ZipException.class);
+
+    zipFile.addStream(inputStream, zipParameters);
+  }
+
+  @Test
+  public void testAddStreamToZipWithoutEncryptionForNewZipAddsSuccessfully() throws ZipException, IOException {
+    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("бореиская.txt"), CompressionMethod.DEFLATE, null, null);
+  }
+
+  @Test
+  public void testAddStreamToZipWithAesEncryptionForNewZipAddsSuccessfully() throws ZipException, IOException {
+    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("бореиская.txt"), CompressionMethod.DEFLATE,
+        EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+  }
+
+  @Test
+  public void testAddStreamToZipWithoutEncryptionForExistingZipAddsSuccessfully() throws ZipException, IOException {
+    File fileToAdd = TestUtils.getFileFromResources("가나다.abc");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFiles(FILES_TO_ADD);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 4);
+    verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.NONE, null);
+  }
+
+  @Test
+  public void testAddStreamToZipWithAesEncryptionForExistingZipAddsSuccessfully() throws ZipException, IOException {
+    File fileToAdd = TestUtils.getFileFromResources("가나다.abc");
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
+    verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.AES,
+        AesKeyStrength.KEY_STRENGTH_128);
+  }
+
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
                                           CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
                                           AesKeyStrength aesKeyStrength) throws ZipException {
@@ -340,20 +428,6 @@ public class AddFilesToZipIT extends AbstractIT {
     List<FileHeader> fileHeaders = zipFile.getFileHeaders();
     verifyFileHeadersContainsFiles(fileHeaders, fileNames);
     verifyAllFilesAreOf(fileHeaders, compressionMethod, encryptionMethod, aesKeyStrength);
-  }
-
-  private void verifyFileHeadersContainsFiles(List<FileHeader> fileHeaders, List<String> fileNames) {
-    for (String fileName : fileNames) {
-      boolean fileFound = false;
-      for (FileHeader fileHeader : fileHeaders) {
-        if (fileHeader.getFileName().equals(fileName)) {
-          fileFound = true;
-          break;
-        }
-      }
-
-      assertThat(fileFound).as("File with name %s not found in zip file", fileName).isTrue();
-    }
   }
 
   private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile, char[] password)
@@ -421,6 +495,25 @@ public class AddFilesToZipIT extends AbstractIT {
         }
       }
     }
+  }
+
+  private void verifyFileIsOf(File generatedZipFile, String fileName, CompressionMethod compressionMethod,
+                              EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) throws ZipException {
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    FileHeader fileHeader = getFileHeaderFrom(fileHeaders, fileName);
+
+    if (encryptionMethod == null || encryptionMethod == EncryptionMethod.NONE) {
+      assertThat(fileHeader.isEncrypted()).isFalse();
+      assertThat(fileHeader.getEncryptionMethod()).isIn(null, EncryptionMethod.NONE);
+    } else {
+      verifyAllFilesAreOf(singletonList(fileHeader), compressionMethod, encryptionMethod, aesKeyStrength);
+    }
+  }
+
+  private FileHeader getFileHeaderFrom(List<FileHeader> fileHeaders, String fileName) {
+    Optional<FileHeader> fileHeader = fileHeaders.stream().filter(e -> e.getFileName().equals(fileName)).findFirst();
+    assertThat(fileHeader).isPresent();
+    return fileHeader.get();
   }
 
   private List<FileHeader> getFileHeaders(File generatedZipFile) throws ZipException {
