@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.utils.TestUtils;
 import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Rule;
@@ -255,6 +256,19 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_192);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
+  }
+
+  @Test
+  public void testAddFilesToSplitZipThrowsException() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.createSplitZipFile(singletonList(TestUtils.getFileFromResources("file_PDF_1MB.pdf")), new ZipParameters(),
+        true, InternalZipConstants.MIN_SPLIT_LENGTH);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Zip file already exists. " +
+        "Zip file format does not allow updating split/spanned files");
+
+    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("sample.pdf")));
   }
 
   @Test

@@ -49,7 +49,7 @@ public class ZipFileVerifier {
     verifyFileCrc(sourceFile, extractedFile);
   }
 
-  private static void verifyFolderContentsSameAsSourceFiles(File outputFolder) throws ZipException {
+  public static void verifyFolderContentsSameAsSourceFiles(File outputFolder) throws ZipException {
     File[] filesInOutputFolder = outputFolder.listFiles();
 
     for (File file : filesInOutputFolder) {

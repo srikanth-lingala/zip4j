@@ -526,6 +526,11 @@ public class ZipFile {
     readZipInfo();
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
+
+    if (fileHeader == null) {
+      throw new ZipException("No file found with name " + fileName + " in zip file");
+    }
+
     extractFile(fileHeader, destinationPath, newFileName);
   }
 
