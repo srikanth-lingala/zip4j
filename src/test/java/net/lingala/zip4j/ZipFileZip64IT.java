@@ -63,7 +63,7 @@ public class ZipFileZip64IT extends AbstractIT {
     createZip64FileWithEntries(70000, eachEntrySize, zipParameters);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    assertThat(zipFile.isValidZipFile()).isTrue();
+    assertThat(zipFile.getFileHeaders()).hasSize(70000);
     verifyZip64HeadersPresent();
   }
 

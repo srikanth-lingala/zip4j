@@ -1,7 +1,4 @@
 language: java
 
 script:
-  - mvn clean verify
-
-after_success:
-- bash <(curl -s https://codecov.io/bash)
+  - travis_wait 30 mvn clean verify
