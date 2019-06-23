@@ -34,8 +34,8 @@ public class RawIOIT extends AbstractIT {
   @Test
   public void testReadLongLittleEndianWithRandomAccessFile() throws IOException {
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(fileToTest, RandomAccessFileMode.READ.getValue())) {
-      assertThat(rawIO.readLongLittleEndian(randomAccessFile)).isEqualTo(InternalZipConstants.ZIP_64_LIMIT + 1000);
-      assertThat(rawIO.readLongLittleEndian(randomAccessFile)).isEqualTo(InternalZipConstants.ZIP_64_LIMIT + 23423);
+      assertThat(rawIO.readLongLittleEndian(randomAccessFile)).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT + 1000);
+      assertThat(rawIO.readLongLittleEndian(randomAccessFile)).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT + 23423);
       assertThat(rawIO.readLongLittleEndian(randomAccessFile, 4)).isEqualTo(32332);
     }
   }
@@ -43,8 +43,8 @@ public class RawIOIT extends AbstractIT {
   @Test
   public void testReadLongLittleEndianWithInputStream() throws IOException {
     try(InputStream inputStream = new FileInputStream(fileToTest)) {
-      assertThat(rawIO.readLongLittleEndian(inputStream)).isEqualTo(InternalZipConstants.ZIP_64_LIMIT + 1000);
-      assertThat(rawIO.readLongLittleEndian(inputStream)).isEqualTo(InternalZipConstants.ZIP_64_LIMIT + 23423);
+      assertThat(rawIO.readLongLittleEndian(inputStream)).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT + 1000);
+      assertThat(rawIO.readLongLittleEndian(inputStream)).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT + 23423);
       assertThat(rawIO.readLongLittleEndian(inputStream, 4)).isEqualTo(32332);
     }
   }
@@ -116,8 +116,8 @@ public class RawIOIT extends AbstractIT {
   @Test
   public void testReadShortLittleEndianWithByteArray() {
     byte[] b = new byte[8];
-    rawIO.writeShortLittleEndian(b, 0, (short) 88);
-    rawIO.writeShortLittleEndian(b, 2, (short) 67);
+    rawIO.writeShortLittleEndian(b, 0, 88);
+    rawIO.writeShortLittleEndian(b, 2, 67);
 
     assertThat(rawIO.readShortLittleEndian(b, 0)).isEqualTo(88);
     assertThat(rawIO.readShortLittleEndian(b, 2)).isEqualTo(67);
@@ -127,7 +127,7 @@ public class RawIOIT extends AbstractIT {
   public void testWriteShortLittleEndianWithOutputStream() throws IOException {
     File shortFile = temporaryFolder.newFile();
     try(OutputStream outputStream = new FileOutputStream(shortFile)) {
-      rawIO.writeShortLittleEndian(outputStream, (short) 444);
+      rawIO.writeShortLittleEndian(outputStream, 444);
     }
 
     try(InputStream inputStream = new FileInputStream(shortFile)) {
@@ -139,8 +139,8 @@ public class RawIOIT extends AbstractIT {
   public void testWriteShortLittleEndianWithByteBuffer() {
     byte[] b = new byte[10];
 
-    rawIO.writeShortLittleEndian(b, 0, (short) 12);
-    rawIO.writeShortLittleEndian(b, 6, (short) 67);
+    rawIO.writeShortLittleEndian(b, 0, 12);
+    rawIO.writeShortLittleEndian(b, 6, 67);
 
     assertThat(rawIO.readShortLittleEndian(b, 0)).isEqualTo(12);
     assertThat(rawIO.readShortLittleEndian(b, 6)).isEqualTo(67);
@@ -198,10 +198,10 @@ public class RawIOIT extends AbstractIT {
       byte[] intByte = new byte[4];
       byte[] shortByte = new byte[2];
 
-      rawIO.writeLongLittleEndian(longByte, 0, InternalZipConstants.ZIP_64_LIMIT + 1000);
+      rawIO.writeLongLittleEndian(longByte, 0, InternalZipConstants.ZIP_64_SIZE_LIMIT + 1000);
       outputStream.write(longByte);
 
-      rawIO.writeLongLittleEndian(longByte, 0, InternalZipConstants.ZIP_64_LIMIT + 23423);
+      rawIO.writeLongLittleEndian(longByte, 0, InternalZipConstants.ZIP_64_SIZE_LIMIT + 23423);
       outputStream.write(longByte);
 
       rawIO.writeIntLittleEndian(intByte, 0, 32332);
@@ -210,10 +210,10 @@ public class RawIOIT extends AbstractIT {
       rawIO.writeIntLittleEndian(intByte, 0, 231);
       outputStream.write(intByte);
 
-      rawIO.writeShortLittleEndian(shortByte, 0, (short) 23);
+      rawIO.writeShortLittleEndian(shortByte, 0, 23);
       outputStream.write(shortByte);
 
-      rawIO.writeShortLittleEndian(shortByte, 0, (short) 77);
+      rawIO.writeShortLittleEndian(shortByte, 0, 77);
       outputStream.write(shortByte);
     }
   }

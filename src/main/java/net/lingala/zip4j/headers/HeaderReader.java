@@ -53,6 +53,7 @@ public class HeaderReader {
 
   private ZipModel zipModel;
   private RawIO rawIO = new RawIO();
+  private byte[] intBuff = new byte[4];
 
   public ZipModel readAllHeaders(RandomAccessFile zip4jRaf) throws ZipException {
     zipModel = new ZipModel();
@@ -102,7 +103,9 @@ public class HeaderReader {
           rawIO.readShortLittleEndian(zip4jRaf));
       endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(zip4jRaf));
       endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
-      endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+
+      zip4jRaf.readFully(intBuff);
+      endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
 
       int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
 
@@ -126,15 +129,14 @@ public class HeaderReader {
       CentralDirectory centralDirectory = new CentralDirectory();
       List<FileHeader> fileHeaders = new ArrayList<>();
 
-      EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
-      long offSetStartCentralDir = endOfCentralDirectoryRecord.getOffsetOfStartOfCentralDirectory();
-      int centralDirEntryCount = endOfCentralDirectoryRecord.getTotalNumberOfEntriesInCentralDirectory();
+      long offSetStartCentralDir = getOffsetCentralDirectory(zipModel);
+      long centralDirEntryCount = getNumberOfEntriesInCentralDirectory(zipModel);
 
       if (zipModel.isZip64Format()) {
         offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
             .getOffsetStartCentralDirectoryWRTStartDiskNumber();
         centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord()
-            .getTotNumberOfEntriesInCentralDirectory();
+            .getTotalNumberOfEntriesInCentralDirectory();
       }
 
       zip4jRaf.seek(offSetStartCentralDir);
@@ -185,7 +187,8 @@ public class HeaderReader {
         zip4jRaf.readFully(intBuff);
         fileHeader.setExternalFileAttributes(intBuff.clone());
 
-        fileHeader.setOffsetLocalHeader(rawIO.readIntLittleEndian(zip4jRaf));
+        zip4jRaf.readFully(intBuff);
+        fileHeader.setOffsetLocalHeader(rawIO.readLongLittleEndian(intBuff, 0));
 
         if (fileNameLength > 0) {
           byte[] fileNameBuff = new byte[fileNameLength];
@@ -371,7 +374,7 @@ public class HeaderReader {
       zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
       zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
           rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setTotNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
+      zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
       zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
       zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
           rawIO.readLongLittleEndian(zip4jRaf));
@@ -669,5 +672,21 @@ public class HeaderReader {
     }
 
     return null;
+  }
+
+  private long getOffsetCentralDirectory(ZipModel zipModel) {
+    if (zipModel.isZip64Format()) {
+      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
+    }
+
+    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
+  }
+
+  private long getNumberOfEntriesInCentralDirectory(ZipModel zipModel) {
+    if (zipModel.isZip64Format()) {
+      return zipModel.getZip64EndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
+    }
+
+    return zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
   }
 }

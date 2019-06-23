@@ -40,8 +40,8 @@ public class HeaderWriterIT extends AbstractIT {
   private static final String FILE_NAME_PREFIX = "FILE_NAME_";
   private static final long COMPRESSED_SIZE = 4234L;
   private static final long UNCOMPRESSED_SIZE = 23423L;
-  private static final long COMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_LIMIT + 1;
-  private static final long UNCOMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_LIMIT + 1;
+  private static final long COMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
+  private static final long UNCOMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
   private static final int VERSION_MADE_BY = 20;
   private static final int VERSION_NEEDED_TO_EXTRACT = 20;
   private static final long LAST_MODIFIED_FILE_TIME = javaToDosTime(System.currentTimeMillis());
@@ -528,10 +528,10 @@ public class HeaderWriterIT extends AbstractIT {
       randomAccessFile.seek(18);
 
       long compressedSize = rawIO.readLongLittleEndian(randomAccessFile, 4);
-      assertThat(compressedSize).isEqualTo(InternalZipConstants.ZIP_64_LIMIT);
+      assertThat(compressedSize).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT);
 
       long uncompressedSize = rawIO.readLongLittleEndian(randomAccessFile, 4);
-      assertThat(uncompressedSize).isEqualTo(InternalZipConstants.ZIP_64_LIMIT);
+      assertThat(uncompressedSize).isEqualTo(InternalZipConstants.ZIP_64_SIZE_LIMIT);
     }
   }
 

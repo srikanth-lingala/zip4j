@@ -8,7 +8,7 @@ import java.io.OutputStream;
 public class CountingOutputStream extends OutputStream {
 
   private OutputStream outputStream;
-  private long numberOfBytesWritten;
+  private long numberOfBytesWritten = 0;
 
   public CountingOutputStream(OutputStream outputStream) {
     this.outputStream = outputStream;

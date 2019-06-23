@@ -30,7 +30,8 @@ public final class InternalZipConstants {
   public static final int AES_BLOCK_SIZE = 16;
 
   public static final int MIN_SPLIT_LENGTH = 65536;
-  public static final long ZIP_64_LIMIT = 4294967295L;
+  public static final long ZIP_64_SIZE_LIMIT = 4294967295L;
+  public static final int ZIP_64_NUMBER_OF_ENTRIES_LIMIT = 65535;
 
   public static final int BUFF_SIZE = 1024 * 4;
 

@@ -107,12 +107,12 @@ public class RawIO {
     return (buff[position] & 0xff) | (buff[1 + position] & 0xff) << 8;
   }
 
-  public void writeShortLittleEndian(OutputStream outputStream, short value) throws IOException {
+  public void writeShortLittleEndian(OutputStream outputStream, int value) throws IOException {
     writeShortLittleEndian(shortBuff, 0, value);
     outputStream.write(shortBuff);
   }
 
-  public void writeShortLittleEndian(byte[] array, int pos, short value) {
+  public void writeShortLittleEndian(byte[] array, int pos, int value) {
     array[pos + 1] = (byte) (value >>> 8);
     array[pos] = (byte) (value & 0xFF);
 

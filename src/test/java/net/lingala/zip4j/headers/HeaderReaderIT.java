@@ -194,7 +194,7 @@ public class HeaderReaderIT extends AbstractIT {
   @Test
   public void testReadAllZip64Format() throws IOException, ZipException {
     ZipModel actualZipModel = generateZipModel(1);
-    long entrySize = InternalZipConstants.ZIP_64_LIMIT + 1;
+    long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setUncompressedSize(entrySize);
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setCompressedSize(entrySize + 100);
     File headersFile = writeZipHeaders(actualZipModel);
@@ -214,7 +214,7 @@ public class HeaderReaderIT extends AbstractIT {
 
   @Test
   public void testReadLocalFileHeader() throws ZipException, IOException {
-    long entrySize = InternalZipConstants.ZIP_64_LIMIT + 1;
+    long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.NONE);
 
     try(InputStream inputStream = new FileInputStream(headerFile)) {
@@ -227,7 +227,7 @@ public class HeaderReaderIT extends AbstractIT {
 
   @Test
   public void testReadLocalFileHeaderWithAesEncryption() throws ZipException, IOException {
-    long entrySize = InternalZipConstants.ZIP_64_LIMIT - 1001 ;
+    long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT - 1001 ;
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.AES);
 
     try(InputStream inputStream = new FileInputStream(headerFile)) {

@@ -24,7 +24,7 @@ public class Zip64EndOfCentralDirectoryRecord extends ZipHeader {
   private int numberOfThisDisk;
   private int numberOfThisDiskStartOfCentralDirectory;
   private long totalNumberOfEntriesInCentralDirectoryOnThisDisk;
-  private long totNumberOfEntriesInCentralDirectory;
+  private long totalNumberOfEntriesInCentralDirectory;
   private long sizeOfCentralDirectory;
   private long offsetStartCentralDirectoryWRTStartDiskNumber;
   private byte[] extensibleDataSector;
@@ -78,12 +78,12 @@ public class Zip64EndOfCentralDirectoryRecord extends ZipHeader {
     this.totalNumberOfEntriesInCentralDirectoryOnThisDisk = totalNumberOfEntriesInCentralDirectoryOnThisDisk;
   }
 
-  public long getTotNumberOfEntriesInCentralDirectory() {
-    return totNumberOfEntriesInCentralDirectory;
+  public long getTotalNumberOfEntriesInCentralDirectory() {
+    return totalNumberOfEntriesInCentralDirectory;
   }
 
-  public void setTotNumberOfEntriesInCentralDirectory(long totNumberOfEntriesInCentralDirectory) {
-    this.totNumberOfEntriesInCentralDirectory = totNumberOfEntriesInCentralDirectory;
+  public void setTotalNumberOfEntriesInCentralDirectory(long totalNumberOfEntriesInCentralDirectory) {
+    this.totalNumberOfEntriesInCentralDirectory = totalNumberOfEntriesInCentralDirectory;
   }
 
   public long getSizeOfCentralDirectory() {
