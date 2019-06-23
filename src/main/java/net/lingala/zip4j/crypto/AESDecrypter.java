@@ -31,7 +31,7 @@ import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
 public class AESDecrypter implements Decrypter {
 
-  private static final int PASSWORD_VERIFIER_LENGTH = 2;
+  public static final int PASSWORD_VERIFIER_LENGTH = 2;
 
   private AESExtraDataRecord aesExtraDataRecord;
   private char[] password;

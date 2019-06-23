@@ -40,6 +40,6 @@ abstract class CompressedOutputStream extends OutputStream {
   }
 
   public long getCompressedSize() {
-    return cipherOutputStream.getNumberOfBytesWrittenForThisEntryExcludingHeaders();
+    return cipherOutputStream.getNumberOfBytesWrittenForThisEntry();
   }
 }

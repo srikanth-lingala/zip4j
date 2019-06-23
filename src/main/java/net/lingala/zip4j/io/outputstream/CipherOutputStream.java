@@ -27,9 +27,9 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
 
   private ZipEntryOutputStream zipEntryOutputStream;
   private T encrypter;
-  private int encryptionHeaderLength = 0;
 
-  public CipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+  public CipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password)
+      throws IOException, ZipException {
     this.zipEntryOutputStream = zipEntryOutputStream;
     this.encrypter = initializeEncrypter(zipEntryOutputStream, zipParameters, password);
   }
@@ -57,7 +57,6 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
 
   public void writeHeaders(byte[] b) throws IOException {
     zipEntryOutputStream.write(b);
-    encryptionHeaderLength += b.length;
   }
 
   public void closeEntry() throws IOException {
@@ -69,8 +68,8 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     zipEntryOutputStream.close();
   }
 
-  public long getNumberOfBytesWrittenForThisEntryExcludingHeaders() {
-    return zipEntryOutputStream.getNumberOfBytesWrittenForThisEntry() - encryptionHeaderLength;
+  public long getNumberOfBytesWrittenForThisEntry() {
+    return zipEntryOutputStream.getNumberOfBytesWrittenForThisEntry();
   }
 
   public void decrementBytesWrittenForThisEntry(int value) {
@@ -81,5 +80,6 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     return encrypter;
   }
 
-  protected abstract T initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException;
+  protected abstract T initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password)
+      throws IOException, ZipException;
 }

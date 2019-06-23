@@ -16,6 +16,7 @@
 
 package net.lingala.zip4j.io.inputstream;
 
+import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
@@ -25,6 +26,7 @@ import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -220,11 +222,28 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
+    long compressedSize = localFileHeader.getCompressedSize();
     if (localFileHeader.getZip64ExtendedInfo() != null) {
-      return localFileHeader.getZip64ExtendedInfo().getCompressedSize();
+      compressedSize = localFileHeader.getZip64ExtendedInfo().getCompressedSize();
     }
 
-    return localFileHeader.getCompressedSize();
+    return compressedSize - getEncryptionHeaderSize(localFileHeader);
+  }
+
+  private int getEncryptionHeaderSize(LocalFileHeader localFileHeader) {
+    if (!localFileHeader.isEncrypted()) {
+      return 0;
+    }
+
+    if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.AES)) {
+      return InternalZipConstants.AES_AUTH_LENGTH + AESDecrypter.PASSWORD_VERIFIER_LENGTH
+          + localFileHeader.getAesExtraDataRecord().getAesKeyStrength().getSaltLength();
+    } else if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.ZIP_STANDARD)) {
+      return InternalZipConstants.STD_DEC_HDR_SIZE;
+    } else {
+      return 0;
+    }
+
   }
 
 }

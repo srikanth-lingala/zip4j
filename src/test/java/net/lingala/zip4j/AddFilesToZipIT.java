@@ -231,6 +231,19 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFilesWithZipStandardEncryption() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
+    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.ZIP_STANDARD,
+        null);
+  }
+
+  @Test
   public void testAddFilesWhenFilesAlreadyExistsRemovesFiles() throws ZipException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
