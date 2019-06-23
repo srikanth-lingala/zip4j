@@ -61,13 +61,13 @@ public class Zip4jUtil {
         cal.get(Calendar.SECOND) >> 1;
   }
 
-  public static long dosToJavaTme(int dosTime) {
-    int sec = 2 * (dosTime & 0x1f);
-    int min = (dosTime >> 5) & 0x3f;
-    int hrs = (dosTime >> 11) & 0x1f;
-    int day = (dosTime >> 16) & 0x1f;
-    int mon = ((dosTime >> 21) & 0xf) - 1;
-    int year = ((dosTime >> 25) & 0x7f) + 1980;
+  public static long dosToJavaTme(long dosTime) {
+    int sec = (int) (2 * (dosTime & 0x1f));
+    int min = (int) ((dosTime >> 5) & 0x3f);
+    int hrs = (int) ((dosTime >> 11) & 0x1f);
+    int day = (int) ((dosTime >> 16) & 0x1f);
+    int mon = (int) (((dosTime >> 21) & 0xf) - 1);
+    int year = (int) (((dosTime >> 25) & 0x7f) + 1980);
 
     Calendar cal = Calendar.getInstance();
     cal.set(year, mon, day, hrs, min, sec);

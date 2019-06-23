@@ -56,7 +56,7 @@ public class FileUtilsTest {
     long currentTime = System.currentTimeMillis();
     FileUtils.setFileLastModifiedTime(path, currentTime);
 
-    verify(basicFileAttributeView).setTimes(FileTime.fromMillis(Zip4jUtil.dosToJavaTme((int) currentTime)), null, null);
+    verify(basicFileAttributeView).setTimes(FileTime.fromMillis(Zip4jUtil.dosToJavaTme(currentTime)), null, null);
   }
 
   @Test

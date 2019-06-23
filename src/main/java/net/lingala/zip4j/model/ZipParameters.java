@@ -33,7 +33,7 @@ public class ZipParameters {
   private long entryCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
-  private int lastModifiedFileTime;
+  private long lastModifiedFileTime;
   private long entrySize = -1;
   private boolean writeExtendedLocalFileHeader = true;
 
@@ -140,11 +140,11 @@ public class ZipParameters {
     this.fileNameInZip = fileNameInZip;
   }
 
-  public int getLastModifiedFileTime() {
+  public long getLastModifiedFileTime() {
     return lastModifiedFileTime;
   }
 
-  public void setLastModifiedFileTime(int lastModifiedFileTime) {
+  public void setLastModifiedFileTime(long lastModifiedFileTime) {
     this.lastModifiedFileTime = lastModifiedFileTime;
   }
 

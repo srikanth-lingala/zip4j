@@ -147,7 +147,7 @@ public class FileHeaderFactoryTest {
 
   @Test
   public void testGenerateFileHeaderWithLastModifiedFileTime() throws ZipException {
-    int lastModifiedFileTime = (int) System.currentTimeMillis();
+    long lastModifiedFileTime = System.currentTimeMillis();
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setLastModifiedFileTime(lastModifiedFileTime);
 
@@ -188,7 +188,7 @@ public class FileHeaderFactoryTest {
 
   @Test
   public void testGenerateLocalFileHeader() {
-    long lastModifiedFileTime = javaToDosTime((int) System.currentTimeMillis());
+    long lastModifiedFileTime = javaToDosTime(System.currentTimeMillis());
     FileHeader  fileHeader = generateFileHeader(lastModifiedFileTime);
 
     LocalFileHeader localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);

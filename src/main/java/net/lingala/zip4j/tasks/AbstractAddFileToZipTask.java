@@ -146,7 +146,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws ZipException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
-    clonedZipParameters.setLastModifiedFileTime((int) javaToDosTime((fileToAdd.lastModified())));
+    clonedZipParameters.setLastModifiedFileTime(javaToDosTime((fileToAdd.lastModified())));
     clonedZipParameters.setFileNameInZip(fileToAdd.getName());
 
     if (fileToAdd.isDirectory()) {
@@ -156,7 +156,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     }
 
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
-    clonedZipParameters.setLastModifiedFileTime((int) fileToAdd.lastModified());
+    clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
 
     String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
     clonedZipParameters.setFileNameInZip(relativeFileName);

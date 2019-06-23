@@ -28,14 +28,14 @@ public class StandardEncrypter implements Encrypter {
   private ZipCryptoEngine zipCryptoEngine;
   private byte[] headerBytes;
 
-  public StandardEncrypter(char[] password, int crc) throws ZipException {
+  public StandardEncrypter(char[] password, long crc) throws ZipException {
    this.zipCryptoEngine = new ZipCryptoEngine();
 
     this.headerBytes = new byte[STD_DEC_HDR_SIZE];
     init(password, crc);
   }
 
-  private void init(char[] password, int crc) throws ZipException {
+  private void init(char[] password, long crc) throws ZipException {
     if (password == null || password.length <= 0) {
       throw new ZipException("input password is null or empty, cannot initialize standard encrypter");
     }
