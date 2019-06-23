@@ -3,6 +3,7 @@ package net.lingala.zip4j.io.outputstream;
 import net.lingala.zip4j.crypto.StandardEncrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,7 +16,8 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
 
   @Override
   protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
-    StandardEncrypter encrypter = new StandardEncrypter(password, (zipParameters.getLastModifiedFileTime() & 0x0000ffff) << 16);
+    long key = getEncryptionKey(zipParameters);
+    StandardEncrypter encrypter = new StandardEncrypter(password, (key & 0x0000ffff) << 16);
     writeHeaders(encrypter.getHeaderBytes());
     return encrypter;
   }
@@ -33,5 +35,13 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     super.write(b, off, len);
+  }
+
+  private long getEncryptionKey(ZipParameters zipParameters) {
+    if (zipParameters.isWriteExtendedLocalFileHeader()) {
+      return Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime());
+    }
+
+    return zipParameters.getEntrySize();
   }
 }

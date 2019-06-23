@@ -73,6 +73,7 @@ public class ZipOutputStreamIT extends AbstractIT {
           zipParameters.setEntrySize(fileToAdd.length());
         }
 
+        zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
         zipParameters.setFileNameInZip(fileToAdd.getName());
         zos.putNextEntry(zipParameters);
 
