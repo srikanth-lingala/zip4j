@@ -10,7 +10,7 @@ Zip4j - A java library for zip files / streams
 
 ## Thank you
 
-for rating Zip4j as the best java library for zip files [[1][1], [2][2], [3][3], [4][4]]. It has encouraged me to 
+for rating Zip4j as the best java library for zip files <sup>[[1][1], [2][2], [3][3], [4][4]]</sup>. It has encouraged me to 
 bring this project to life again after a gap of several years. I tried to add some of the important features that 
 were requested over this time, and also made api much more neater. The newer version (> 2.0.0) now supports streams,
 which was understandably, one of the most requested feature. If you have any feedback, bugs to report, feature 
