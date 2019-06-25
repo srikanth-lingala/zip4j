@@ -116,6 +116,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
   }
 
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return ProgressMonitor.Task.EXTRACT_ENTRY;
+  }
+
   public ZipModel getZipModel() {
     return zipModel;
   }

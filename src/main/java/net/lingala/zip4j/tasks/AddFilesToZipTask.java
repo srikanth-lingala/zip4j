@@ -31,6 +31,11 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
     return calculateWorkForFiles(taskParameters.filesToAdd, taskParameters.zipParameters);
   }
 
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return super.getTask();
+  }
+
   @AllArgsConstructor
   public static class AddFilesToZipTaskParameters {
     private List<File> filesToAdd;

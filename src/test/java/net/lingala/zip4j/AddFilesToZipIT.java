@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.utils.TestUtils;
 import net.lingala.zip4j.utils.ZipFileVerifier;
@@ -178,6 +179,61 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFileProgressMonitorThrowsExceptionWhenPerformingActionInBusyState() throws ZipException {
+    expectedException.expectMessage("invalid operation - Zip4j is in busy state");
+    expectedException.expect(ZipException.class);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+    progressMonitor.setState(ProgressMonitor.State.BUSY);
+
+    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+  }
+
+  @Test
+  public void testAddFileWithProgressMonitor() throws ZipException, InterruptedException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+    boolean percentBetweenZeroAndHundred = false;
+    boolean fileNameSet = false;
+    boolean taskNameSet = false;
+
+    zipFile.setRunInThread(true);
+    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
+        createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
+
+    while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
+      int percentDone = progressMonitor.getPercentDone();
+      String fileName = progressMonitor.getFileName();
+
+      if (percentDone > 0 && percentDone < 100) {
+        percentBetweenZeroAndHundred = true;
+      }
+
+      if (fileName != null) {
+        assertThat(fileName).contains("file_PDF_1MB.pdf");
+        fileNameSet = true;
+      }
+
+      Thread.sleep(10);
+
+      if (!progressMonitor.getCurrentTask().equals(ProgressMonitor.Task.NONE)) {
+        assertThat(progressMonitor.getCurrentTask()).isEqualTo(ProgressMonitor.Task.ADD_ENTRY);
+        taskNameSet = true;
+      }
+    }
+
+    assertThat(progressMonitor.getResult()).isEqualTo(ProgressMonitor.Result.SUCCESS);
+    assertThat(progressMonitor.getState().equals(ProgressMonitor.State.READY));
+    assertThat(progressMonitor.getException()).isNull();
+    assertThat(percentBetweenZeroAndHundred).isTrue();
+    assertThat(fileNameSet).isTrue();
+    assertThat(taskNameSet).isTrue();
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
+  }
+
+  @Test
   public void testAddFilesWithoutParametersWhenZipFileDoesNotExistCreatesSuccessfully() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
@@ -323,6 +379,49 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFilesWithProgressMonitor() throws ZipException, InterruptedException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+    boolean percentBetweenZeroAndHundred = false;
+    boolean fileNameSet = false;
+    boolean taskNameSet = false;
+
+    List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
+    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    zipFile.setRunInThread(true);
+    zipFile.addFiles(filesToAdd, createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
+
+    while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
+      int percentDone = progressMonitor.getPercentDone();
+      String fileName = progressMonitor.getFileName();
+
+      if (percentDone > 0 && percentDone < 100) {
+        percentBetweenZeroAndHundred = true;
+      }
+
+      if (fileName != null) {
+        fileNameSet = true;
+      }
+
+      Thread.sleep(10);
+
+      if (!progressMonitor.getCurrentTask().equals(ProgressMonitor.Task.NONE)) {
+        assertThat(progressMonitor.getCurrentTask()).isEqualTo(ProgressMonitor.Task.ADD_ENTRY);
+        taskNameSet = true;
+      }
+    }
+
+    assertThat(progressMonitor.getResult()).isEqualTo(ProgressMonitor.Result.SUCCESS);
+    assertThat(progressMonitor.getState().equals(ProgressMonitor.State.READY));
+    assertThat(progressMonitor.getException()).isNull();
+    assertThat(percentBetweenZeroAndHundred).isTrue();
+    assertThat(fileNameSet).isTrue();
+    assertThat(taskNameSet).isTrue();
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
+  }
+
+  @Test
   public void testAddFolderWithoutZipParameters() throws ZipException, IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
@@ -360,6 +459,40 @@ public class AddFilesToZipIT extends AbstractIT {
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipDoesNotContainPath(fileHeaders, "test-files/");
     verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
+  }
+
+  @Test
+  public void testAddFolderWithProgressMonitor() throws ZipException, InterruptedException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+    boolean percentBetweenZeroAndHundred = false;
+    boolean fileNameSet = false;
+
+    zipFile.setRunInThread(true);
+    zipFile.addFolder(TestUtils.getFileFromResources(""),
+        createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
+
+    while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
+      int percentDone = progressMonitor.getPercentDone();
+      String fileName = progressMonitor.getFileName();
+
+      if (percentDone > 0 && percentDone < 100) {
+        percentBetweenZeroAndHundred = true;
+      }
+
+      if (fileName != null) {
+        fileNameSet = true;
+      }
+
+      Thread.sleep(100);
+    }
+
+    assertThat(progressMonitor.getResult()).isEqualTo(ProgressMonitor.Result.SUCCESS);
+    assertThat(progressMonitor.getState().equals(ProgressMonitor.State.READY));
+    assertThat(progressMonitor.getException()).isNull();
+    assertThat(percentBetweenZeroAndHundred).isTrue();
+    assertThat(fileNameSet).isTrue();
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
   }
 
   @Test

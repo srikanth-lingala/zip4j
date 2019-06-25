@@ -16,6 +16,9 @@ public abstract class AsyncZipTask<T> {
   }
 
   public void execute(T taskParameters) throws ZipException {
+    progressMonitor.setState(ProgressMonitor.State.BUSY);
+    progressMonitor.setCurrentTask(getTask());
+
     if (runInThread) {
       long totalWorkToBeDone = calculateTotalWork(taskParameters);
       progressMonitor.setTotalWork(totalWorkToBeDone);
@@ -59,4 +62,5 @@ public abstract class AsyncZipTask<T> {
 
   protected abstract long calculateTotalWork(T taskParameters) throws ZipException;
 
+  protected abstract ProgressMonitor.Task getTask();
 }

@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.utils.RandomInputStream;
 import net.lingala.zip4j.utils.SlowTests;
 import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
@@ -16,15 +17,15 @@ import org.junit.experimental.categories.Category;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTests.class)
 public class ZipFileZip64IT extends AbstractIT {
 
-  private Random random = new Random();
+  private byte[] readBuffer = new byte[4096];
 
   @Test
   public void testZip64WithSingleLargeZipEntry() throws IOException, ZipException {
@@ -79,24 +80,16 @@ public class ZipFileZip64IT extends AbstractIT {
   private void createZip64FileWithEntries(int numberOfEntries, long eachEntrySize, ZipParameters zipParameters)
       throws IOException {
 
+    int readLen;
     try(ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
       for (int i = 0; i < numberOfEntries; i++) {
         zipParameters.setFileNameInZip("FILE_" + i);
         zipOutputStream.putNextEntry(zipParameters);
 
-        long numberOfBytesWritten = 0;
-        byte[] b = new byte[4096];
-
-        while (numberOfBytesWritten < eachEntrySize) {
-          random.nextBytes(b);
-          int writeLength = b.length;
-
-          if (writeLength + numberOfBytesWritten > eachEntrySize) {
-            writeLength = (int) (eachEntrySize - numberOfBytesWritten);
+        try(InputStream inputStream = new RandomInputStream(eachEntrySize)) {
+          while ((readLen = inputStream.read(readBuffer)) != -1) {
+            zipOutputStream.write(readBuffer, 0, readLen);
           }
-
-          zipOutputStream.write(b, 0, writeLength);
-          numberOfBytesWritten += writeLength;
         }
         zipOutputStream.closeEntry();
       }

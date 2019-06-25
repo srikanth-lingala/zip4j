@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -237,88 +236,6 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testRemoveFileAsFileNameThrowsExceptionWhenZipFileDoesNotExist() throws ZipException {
-    String fileNameToRemove = "SOME_NAME";
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("could not find file header for file: " + fileNameToRemove);
-
-    new ZipFile(generatedZipFile).removeFile(fileNameToRemove);
-  }
-
-  @Test
-  public void testRemoveFileAsFileNameThrowsExceptionWhenFileDoesNotExistInZip() throws ZipException {
-    String fileNameToRemove = "SOME_NAME";
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("could not find file header for file: " + fileNameToRemove);
-
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.addFiles(FILES_TO_ADD);
-
-    zipFile.removeFile(fileNameToRemove);
-  }
-
-  @Test
-  public void testRemoveFileAsFileNameThrowsExceptionForSplitArchive() throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
-    zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
-
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("Zip file format does not allow updating split/spanned files");
-
-    zipFile.removeFile("file_PDF_1MB.pdf");
-  }
-
-  @Test
-  public void testRemoveFileAsFileNameRemovesSuccessfully() throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.addFiles(FILES_TO_ADD);
-
-    zipFile.removeFile("sample_text1.txt");
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_text1.txt");
-  }
-
-  @Test
-  public void testRemoveFileAsFileNameRemovesSuccessfullyWithFolderNameInPath() throws ZipException {
-    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
-    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
-
-    zipFile.removeFile("test-files/öüäöäö/asöäööl");
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "test-files/öüäöäö/asöäööl");
-  }
-
-  @Test
-  public void testRemoveFileAsFileHeaderThrowsExceptionForSplitArchive() throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
-    zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
-
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("Zip file format does not allow updating split/spanned files");
-
-    zipFile.removeFile(zipFile.getFileHeader("file_PDF_1MB.pdf"));
-  }
-
-  @Test
-  public void testRemoveFileAsFileHeaderRemovesSuccessfully() throws ZipException {
-    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
-    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
-
-    zipFile.removeFile(zipFile.getFileHeader("test-files/sample_directory/favicon.ico"));
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_directory/favicon.ico");
-  }
-
-  @Test
   public void testSetComment() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
@@ -449,13 +366,6 @@ public class MiscZipFileIT extends AbstractIT {
 
     assertThat(splitZipFiles).hasSize(15);
     verifySplitZipFileNames(splitZipFiles, 15, FileUtils.getZipFileNameWithoutExtension(generatedZipFile.getName()));
-  }
-
-  private void verifyZipFileDoesNotContainFile(File generatedZipFile, String fileNameToCheck) throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    Optional<FileHeader> fileHeader = zipFile.getFileHeaders().stream()
-        .filter(e -> e.getFileName().equals(fileNameToCheck)).findFirst();
-    assertThat(fileHeader).isNotPresent();
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException, ZipException {

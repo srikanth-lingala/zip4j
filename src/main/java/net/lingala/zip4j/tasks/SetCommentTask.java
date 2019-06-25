@@ -46,4 +46,9 @@ public class SetCommentTask extends AsyncZipTask<String> {
   protected long calculateTotalWork(String taskParameters) {
     return 0;
   }
+
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return ProgressMonitor.Task.SET_COMMENT;
+  }
 }

@@ -184,4 +184,9 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
     zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
         zip64EndOfCentralDirectoryRecord.getOffsetStartCentralDirectoryWRTStartDiskNumber() + totalFileSize);
   }
+
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return ProgressMonitor.Task.MERGE_ZIP_FILES;
+  }
 }

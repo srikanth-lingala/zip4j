@@ -178,4 +178,9 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
   protected long calculateTotalWork(FileHeader fileHeader) {
     return zipModel.getZipFile().length() - fileHeader.getCompressedSize();
   }
+
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return ProgressMonitor.Task.REMOVE_ENTRY;
+  }
 }

@@ -205,6 +205,11 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     removeEntryFromZipFileTask.execute(fileHeader);
   }
 
+  @Override
+  protected ProgressMonitor.Task getTask() {
+    return ProgressMonitor.Task.ADD_ENTRY;
+  }
+
   protected ZipModel getZipModel() {
     return zipModel;
   }
