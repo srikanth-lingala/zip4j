@@ -431,6 +431,35 @@ public void extractWithInputStream(File zipFile, char[] password) throws IOExcep
 
 ~~~~
 
+## Working with Progress Monitor
+
+ProgressMonitor makes it easier for applications (especially user facing) to integrate Zip4j. It is useful to show
+progress (example: updating a progress bar, displaying the current action, show file name being worked on, etc). To use
+ProgressMonitor, you have to set `ZipFile.setRunInThread(true)`. This will make any actions being done on the zip file
+to run in a background thread. You can then access ProgressMonitor `Zipfile.getProgressMonitor()` and get details of the
+current action being done along with the percentage work done, etc. Below is an example:
+
+~~~
+ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+
+zipFile.setRunInThread(true);
+zipFile.addFolder("/some/folder");
+
+while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
+  Systetm.out.println("Percentage done: " + progressMonitor.getPercentDone());
+  Systetm.out.println("Current file: " + progressMonitor.getFileName());
+  Systetm.out.println("Current task: " + progressMonitor.getCurrentTask());
+  
+  Thread.sleep(100);
+}
+~~~
+
+Note that in the above example, `addFolder()` will almost immediately return back the control to the caller. The client
+code can then perform a loop until the state gets back to "Ready" as shown in the above example.
+
+Similarly, ProgressMonitor can be used with other actions like, `addFiles`, `removeFiles` and `extractFiles`.
+
 ## Contribution
 
 It is hard to find as much free time as I used to have when I first started Zip4j 10 years back in 2009. I would
