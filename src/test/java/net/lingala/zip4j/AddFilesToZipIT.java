@@ -484,7 +484,7 @@ public class AddFilesToZipIT extends AbstractIT {
         fileNameSet = true;
       }
 
-      Thread.sleep(100);
+      Thread.sleep(10);
     }
 
     assertThat(progressMonitor.getResult()).isEqualTo(ProgressMonitor.Result.SUCCESS);
