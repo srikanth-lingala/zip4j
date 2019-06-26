@@ -24,34 +24,34 @@ which has support for zip encryption, apart from a bunch of other features. It t
 a lot more easier. No more clunky boiler plate code with input streams and output streams. As you can see in the usage 
 section below, working with zip files can now even be a single line of code, compared to [this][5]. I mean no offense
 to the Java's in-built zip support. In fact, this library depends on Java's in-built zip code and it would have been 
-significantly more complicated if I had to write compression logic as well. But lets be honest, working with zip 
+significantly more ~~complicated~~ challenging if I had to write compression logic as well. But lets be honest, working with zip 
 files or streams can be a lot of boiler plate code. The main goal of this library is to provide a simple api for all 
 usual actions of a zip file or streams by doing the heavy lifting within the library and not have developers worry about
 having to deal with streams, etc. Apart from usability, other important goal of this library is to provide support for
-as many zip features as possible. Below are some of the most important features of Zip4j
+as many zip features as possible, which brings me to:
 
 ## Features
 ~~~
  * Create, Add, Extract, Update, Remove files from a Zip file
- * Read/Write password protected Zip files
+ * Support for streams (ZipInputStream and ZipOutputStream)
+ * Read/Write password protected Zip files and streams
  * Support for both AES and Zip-Standard encryption methods
  * Support for Zip64 format
  * Store (No Compression) and Deflate compression method
  * Create or extract files from Split Zip files (Ex: z01, z02,...zip)
- * Support for Unicode file names
- * Support for streams (ZipInputStream and ZipOutputStream)
+ * Support for Unicode file names and comments in zip
  * Progress Monitor - for integration into apps and user facing applications
 ~~~
 
 ## Background
 
 Zip4j was started by me (Srikanth Reddy Lingala) back in 2008/2009, when I realized the lack of support for majority of zip format 
-features in Java. And also working with zip files was, as mentioned several times above, is a lot of boiler plate code, 
+features in Java. And also working with zip files was, as mentioned several times above, a lot of boiler plate code, 
 having to deal with streams (worse still, it was back in the days when there was no try-with-resources in java). There
 was also no comprehensive library which supports zip features. So, I decided to write one, and approximately after a 
 year, the first version was out. The response was truly overwhelming, and I got a lot of support right from the next
 day of release. It was not put on github as git/github was not as popular as it is now. Code was hosted on my website,
-as guess what, a zip file :). And unfortunately, after a year or two after the initial release, life got busy and I was
+as, guess what, a zip file :). And unfortunately, after a year or two after the initial release, life got busy and I was
 not able to support Zip4j as much as I wanted to. But the overwhelming encouragement I got over the years made me start working on Zip4j
 once again, and makes me support Zip4j as much as I can.
 
