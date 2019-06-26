@@ -76,7 +76,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       throw new ZipException(e);
     }
 
-    UnzipUtil.applyFileAttributes(fileHeader, outputFile.toPath());
+    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
   }
 
   private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws ZipException {

@@ -22,6 +22,8 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -55,17 +57,46 @@ public class UnzipUtilIT extends AbstractIT {
     FileHeader fileHeader = new FileHeader();
     fileHeader.setExternalFileAttributes(externalFileAttributes);
     fileHeader.setLastModifiedTime(currentTime);
+
+    File file = mock(File.class);
     Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
 
     PowerMockito.mockStatic(FileUtils.class);
 
-    UnzipUtil.applyFileAttributes(fileHeader, path);
+    UnzipUtil.applyFileAttributes(fileHeader, file);
 
     verifyStatic();
     FileUtils.setFileLastModifiedTime(path, currentTime);
 
     verifyStatic();
     FileUtils.setFileAttributes(path, externalFileAttributes);
+  }
+
+  @Test
+  public void testApplyFileFileAttributesSetsLastModifiedTimeWithoutNio() {
+    byte[] externalFileAttributes = new byte[] {12, 34, 0, 0};
+    long currentTime = System.currentTimeMillis();
+    FileHeader fileHeader = new FileHeader();
+    fileHeader.setExternalFileAttributes(externalFileAttributes);
+    fileHeader.setLastModifiedTime(currentTime);
+
+    File file = mock(File.class);
+    Path path = mock(Path.class);
+    when(file.toPath()).thenThrow(new NoSuchMethodError("No method"));
+
+    PowerMockito.mockStatic(FileUtils.class);
+
+    UnzipUtil.applyFileAttributes(fileHeader, file);
+
+    verifyStatic(never());
+    FileUtils.setFileLastModifiedTime(path, currentTime);
+
+    verifyStatic(never());
+    FileUtils.setFileAttributes(path, externalFileAttributes);
+
+    verifyStatic();
+    FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
   }
 
   private ZipFile createZipFile() throws ZipException {

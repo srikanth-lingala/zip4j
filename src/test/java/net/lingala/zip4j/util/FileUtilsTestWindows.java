@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -80,17 +81,20 @@ public class FileUtilsTestWindows {
 
   @Test
   public void testGetFileAttributesWhenFileDoesNotExistReturnsEmptyBytes() throws IOException {
-    Path path = mock(Path.class);
-    mockDosFileAttributeView(path, false);
+    File file = mock(File.class);
+    when(file.exists()).thenReturn(false);
 
-    byte[] attributes = FileUtils.getFileAttributes(path);
+    byte[] attributes = FileUtils.getFileAttributes(file);
 
     assertThat(attributes).contains(0, 0, 0, 0);
   }
 
   @Test
   public void testGetFileAttributesReturnsAttributesAsDefined() throws IOException {
+    File file = mock(File.class);
     Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
+    when(file.exists()).thenReturn(true);
     DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(path, true);
     DosFileAttributes dosFileAttributes = mock(DosFileAttributes.class);
     when(dosFileAttributeView.readAttributes()).thenReturn(dosFileAttributes);
@@ -99,7 +103,7 @@ public class FileUtilsTestWindows {
     when(dosFileAttributes.isSystem()).thenReturn(true);
     when(dosFileAttributes.isArchive()).thenReturn(true);
 
-    byte[] attributes = FileUtils.getFileAttributes(path);
+    byte[] attributes = FileUtils.getFileAttributes(file);
 
     assertThat(isBitSet(attributes[0], 0)).isTrue();
     assertThat(isBitSet(attributes[0], 1)).isTrue();

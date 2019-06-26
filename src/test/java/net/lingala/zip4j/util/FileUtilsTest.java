@@ -71,6 +71,26 @@ public class FileUtilsTest {
   }
 
   @Test
+  public void testLastModifiedFileTimeWithoutNIOSetsSuccessfully() {
+    File file = mock(File.class);
+    long currentTime = System.currentTimeMillis();
+
+    FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
+
+    verify(file).setLastModified(Zip4jUtil.dosToJavaTme(currentTime));
+  }
+
+  @Test
+  public void testGetFileAttributesReturnsEmptyBytesWhenNIONotSupported() {
+    File file = mock(File.class);
+    when(file.toPath()).thenThrow(new NoSuchMethodError("No method"));
+
+    byte[] fileAttributes = FileUtils.getFileAttributes(file);
+    assertThat(fileAttributes).hasSize(4);
+    assertThat(fileAttributes).contains(0, 0, 0, 0);
+  }
+
+  @Test
   public void testGetFilesInDirectoryRecursiveThrowsExceptionWhenFileIsNull() throws ZipException {
     expectedException.expectMessage("input path is null, cannot read files in the directory");
     expectedException.expect(ZipException.class);

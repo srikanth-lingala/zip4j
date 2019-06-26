@@ -62,17 +62,27 @@ public class FileUtils {
     }
   }
 
-  public static byte[] getFileAttributes(Path file) {
-    if (file == null || !Files.exists(file)) {
-      return new byte[4];
-    }
+  public static void setFileLastModifiedTimeWithoutNio(File file, long lastModifiedTime) {
+    file.setLastModified(Zip4jUtil.dosToJavaTme(lastModifiedTime));
+  }
 
-    String os = System.getProperty("os.name").toLowerCase();
-    if (isWindows(os)) {
-      return getWindowsFileAttributes(file);
-    } else if (isMac(os) || isUnix(os)) {
-      return getPosixFileAttributes(file);
-    } else {
+  public static byte[] getFileAttributes(File file) {
+    try {
+      if (file == null || !file.exists()) {
+        return new byte[4];
+      }
+
+      Path path = file.toPath();
+
+      String os = System.getProperty("os.name").toLowerCase();
+      if (isWindows(os)) {
+        return getWindowsFileAttributes(path);
+      } else if (isMac(os) || isUnix(os)) {
+        return getPosixFileAttributes(path);
+      } else {
+        return new byte[4];
+      }
+    } catch (NoSuchMethodError e) {
       return new byte[4];
     }
   }

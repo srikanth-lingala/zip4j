@@ -75,7 +75,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
         }
 
         FileHeader fileHeader = zipOutputStream.closeEntry();
-        fileHeader.setExternalFileAttributes(FileUtils.getFileAttributes(fileToAdd.toPath()));
+        fileHeader.setExternalFileAttributes(FileUtils.getFileAttributes(fileToAdd));
 
         headerWriter.updateLocalFileHeader(fileHeader, zipModel, splitOutputStream);
       }

@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -89,14 +90,17 @@ public class FileUtilsTestLinuxAndMac {
   }
 
   private void testGetFileAttributesGetsAsDefined(boolean isDirectory) throws IOException {
+    File file = mock(File.class);
     Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
+    when(file.exists()).thenReturn(true);
     PosixFileAttributeView posixFileAttributeView = mockPosixFileAttributeView(path, isDirectory);
     PosixFileAttributes posixFileAttributes = mock(PosixFileAttributes.class);
     Set<PosixFilePermission> posixFilePermissions = getAllPermissions();
     when(posixFileAttributes.permissions()).thenReturn(posixFilePermissions);
     when(posixFileAttributeView.readAttributes()).thenReturn(posixFileAttributes);
 
-    byte[] fileAttributes = FileUtils.getFileAttributes(path);
+    byte[] fileAttributes = FileUtils.getFileAttributes(file);
 
     assertThat(fileAttributes).hasSize(4);
     assertThat(fileAttributes[0]).isEqualTo((byte) 0);
