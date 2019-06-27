@@ -49,6 +49,12 @@ public class ZipOutputStreamIT extends AbstractIT {
   }
 
   @Test
+  public void testZipOutputStreamDeflateWithStandardEncryptionWhenModifiedFileTimeNotSet()
+      throws IOException, ZipException {
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, false);
+  }
+
+  @Test
   public void testZipOutputStreamDeflateWithAES128() throws IOException, ZipException {
     testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
   }
@@ -60,6 +66,13 @@ public class ZipOutputStreamIT extends AbstractIT {
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength)
+      throws IOException, ZipException {
+    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, true);
+  }
+
+  private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
+                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
+                                   boolean setLastModifiedTime)
       throws IOException, ZipException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
@@ -73,7 +86,9 @@ public class ZipOutputStreamIT extends AbstractIT {
           zipParameters.setEntrySize(fileToAdd.length());
         }
 
-        zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
+        if (setLastModifiedTime) {
+          zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
+        }
         zipParameters.setFileNameInZip(fileToAdd.getName());
         zos.putNextEntry(zipParameters);
 
