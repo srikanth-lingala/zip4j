@@ -28,6 +28,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
+          zipInputStream.getNextEntry();
           continue;
         }
 
