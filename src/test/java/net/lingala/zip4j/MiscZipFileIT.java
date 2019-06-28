@@ -368,6 +368,26 @@ public class MiscZipFileIT extends AbstractIT {
     verifySplitZipFileNames(splitZipFiles, 15, FileUtils.getZipFileNameWithoutExtension(generatedZipFile.getName()));
   }
 
+  @Test
+  public void testRenameZipFileAfterExtractionWithInputStreamSucceeds() throws ZipException, IOException {
+    new ZipFile(generatedZipFile).addFiles(FILES_TO_ADD);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    FileHeader fileHeader = zipFile.getFileHeader("sample_text1.txt");
+
+    assertThat(fileHeader).isNotNull();
+
+    try(InputStream inputStream = zipFile.getInputStream(fileHeader)) {
+      inputStream.read(new byte[100]);
+    }
+
+    File newFile = temporaryFolder.newFile("NEW_FILE_NAME.ZIP");
+    String oldFile = generatedZipFile.getPath();
+
+    assertThat(generatedZipFile.renameTo(newFile)).isTrue();
+    assertThat(new File(oldFile)).doesNotExist();
+  }
+
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException, ZipException {
     File outputFile = temporaryFolder.newFile();
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
