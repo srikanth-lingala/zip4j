@@ -168,7 +168,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     } else {
       if (clonedZipParameters.isEncryptFiles() && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
         progressMonitor.setCurrentTask(CALCULATE_CRC);
-        clonedZipParameters.setEntryCRC((int) computeFileCrc(fileToAdd, progressMonitor));
+        clonedZipParameters.setEntryCRC(computeFileCrc(fileToAdd, progressMonitor));
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 

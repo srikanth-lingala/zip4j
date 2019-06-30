@@ -17,7 +17,7 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
   @Override
   protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
     long key = getEncryptionKey(zipParameters);
-    StandardEncrypter encrypter = new StandardEncrypter(password, (key & 0x0000ffff) << 16);
+    StandardEncrypter encrypter = new StandardEncrypter(password, key);
     writeHeaders(encrypter.getHeaderBytes());
     return encrypter;
   }
@@ -39,9 +39,10 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
 
   private long getEncryptionKey(ZipParameters zipParameters) {
     if (zipParameters.isWriteExtendedLocalFileHeader()) {
-      return Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime());
+      long dosTime = Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime());
+      return (dosTime & 0x0000ffff) << 16;
     }
 
-    return zipParameters.getEntrySize();
+    return zipParameters.getEntryCRC();
   }
 }
