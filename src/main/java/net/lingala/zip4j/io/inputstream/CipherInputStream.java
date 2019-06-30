@@ -57,6 +57,11 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     return readLen;
   }
 
+  @Override
+  public void close() throws IOException {
+    zipEntryInputStream.close();
+  }
+
   public byte[] getLastReadRawDataCache() {
     return lastReadRawDataCache;
   }

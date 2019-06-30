@@ -49,6 +49,11 @@ abstract class DecompressedInputStream extends InputStream {
     return readLen;
   }
 
+  @Override
+  public void close() throws IOException {
+    cipherInputStream.close();
+  }
+
   public void endOfEntryReached(InputStream inputStream) throws IOException {
     cipherInputStream.endOfEntryReached(inputStream);
   }
