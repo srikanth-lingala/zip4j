@@ -61,7 +61,7 @@ public class HeaderReader {
     try {
       zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
     } catch (IOException e) {
-      throw new ZipException("Probably not a zip file or a corrupted zip file", e);
+      throw new ZipException("Zip headers not found. Probably not a zip file or a corrupted zip file", e);
     }
 
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory

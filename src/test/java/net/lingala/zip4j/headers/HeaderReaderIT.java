@@ -78,7 +78,7 @@ public class HeaderReaderIT extends AbstractIT {
       headerReader.readAllHeaders(randomAccessFile);
       fail("Should throw an exception");
     } catch (ZipException e) {
-      assertThat(e.getMessage()).isEqualTo("zip headers not found. probably not a zip file");
+      assertThat(e.getMessage()).isEqualTo("Zip headers not found. Probably not a zip file or a corrupted zip file");
     }
   }
 
@@ -93,7 +93,7 @@ public class HeaderReaderIT extends AbstractIT {
       headerReader.readAllHeaders(randomAccessFile);
       fail("Should throw an exception");
     } catch (ZipException e) {
-      assertThat(e.getMessage()).isEqualTo("Probably not a zip file or a corrupted zip file");
+      assertThat(e.getMessage()).isEqualTo("Zip headers not found. Probably not a zip file or a corrupted zip file");
       assertThat(e.getCause() instanceof IOException);
     }
   }
