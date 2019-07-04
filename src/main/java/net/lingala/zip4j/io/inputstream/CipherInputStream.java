@@ -45,15 +45,8 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     int readLen = zipEntryInputStream.read(b, off, len);
-
     cacheRawData(b, readLen);
-
-    try {
-      decrypter.decryptData(b, off, readLen);
-    } catch (ZipException e) {
-      throw new IOException(e);
-    }
-
+    decrypter.decryptData(b, off, readLen);
     return readLen;
   }
 

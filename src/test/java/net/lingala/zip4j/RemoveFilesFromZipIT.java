@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +60,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   }
 
   @Test
-  public void testRemoveFileAsFileNameRemovesSuccessfully() throws ZipException {
+  public void testRemoveFileAsFileNameRemovesSuccessfully() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
@@ -70,7 +71,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   }
 
   @Test
-  public void testRemoveFileAsFileNameRemovesSuccessfullyWithFolderNameInPath() throws ZipException {
+  public void testRemoveFileAsFileNameRemovesSuccessfullyWithFolderNameInPath() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
@@ -95,7 +96,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   }
 
   @Test
-  public void testRemoveFileAsFileHeaderRemovesSuccessfully() throws ZipException {
+  public void testRemoveFileAsFileHeaderRemovesSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);

@@ -46,7 +46,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   }
 
   void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
-      throws ZipException {
+      throws IOException {
 
     removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
 
@@ -79,8 +79,6 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
         headerWriter.updateLocalFileHeader(fileHeader, zipModel, splitOutputStream);
       }
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
   }
 
@@ -110,7 +108,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return totalWork;
   }
 
-  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream) throws IOException, ZipException {
+  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream) throws IOException {
     if (zipModel.getZipFile().exists()) {
       if (zipModel.getEndOfCentralDirectoryRecord() == null) {
         throw new ZipException("invalid end of central directory record");
@@ -144,7 +142,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   }
 
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
-                                                    ProgressMonitor progressMonitor) throws ZipException {
+                                                    ProgressMonitor progressMonitor) throws IOException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
     clonedZipParameters.setLastModifiedFileTime(javaToDosTime((fileToAdd.lastModified())));
     clonedZipParameters.setFileNameInZip(fileToAdd.getName());

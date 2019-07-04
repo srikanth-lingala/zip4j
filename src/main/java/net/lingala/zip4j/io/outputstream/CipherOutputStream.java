@@ -46,12 +46,7 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    try {
-      encrypter.encryptData(b, off, len);
-    } catch (ZipException e) {
-      throw new IOException(e);
-    }
-
+    encrypter.encryptData(b, off, len);
     zipEntryOutputStream.write(b, off, len);
   }
 

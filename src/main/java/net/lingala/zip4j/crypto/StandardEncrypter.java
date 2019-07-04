@@ -62,19 +62,14 @@ public class StandardEncrypter implements Encrypter {
   }
 
   public int encryptData(byte[] buff, int start, int len) throws ZipException {
-
     if (len < 0) {
       throw new ZipException("invalid length specified to decrpyt data");
     }
 
-    try {
-      for (int i = start; i < start + len; i++) {
-        buff[i] = encryptByte(buff[i]);
-      }
-      return len;
-    } catch (Exception e) {
-      throw new ZipException(e);
+    for (int i = start; i < start + len; i++) {
+      buff[i] = encryptByte(buff[i]);
     }
+    return len;
   }
 
   protected byte encryptByte(byte val) {

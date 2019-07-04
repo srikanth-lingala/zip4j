@@ -30,7 +30,7 @@ public class MiscZipFileIT extends AbstractIT {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
-  public void testMergeSplitZipFilesMergesSuccessfully() throws ZipException {
+  public void testMergeSplitZipFilesMergesSuccessfully() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
     filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
@@ -44,7 +44,7 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testMergeSplitZipFilesWithAesEncryptionMergesSuccessfully() throws ZipException {
+  public void testMergeSplitZipFilesWithAesEncryptionMergesSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
@@ -283,7 +283,7 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testGetInputStreamWithoutEncryptionReturnsSuccessfully() throws ZipException, IOException {
+  public void testGetInputStreamWithoutEncryptionReturnsSuccessfully() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
@@ -295,7 +295,7 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testGetInputStreamWithAesEncryptionReturnsSuccessfully() throws ZipException, IOException {
+  public void testGetInputStreamWithAesEncryptionReturnsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -307,7 +307,7 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testGetInputStreamWithAesEncryptionAndSplitFileReturnsSuccessfully() throws ZipException, IOException {
+  public void testGetInputStreamWithAesEncryptionAndSplitFileReturnsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
@@ -369,7 +369,7 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testRenameZipFileAfterExtractionWithInputStreamSucceeds() throws ZipException, IOException {
+  public void testRenameZipFileAfterExtractionWithInputStreamSucceeds() throws IOException {
     new ZipFile(generatedZipFile).addFiles(FILES_TO_ADD);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
@@ -388,7 +388,7 @@ public class MiscZipFileIT extends AbstractIT {
     assertThat(new File(oldFile)).doesNotExist();
   }
 
-  private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException, ZipException {
+  private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {
     File outputFile = temporaryFolder.newFile();
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
       byte[] b = new byte[InternalZipConstants.BUFF_SIZE];

@@ -29,7 +29,7 @@ public class CrcUtil {
 
   private static final int BUF_SIZE = 1 << 14; //16384
 
-  public static long computeFileCrc(File inputFile, ProgressMonitor progressMonitor) throws ZipException {
+  public static long computeFileCrc(File inputFile, ProgressMonitor progressMonitor) throws IOException {
 
     if (inputFile == null || !inputFile.exists() || !inputFile.canRead()) {
       throw new ZipException("input file is null or does not exist or cannot read. " +
@@ -54,8 +54,6 @@ public class CrcUtil {
         }
       }
       return crc32.getValue();
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
   }
 

@@ -18,6 +18,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class CreateZipFileIT extends AbstractIT {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsString() throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsString() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath());
     zipFile.createSplitZipFile(FILES_TO_ADD, new ZipParameters(), false, -1);
 
@@ -41,8 +42,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringWithAESEncryption256()
-      throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringWithAESEncryption256() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath(), PASSWORD);
@@ -54,8 +54,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringWithAESEncryption128()
-      throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringWithAESEncryption128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath(), PASSWORD);
@@ -67,7 +66,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithFile() throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithFile() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.createSplitZipFile(FILES_TO_ADD, new ZipParameters(), false, -1);
 
@@ -75,8 +74,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithAESEncryption256()
-      throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithAESEncryption256() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath(), PASSWORD);
@@ -88,8 +86,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithAESEncryption128()
-      throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithAESEncryption128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath(), PASSWORD);
@@ -101,8 +98,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithStandardEncryption()
-      throws ZipException {
+  public void testCreateSplitZipFileNotSplitArchiveWithFileAndWithStandardEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD,
         AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath(), PASSWORD);
@@ -124,7 +120,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileStoreAndWithoutEncryption() throws ZipException {
+  public void testCreateSplitZipFileStoreAndWithoutEncryption() throws IOException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
 
@@ -136,7 +132,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileStoreAndStandardZipEncryption() throws ZipException {
+  public void testCreateSplitZipFileStoreAndStandardZipEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
 
@@ -148,7 +144,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileStoreAndWithAesEncryptionKeyStrength256() throws ZipException {
+  public void testCreateSplitZipFileStoreAndWithAesEncryptionKeyStrength256() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
@@ -161,7 +157,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileStoreAndWithAesEncryptionKeyStrength128() throws ZipException {
+  public void testCreateSplitZipFileStoreAndWithAesEncryptionKeyStrength128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_128);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
@@ -176,7 +172,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileDeflateAndWithoutEncryption() throws ZipException {
+  public void testCreateSplitZipFileDeflateAndWithoutEncryption() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
     filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
@@ -188,7 +184,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileDeflateAndStandardZipEncryption() throws ZipException {
+  public void testCreateSplitZipFileDeflateAndStandardZipEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
 
@@ -202,7 +198,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileDeflateAndWithAesEncryptionKeyStrength256() throws ZipException {
+  public void testCreateSplitZipFileDeflateAndWithAesEncryptionKeyStrength256() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256);
 
@@ -216,7 +212,7 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateSplitZipFileDeflateAndWithAesEncryptionKeyStrength128() throws ZipException {
+  public void testCreateSplitZipFileDeflateAndWithAesEncryptionKeyStrength128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_128);
 

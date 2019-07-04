@@ -3,6 +3,7 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 
 public abstract class AsyncZipTask<T> {
@@ -58,7 +59,7 @@ public abstract class AsyncZipTask<T> {
     throw new ZipException("Task cancelled", ZipException.Type.TASK_CANCELLED_EXCEPTION);
   }
 
-  protected abstract void executeTask(T taskParameters, ProgressMonitor progressMonitor) throws ZipException;
+  protected abstract void executeTask(T taskParameters, ProgressMonitor progressMonitor) throws IOException;
 
   protected abstract long calculateTotalWork(T taskParameters) throws ZipException;
 

@@ -55,9 +55,14 @@ public class HeaderReader {
   private RawIO rawIO = new RawIO();
   private byte[] intBuff = new byte[4];
 
-  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf) throws ZipException {
+  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf) throws IOException {
     zipModel = new ZipModel();
-    zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
+
+    try {
+      zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
+    } catch (IOException e) {
+      throw new ZipException("Probably not a zip file or a corrupted zip file", e);
+    }
 
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory
     zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndOfCentralDirectoryLocator(zip4jRaf, rawIO));
@@ -78,172 +83,164 @@ public class HeaderReader {
   }
 
   private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO)
-      throws ZipException {
-    try {
-      long pos = zip4jRaf.length() - ENDHDR;
+      throws IOException {
+    long pos = zip4jRaf.length() - ENDHDR;
 
-      EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
+    EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
 
-      int counter = 0;
-      int headerSignature;
-      do {
-        zip4jRaf.seek(pos--);
-        counter++;
-      } while (((headerSignature = rawIO.readIntLittleEndian(zip4jRaf))
-          != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= 3000);
+    int counter = 0;
+    int headerSignature;
+    do {
+      zip4jRaf.seek(pos--);
+      counter++;
+    } while (((headerSignature = rawIO.readIntLittleEndian(zip4jRaf))
+        != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= 3000);
 
-      if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-        throw new ZipException("zip headers not found. probably not a zip file");
-      }
-
-      endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
-      endOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readShortLittleEndian(zip4jRaf));
-      endOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDir(rawIO.readShortLittleEndian(zip4jRaf));
-      endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
-          rawIO.readShortLittleEndian(zip4jRaf));
-      endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(zip4jRaf));
-      endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
-
-      zip4jRaf.readFully(intBuff);
-      endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
-
-      int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
-
-      if (commentLength > 0) {
-        byte[] commentBuf = new byte[commentLength];
-        zip4jRaf.readFully(commentBuf);
-        endOfCentralDirectoryRecord.setComment(new String(commentBuf, StandardCharsets.UTF_8));
-      } else {
-        endOfCentralDirectoryRecord.setComment(null);
-      }
-
-      zipModel.setSplitArchive(endOfCentralDirectoryRecord.getNumberOfThisDisk() > 0);
-      return endOfCentralDirectoryRecord;
-    } catch (IOException e) {
-      throw new ZipException("Probably not a zip file or a corrupted zip file", e);
+    if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
+      throw new ZipException("zip headers not found. probably not a zip file");
     }
+
+    endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
+    endOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readShortLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDir(rawIO.readShortLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
+        rawIO.readShortLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+
+    zip4jRaf.readFully(intBuff);
+    endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
+
+    int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
+
+    if (commentLength > 0) {
+      byte[] commentBuf = new byte[commentLength];
+      zip4jRaf.readFully(commentBuf);
+      endOfCentralDirectoryRecord.setComment(new String(commentBuf, StandardCharsets.UTF_8));
+    } else {
+      endOfCentralDirectoryRecord.setComment(null);
+    }
+
+    zipModel.setSplitArchive(endOfCentralDirectoryRecord.getNumberOfThisDisk() > 0);
+    return endOfCentralDirectoryRecord;
   }
 
-  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO) throws ZipException {
-    try {
-      CentralDirectory centralDirectory = new CentralDirectory();
-      List<FileHeader> fileHeaders = new ArrayList<>();
+  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO) throws IOException {
+    CentralDirectory centralDirectory = new CentralDirectory();
+    List<FileHeader> fileHeaders = new ArrayList<>();
 
-      long offSetStartCentralDir = getOffsetCentralDirectory(zipModel);
-      long centralDirEntryCount = getNumberOfEntriesInCentralDirectory(zipModel);
+    long offSetStartCentralDir = getOffsetCentralDirectory(zipModel);
+    long centralDirEntryCount = getNumberOfEntriesInCentralDirectory(zipModel);
 
-      if (zipModel.isZip64Format()) {
-        offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
-            .getOffsetStartCentralDirectoryWRTStartDiskNumber();
-        centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord()
-            .getTotalNumberOfEntriesInCentralDirectory();
-      }
-
-      zip4jRaf.seek(offSetStartCentralDir);
-
-      byte[] shortBuff = new byte[2];
-      byte[] intBuff = new byte[4];
-
-      for (int i = 0; i < centralDirEntryCount; i++) {
-        FileHeader fileHeader = new FileHeader();
-        if (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.CENTRAL_DIRECTORY.getValue()) {
-          throw new ZipException("Expected central directory entry not found (#" + (i + 1) + ")");
-        }
-        fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
-        fileHeader.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
-        fileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
-
-        byte[] generalPurposeFlags = new byte[2];
-        zip4jRaf.readFully(generalPurposeFlags);
-        fileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
-        fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
-        fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
-        fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
-
-        fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
-            zip4jRaf)));
-        fileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(zip4jRaf));
-
-        zip4jRaf.readFully(intBuff);
-        fileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
-        fileHeader.setCrcRawData(intBuff);
-
-        fileHeader.setCompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
-        fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
-
-        int fileNameLength = rawIO.readShortLittleEndian(zip4jRaf);
-        fileHeader.setFileNameLength(fileNameLength);
-
-        fileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(zip4jRaf));
-
-        int fileCommentLength = rawIO.readShortLittleEndian(zip4jRaf);
-        fileHeader.setFileCommentLength(fileCommentLength);
-
-        fileHeader.setDiskNumberStart(rawIO.readShortLittleEndian(zip4jRaf));
-
-        zip4jRaf.readFully(shortBuff);
-        fileHeader.setInternalFileAttributes(shortBuff.clone());
-
-        zip4jRaf.readFully(intBuff);
-        fileHeader.setExternalFileAttributes(intBuff.clone());
-
-        zip4jRaf.readFully(intBuff);
-        fileHeader.setOffsetLocalHeader(rawIO.readLongLittleEndian(intBuff, 0));
-
-        if (fileNameLength > 0) {
-          byte[] fileNameBuff = new byte[fileNameLength];
-          zip4jRaf.readFully(fileNameBuff);
-          String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
-
-          if (fileName.contains(":\\")) {
-            fileName = fileName.substring(fileName.indexOf(":\\") + 2);
-          }
-
-          fileHeader.setFileName(fileName);
-          fileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
-        } else {
-          fileHeader.setFileName(null);
-        }
-
-        readExtraDataRecords(zip4jRaf, fileHeader);
-        readZip64ExtendedInfo(fileHeader, rawIO);
-        readAesExtraDataRecord(fileHeader, rawIO);
-
-        if (fileCommentLength > 0) {
-          byte[] fileCommentBuff = new byte[fileCommentLength];
-          zip4jRaf.readFully(fileCommentBuff);
-          fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded()));
-        }
-
-        if (fileHeader.isEncrypted()) {
-          if (fileHeader.getAesExtraDataRecord() != null) {
-            fileHeader.setEncryptionMethod(EncryptionMethod.AES);
-          } else {
-            fileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
-          }
-        }
-
-        fileHeaders.add(fileHeader);
-      }
-
-      centralDirectory.setFileHeaders(fileHeaders);
-
-      DigitalSignature digitalSignature = new DigitalSignature();
-      if (rawIO.readIntLittleEndian(zip4jRaf) == HeaderSignature.DIGITAL_SIGNATURE.getValue()) {
-        digitalSignature.setSignature(HeaderSignature.DIGITAL_SIGNATURE);
-        digitalSignature.setSizeOfData(rawIO.readShortLittleEndian(zip4jRaf));
-
-        if (digitalSignature.getSizeOfData() > 0) {
-          byte[] signatureDataBuff = new byte[digitalSignature.getSizeOfData()];
-          zip4jRaf.readFully(signatureDataBuff);
-          digitalSignature.setSignatureData(new String(signatureDataBuff));
-        }
-      }
-
-      return centralDirectory;
-    } catch (IOException e) {
-      throw new ZipException(e);
+    if (zipModel.isZip64Format()) {
+      offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
+          .getOffsetStartCentralDirectoryWRTStartDiskNumber();
+      centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord()
+          .getTotalNumberOfEntriesInCentralDirectory();
     }
+
+    zip4jRaf.seek(offSetStartCentralDir);
+
+    byte[] shortBuff = new byte[2];
+    byte[] intBuff = new byte[4];
+
+    for (int i = 0; i < centralDirEntryCount; i++) {
+      FileHeader fileHeader = new FileHeader();
+      if (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.CENTRAL_DIRECTORY.getValue()) {
+        throw new ZipException("Expected central directory entry not found (#" + (i + 1) + ")");
+      }
+      fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
+      fileHeader.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
+      fileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
+
+      byte[] generalPurposeFlags = new byte[2];
+      zip4jRaf.readFully(generalPurposeFlags);
+      fileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
+      fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
+      fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
+      fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
+
+      fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
+          zip4jRaf)));
+      fileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(zip4jRaf));
+
+      zip4jRaf.readFully(intBuff);
+      fileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
+      fileHeader.setCrcRawData(intBuff);
+
+      fileHeader.setCompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
+      fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
+
+      int fileNameLength = rawIO.readShortLittleEndian(zip4jRaf);
+      fileHeader.setFileNameLength(fileNameLength);
+
+      fileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(zip4jRaf));
+
+      int fileCommentLength = rawIO.readShortLittleEndian(zip4jRaf);
+      fileHeader.setFileCommentLength(fileCommentLength);
+
+      fileHeader.setDiskNumberStart(rawIO.readShortLittleEndian(zip4jRaf));
+
+      zip4jRaf.readFully(shortBuff);
+      fileHeader.setInternalFileAttributes(shortBuff.clone());
+
+      zip4jRaf.readFully(intBuff);
+      fileHeader.setExternalFileAttributes(intBuff.clone());
+
+      zip4jRaf.readFully(intBuff);
+      fileHeader.setOffsetLocalHeader(rawIO.readLongLittleEndian(intBuff, 0));
+
+      if (fileNameLength > 0) {
+        byte[] fileNameBuff = new byte[fileNameLength];
+        zip4jRaf.readFully(fileNameBuff);
+        String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
+
+        if (fileName.contains(":\\")) {
+          fileName = fileName.substring(fileName.indexOf(":\\") + 2);
+        }
+
+        fileHeader.setFileName(fileName);
+        fileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
+      } else {
+        fileHeader.setFileName(null);
+      }
+
+      readExtraDataRecords(zip4jRaf, fileHeader);
+      readZip64ExtendedInfo(fileHeader, rawIO);
+      readAesExtraDataRecord(fileHeader, rawIO);
+
+      if (fileCommentLength > 0) {
+        byte[] fileCommentBuff = new byte[fileCommentLength];
+        zip4jRaf.readFully(fileCommentBuff);
+        fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded()));
+      }
+
+      if (fileHeader.isEncrypted()) {
+        if (fileHeader.getAesExtraDataRecord() != null) {
+          fileHeader.setEncryptionMethod(EncryptionMethod.AES);
+        } else {
+          fileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+        }
+      }
+
+      fileHeaders.add(fileHeader);
+    }
+
+    centralDirectory.setFileHeaders(fileHeaders);
+
+    DigitalSignature digitalSignature = new DigitalSignature();
+    if (rawIO.readIntLittleEndian(zip4jRaf) == HeaderSignature.DIGITAL_SIGNATURE.getValue()) {
+      digitalSignature.setSignature(HeaderSignature.DIGITAL_SIGNATURE);
+      digitalSignature.setSizeOfData(rawIO.readShortLittleEndian(zip4jRaf));
+
+      if (digitalSignature.getSizeOfData() > 0) {
+        byte[] signatureDataBuff = new byte[digitalSignature.getSizeOfData()];
+        zip4jRaf.readFully(signatureDataBuff);
+        digitalSignature.setSignatureData(new String(signatureDataBuff));
+      }
+    }
+
+    return centralDirectory;
   }
 
   private void readExtraDataRecords(RandomAccessFile zip4jRaf, FileHeader fileHeader)
@@ -316,35 +313,31 @@ public class HeaderReader {
   }
 
   private Zip64EndOfCentralDirectoryLocator readZip64EndOfCentralDirectoryLocator(RandomAccessFile zip4jRaf,
-                                                                                  RawIO rawIO) throws ZipException {
-    try {
-      Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator = new Zip64EndOfCentralDirectoryLocator();
+                                                                                  RawIO rawIO) throws IOException {
+    Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator = new Zip64EndOfCentralDirectoryLocator();
 
-      setFilePointerToReadZip64EndCentralDirLoc(zip4jRaf, rawIO);
+    setFilePointerToReadZip64EndCentralDirLoc(zip4jRaf, rawIO);
 
-      int signature = rawIO.readIntLittleEndian(zip4jRaf);
-      if (signature == HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR.getValue()) {
-        zipModel.setZip64Format(true);
-        zip64EndOfCentralDirectoryLocator.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR);
-      } else {
-        zipModel.setZip64Format(false);
-        return null;
-      }
-
-      zip64EndOfCentralDirectoryLocator.setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
-          rawIO.readIntLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryLocator.setOffsetZip64EndOfCentralDirectoryRecord(
-          rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryLocator.setTotalNumberOfDiscs(rawIO.readIntLittleEndian(zip4jRaf));
-
-      return zip64EndOfCentralDirectoryLocator;
-    } catch (IOException e) {
-      throw new ZipException(e);
+    int signature = rawIO.readIntLittleEndian(zip4jRaf);
+    if (signature == HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR.getValue()) {
+      zipModel.setZip64Format(true);
+      zip64EndOfCentralDirectoryLocator.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR);
+    } else {
+      zipModel.setZip64Format(false);
+      return null;
     }
+
+    zip64EndOfCentralDirectoryLocator.setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
+        rawIO.readIntLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryLocator.setOffsetZip64EndOfCentralDirectoryRecord(
+        rawIO.readLongLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryLocator.setTotalNumberOfDiscs(rawIO.readIntLittleEndian(zip4jRaf));
+
+    return zip64EndOfCentralDirectoryLocator;
   }
 
   private Zip64EndOfCentralDirectoryRecord readZip64EndCentralDirRec(RandomAccessFile zip4jRaf, RawIO rawIO)
-      throws ZipException {
+      throws IOException {
 
     if (zipModel.getZip64EndOfCentralDirectoryLocator() == null) {
       throw new ZipException("invalid zip64 end of central directory locator");
@@ -357,41 +350,37 @@ public class HeaderReader {
       throw new ZipException("invalid offset for start of end of central directory record");
     }
 
-    try {
-      zip4jRaf.seek(offSetStartOfZip64CentralDir);
+    zip4jRaf.seek(offSetStartOfZip64CentralDir);
 
-      Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord = new Zip64EndOfCentralDirectoryRecord();
+    Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord = new Zip64EndOfCentralDirectoryRecord();
 
-      int signature = rawIO.readIntLittleEndian(zip4jRaf);
-      if (signature != HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD.getValue()) {
-        throw new ZipException("invalid signature for zip64 end of central directory record");
-      }
-      zip64EndOfCentralDirectoryRecord.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD);
-      zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirectoryRecord(rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readIntLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
-          rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
-      zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
-          rawIO.readLongLittleEndian(zip4jRaf));
-
-      //zip64 extensible data sector
-      //44 is the size of fixed variables in this record
-      long extDataSecSize = zip64EndOfCentralDirectoryRecord.getSizeOfZip64EndCentralDirectoryRecord() - 44;
-      if (extDataSecSize > 0) {
-        byte[] extDataSecRecBuf = new byte[(int) extDataSecSize];
-        zip4jRaf.readFully(extDataSecRecBuf);
-        zip64EndOfCentralDirectoryRecord.setExtensibleDataSector(extDataSecRecBuf);
-      }
-
-      return zip64EndOfCentralDirectoryRecord;
-    } catch (IOException e) {
-      throw new ZipException(e);
+    int signature = rawIO.readIntLittleEndian(zip4jRaf);
+    if (signature != HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD.getValue()) {
+      throw new ZipException("invalid signature for zip64 end of central directory record");
     }
+    zip64EndOfCentralDirectoryRecord.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD);
+    zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirectoryRecord(rawIO.readLongLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readIntLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
+        rawIO.readLongLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
+        rawIO.readLongLittleEndian(zip4jRaf));
+
+    //zip64 extensible data sector
+    //44 is the size of fixed variables in this record
+    long extDataSecSize = zip64EndOfCentralDirectoryRecord.getSizeOfZip64EndCentralDirectoryRecord() - 44;
+    if (extDataSecSize > 0) {
+      byte[] extDataSecRecBuf = new byte[(int) extDataSecSize];
+      zip4jRaf.readFully(extDataSecRecBuf);
+      zip64EndOfCentralDirectoryRecord.setExtensibleDataSector(extDataSecRecBuf);
+    }
+
+    return zip64EndOfCentralDirectoryRecord;
   }
 
   private void readZip64ExtendedInfo(FileHeader fileHeader, RawIO rawIO) throws ZipException {
@@ -475,110 +464,102 @@ public class HeaderReader {
     return null;
   }
 
-  private void setFilePointerToReadZip64EndCentralDirLoc(RandomAccessFile zip4jRaf, RawIO rawIO) throws ZipException {
-    try {
-      long pos = zip4jRaf.length() - ENDHDR;
+  private void setFilePointerToReadZip64EndCentralDirLoc(RandomAccessFile zip4jRaf, RawIO rawIO) throws IOException {
+    long pos = zip4jRaf.length() - ENDHDR;
 
-      do {
-        zip4jRaf.seek(pos--);
-      } while (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
+    do {
+      zip4jRaf.seek(pos--);
+    } while (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
 
-      // Now the file pointer is at the end of signature of Central Dir Rec
-      // Seek back with the following values
-      // 4 -> end of central dir signature
-      // 4 -> total number of disks
-      // 8 -> relative offset of the zip64 end of central directory record
-      // 4 -> number of the disk with the start of the zip64 end of central directory
-      // 4 -> zip64 end of central dir locator signature
-      // Refer to Appnote for more information
-      zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
+    // Now the file pointer is at the end of signature of Central Dir Rec
+    // Seek back with the following values
+    // 4 -> end of central dir signature
+    // 4 -> total number of disks
+    // 8 -> relative offset of the zip64 end of central directory record
+    // 4 -> number of the disk with the start of the zip64 end of central directory
+    // 4 -> zip64 end of central dir locator signature
+    // Refer to Appnote for more information
+    zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
   }
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream) throws IOException {
-    try {
-      LocalFileHeader localFileHeader = new LocalFileHeader();
-      byte[] intBuff = new byte[4];
+    LocalFileHeader localFileHeader = new LocalFileHeader();
+    byte[] intBuff = new byte[4];
 
-      //signature
-      int sig = rawIO.readIntLittleEndian(inputStream);
-      if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
-        return null;
-      }
-      localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
-      localFileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(inputStream));
+    //signature
+    int sig = rawIO.readIntLittleEndian(inputStream);
+    if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
+      return null;
+    }
+    localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
+    localFileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(inputStream));
 
-      byte[] generalPurposeFlags = new byte[2];
-      if (inputStream.read(generalPurposeFlags) != 2) {
-        throw new ZipException("Could not read enough bytes for generalPurposeFlags");
-      }
-      localFileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
-      localFileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
-      localFileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
-      localFileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
+    byte[] generalPurposeFlags = new byte[2];
+    if (inputStream.read(generalPurposeFlags) != 2) {
+      throw new ZipException("Could not read enough bytes for generalPurposeFlags");
+    }
+    localFileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
+    localFileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
+    localFileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
+    localFileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
 
-      localFileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(
-          rawIO.readShortLittleEndian(inputStream)));
-      localFileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(inputStream));
+    localFileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(
+        rawIO.readShortLittleEndian(inputStream)));
+    localFileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(inputStream));
 
-      inputStream.read(intBuff);
-      localFileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
-      localFileHeader.setCrcRawData(intBuff.clone());
+    inputStream.read(intBuff);
+    localFileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
+    localFileHeader.setCrcRawData(intBuff.clone());
 
-      localFileHeader.setCompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
-      localFileHeader.setUncompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
+    localFileHeader.setCompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
+    localFileHeader.setUncompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
 
-      int fileNameLength = rawIO.readShortLittleEndian(inputStream);
-      localFileHeader.setFileNameLength(fileNameLength);
+    int fileNameLength = rawIO.readShortLittleEndian(inputStream);
+    localFileHeader.setFileNameLength(fileNameLength);
 
-      localFileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(inputStream));
+    localFileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(inputStream));
 
-      if (fileNameLength > 0) {
-        byte[] fileNameBuf = new byte[fileNameLength];
-        inputStream.read(fileNameBuf);
-        // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
+    if (fileNameLength > 0) {
+      byte[] fileNameBuf = new byte[fileNameLength];
+      inputStream.read(fileNameBuf);
+      // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
 //				String fileName = new String(fileNameBuf, "Cp850");
 //				String fileName = Zip4jUtil.getCp850EncodedString(fileNameBuf);
-        String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded());
+      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded());
 
-        if (fileName == null) {
-          throw new ZipException("file name is null, cannot assign file name to local file header");
-        }
-
-        if (fileName.contains(":" + System.getProperty("file.separator"))) {
-          fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);
-        }
-
-        localFileHeader.setFileName(fileName);
-        localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
-      } else {
-        localFileHeader.setFileName(null);
+      if (fileName == null) {
+        throw new ZipException("file name is null, cannot assign file name to local file header");
       }
 
-      readExtraDataRecords(inputStream, localFileHeader);
-      readZip64ExtendedInfo(localFileHeader, rawIO);
-      readAesExtraDataRecord(localFileHeader, rawIO);
-
-      if (localFileHeader.isEncrypted()) {
-
-        if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
-          //Do nothing
-        } else {
-          if (BigInteger.valueOf(localFileHeader.getGeneralPurposeFlag()[0]).testBit(6)) {
-            localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG);
-          } else {
-            localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
-          }
-        }
-
+      if (fileName.contains(":" + System.getProperty("file.separator"))) {
+        fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);
       }
 
-      return localFileHeader;
-    } catch (ZipException e) {
-      throw new IOException(e);
+      localFileHeader.setFileName(fileName);
+      localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
+    } else {
+      localFileHeader.setFileName(null);
     }
+
+    readExtraDataRecords(inputStream, localFileHeader);
+    readZip64ExtendedInfo(localFileHeader, rawIO);
+    readAesExtraDataRecord(localFileHeader, rawIO);
+
+    if (localFileHeader.isEncrypted()) {
+
+      if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
+        //Do nothing
+      } else {
+        if (BigInteger.valueOf(localFileHeader.getGeneralPurposeFlag()[0]).testBit(6)) {
+          localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG);
+        } else {
+          localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+        }
+      }
+
+    }
+
+    return localFileHeader;
   }
 
   public DataDescriptor readDataDescriptor(InputStream inputStream, boolean isZip64Format) throws IOException {

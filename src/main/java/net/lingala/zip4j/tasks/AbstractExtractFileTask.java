@@ -28,7 +28,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outPath, String newFileName,
-                             ProgressMonitor progressMonitor) throws ZipException {
+                             ProgressMonitor progressMonitor) throws IOException {
 
     progressMonitor.setFileName(fileHeader.getFileName());
 
@@ -60,7 +60,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, String outputPath, String newFileName,
-                         ProgressMonitor progressMonitor) throws ZipException {
+                         ProgressMonitor progressMonitor) throws IOException {
 
     String outputFileName = Zip4jUtil.isStringNotNullAndNotEmpty(newFileName) ? newFileName : fileHeader.getFileName();
     File outputFile = new File(outputPath + System.getProperty("file.separator") + outputFileName);
@@ -72,27 +72,21 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
         progressMonitor.updateWorkCompleted(readLength);
         verifyIfTaskIsCancelled();
       }
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);
   }
 
-  private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws ZipException {
-    try {
-      LocalFileHeader localFileHeader = zipInputStream.getNextEntry();
+  private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws IOException {
+    LocalFileHeader localFileHeader = zipInputStream.getNextEntry();
 
-      if (localFileHeader == null) {
-        throw new ZipException("Could not read corresponding local file header for file header: "
-            + fileHeader.getFileName());
-      }
+    if (localFileHeader == null) {
+      throw new ZipException("Could not read corresponding local file header for file header: "
+          + fileHeader.getFileName());
+    }
 
-      if (!fileHeader.getFileName().equals(localFileHeader.getFileName())) {
-        throw new ZipException("File header and local file header mismatch");
-      }
-    } catch (IOException e) {
-      throw new ZipException(e);
+    if (!fileHeader.getFileName().equals(localFileHeader.getFileName())) {
+      throw new ZipException("File header and local file header mismatch");
     }
   }
 

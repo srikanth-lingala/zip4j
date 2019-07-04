@@ -27,7 +27,7 @@ public class CrcUtilIT extends AbstractIT {
   private ProgressMonitor progressMonitor = new ProgressMonitor();
 
   @Test
-  public void testComputeFileCrcThrowsExceptionWhenFileIsNull() throws ZipException {
+  public void testComputeFileCrcThrowsExceptionWhenFileIsNull() throws IOException {
     expectedException.expectMessage("input file is null or does not exist or cannot read. " +
         "Cannot calculate CRC for the file");
     expectedException.expect(ZipException.class);
@@ -36,7 +36,7 @@ public class CrcUtilIT extends AbstractIT {
   }
 
   @Test
-  public void testComputeFileCrcThrowsExceptionWhenCannotReadFile() throws ZipException {
+  public void testComputeFileCrcThrowsExceptionWhenCannotReadFile() throws IOException {
     expectedException.expectMessage("input file is null or does not exist or cannot read. " +
         "Cannot calculate CRC for the file");
     expectedException.expect(ZipException.class);
@@ -48,7 +48,7 @@ public class CrcUtilIT extends AbstractIT {
   }
 
   @Test
-  public void testComputeFileCrcThrowsExceptionWhenFileDoesNotExist() throws ZipException {
+  public void testComputeFileCrcThrowsExceptionWhenFileDoesNotExist() throws IOException {
     expectedException.expectMessage("input file is null or does not exist or cannot read. " +
         "Cannot calculate CRC for the file");
     expectedException.expect(ZipException.class);
@@ -57,13 +57,13 @@ public class CrcUtilIT extends AbstractIT {
   }
 
   @Test
-  public void testComputeFileCrcGetsValueSuccessfully() throws ZipException, IOException {
+  public void testComputeFileCrcGetsValueSuccessfully() throws IOException {
     testComputeFileCrcForFile(getFileFromResources("sample.pdf"));
     testComputeFileCrcForFile(getFileFromResources("sample_text1.txt"));
     testComputeFileCrcForFile(getFileFromResources("sample_text_large.txt"));
   }
 
-  private void testComputeFileCrcForFile(File file) throws ZipException, IOException {
+  private void testComputeFileCrcForFile(File file) throws IOException {
     long actualFileCrc = calculateFileCrc(file);
     assertThat(CrcUtil.computeFileCrc(file, progressMonitor)).isEqualTo(actualFileCrc);
   }

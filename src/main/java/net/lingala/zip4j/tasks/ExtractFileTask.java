@@ -1,7 +1,6 @@
 package net.lingala.zip4j.tasks;
 
 import lombok.AllArgsConstructor;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
@@ -22,14 +21,11 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
 
   @Override
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
-      throws ZipException {
+      throws IOException {
     try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader)) {
       extractFile(zipInputStream, taskParameters.fileHeader, taskParameters.outputPath, taskParameters.newFileName,
           progressMonitor);
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
-
   }
 
   @Override
@@ -37,15 +33,11 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     return taskParameters.fileHeader.getCompressedSize();
   }
 
-  protected ZipInputStream createZipInputStream(FileHeader fileHeader) throws ZipException {
-    try {
-      SplitInputStream splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
-          getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
-      splitInputStream.prepareExtractionForFileHeader(fileHeader);
-      return new ZipInputStream(splitInputStream, password);
-    } catch (IOException e) {
-      throw new ZipException(e);
-    }
+  protected ZipInputStream createZipInputStream(FileHeader fileHeader) throws IOException {
+    SplitInputStream splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
+        getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+    splitInputStream.prepareExtractionForFileHeader(fileHeader);
+    return new ZipInputStream(splitInputStream, password);
   }
 
   @AllArgsConstructor

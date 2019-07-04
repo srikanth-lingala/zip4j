@@ -29,7 +29,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
 
   @Override
   protected void executeTask(FileHeader fileHeader, ProgressMonitor progressMonitor)
-      throws ZipException {
+      throws IOException {
     if (zipModel.isSplitArchive()) {
       throw new ZipException("This is a split archive. Zip file format does not allow updating split/spanned files");
     }
@@ -66,8 +66,6 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
 
       updateHeaders(zipModel, outputStream, indexOfFileHeader, offsetEndOfCompressedData, offsetLocalFileHeader);
       successFlag = true;
-    } catch (IOException e) {
-      throw new ZipException(e);
     } finally {
       cleanupFile(successFlag, zipModel.getZipFile(), temporaryZipFile);
     }

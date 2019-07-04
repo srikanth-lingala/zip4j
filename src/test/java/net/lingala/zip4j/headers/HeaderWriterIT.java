@@ -56,7 +56,7 @@ public class HeaderWriterIT extends AbstractIT {
   private HeaderReader headerReader = new HeaderReader();
 
   @Test
-  public void testWriteLocalFileHeaderSimpleLocalFileHeaderSuccessScenario() throws IOException, ZipException {
+  public void testWriteLocalFileHeaderSimpleLocalFileHeaderSuccessScenario() throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("LFH", COMPRESSED_SIZE, UNCOMPRESSED_SIZE, true);
     File headersFile = temporaryFolder.newFile();
@@ -72,7 +72,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testWriteLocalFileHeaderForZip64Format() throws IOException, ZipException {
+  public void testWriteLocalFileHeaderForZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("LFH", COMPRESSED_SIZE_ZIP64,
         UNCOMPRESSED_SIZE_ZIP64, true);
@@ -95,65 +95,63 @@ public class HeaderWriterIT extends AbstractIT {
 
   @Test
   public void testWriteLocalFileHeaderJapaneseCharactersInFileNameAndWithUtf8FlagShouldMatch()
-      throws IOException, ZipException {
+      throws IOException {
     testWriteLocalFileHeaderWithFileName("公ゃ的年社", true, true);
   }
 
   @Test
   public void testWriteLocalFileHeaderEnglishCharactersInFileNameWithoutUtf8ShouldMatch()
-      throws IOException, ZipException {
+      throws IOException {
     testWriteLocalFileHeaderWithFileName("SOME_TEXT", false, true);
   }
 
   @Test
   public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithoutUtf8ShouldNotMatch()
-      throws IOException, ZipException {
+      throws IOException {
     testWriteLocalFileHeaderWithFileName("公ゃ的年社", false, false);
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes256() throws IOException, ZipException {
+  public void testWriteLocalFileHeaderWithAes256() throws IOException {
     testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_256);
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes192() throws IOException, ZipException {
+  public void testWriteLocalFileHeaderWithAes192() throws IOException {
     testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_192);
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes128() throws IOException, ZipException {
+  public void testWriteLocalFileHeaderWithAes128() throws IOException {
     testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_128);
   }
 
   @Test
-  public void testWriteExtendedLocalFileHeaderWhenLocalFileHeaderIsNullThrowsException()
-      throws IOException, ZipException {
+  public void testWriteExtendedLocalFileHeaderWhenLocalFileHeaderIsNullThrowsException() throws IOException {
     expectedException.expectMessage("input parameters is null, cannot write extended local header");
     expectedException.expect(ZipException.class);
     headerWriter.writeExtendedLocalHeader(null, new FileOutputStream(temporaryFolder.newFile()));
   }
 
   @Test
-  public void testWriteExtendedLocalFileHeaderWhenOutputStreamIsNullThrowsException()
-      throws IOException, ZipException {
+  public void testWriteExtendedLocalFileHeaderWhenOutputStreamIsNullThrowsException() throws IOException {
     expectedException.expectMessage("input parameters is null, cannot write extended local header");
     expectedException.expect(ZipException.class);
     headerWriter.writeExtendedLocalHeader(new LocalFileHeader(), null);
   }
 
   @Test
-  public void testWriteExtendedLocalFileHeaderNonZip64FormatWritesSuccessfully() throws IOException, ZipException {
+  public void testWriteExtendedLocalFileHeaderNonZip64FormatWritesSuccessfully() throws IOException {
     testWriteExtendedLocalFileHeader(COMPRESSED_SIZE + 99, UNCOMPRESSED_SIZE + 423, 2342342L, false);
   }
 
   @Test
-  public void testWriteExtendedLocalFileHeaderZip64FormatWritesSuccessfully() throws IOException, ZipException {
+  public void testWriteExtendedLocalFileHeaderZip64FormatWritesSuccessfully() throws IOException {
     testWriteExtendedLocalFileHeader(COMPRESSED_SIZE_ZIP64 + 99, UNCOMPRESSED_SIZE_ZIP64 + 423, 32452342L, true);
   }
 
   @Test
-  public void testFinalizeZipFileWhenZipModelNullThrowsException() throws ZipException, IOException {
+  public void testFinalizeZipFileWhenZipModelNullThrowsException() throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
@@ -161,7 +159,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileWhenOutputStreamIsNullThrowsException() throws ZipException, IOException {
+  public void testFinalizeZipFileWhenOutputStreamIsNullThrowsException() throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
@@ -169,7 +167,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileForNonZip64Format() throws ZipException, IOException {
+  public void testFinalizeZipFileForNonZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10);
     File headersFile = temporaryFolder.newFile();
 
@@ -190,7 +188,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileForZip64Format() throws ZipException, IOException {
+  public void testFinalizeZipFileForZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64);
     File headersFile = temporaryFolder.newFile();
 
@@ -212,7 +210,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileForAes() throws ZipException, IOException {
+  public void testFinalizeZipFileForAes() throws IOException {
     ZipModel zipModel = createZipModel(10);
     setFileHeadersAsAesEncrypted(zipModel.getCentralDirectory().getFileHeaders(), AesKeyStrength.KEY_STRENGTH_192);
     File headersFile = temporaryFolder.newFile();
@@ -233,7 +231,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileForZip64FormatForSplitFileWithSplitOutputStream() throws ZipException, IOException {
+  public void testFinalizeZipFileForZip64FormatForSplitFileWithSplitOutputStream() throws IOException {
     ZipModel zipModel = createZipModel(10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64);
     zipModel.setZip64EndOfCentralDirectoryRecord(null);
     zipModel.setZip64EndOfCentralDirectoryLocator(null);
@@ -257,7 +255,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileForZip64FormatForSplitFileWithCountingOutputStream() throws ZipException, IOException {
+  public void testFinalizeZipFileForZip64FormatForSplitFileWithCountingOutputStream() throws IOException {
     ZipModel zipModel = createZipModel(10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64);
     File headersFile = temporaryFolder.newFile();
 
@@ -279,7 +277,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileWithoutValidationsWhenZipModelNullThrowsException() throws ZipException, IOException {
+  public void testFinalizeZipFileWithoutValidationsWhenZipModelNullThrowsException() throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
@@ -288,7 +286,7 @@ public class HeaderWriterIT extends AbstractIT {
 
   @Test
   public void testFinalizeZipFileWithoutValidationsWhenOutputStreamIsNullThrowsException()
-      throws ZipException {
+      throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
@@ -296,7 +294,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileWithoutValidationsForNonZip64Format() throws ZipException, IOException {
+  public void testFinalizeZipFileWithoutValidationsForNonZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10);
     File headersFile = temporaryFolder.newFile();
 
@@ -317,7 +315,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testFinalizeZipFileWithoutValidationsForZip64Format() throws ZipException, IOException {
+  public void testFinalizeZipFileWithoutValidationsForZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64);
     File headersFile = temporaryFolder.newFile();
 
@@ -339,7 +337,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testUpdateLocalFileHeaderWhenFileHeaderIsNullThrowsException() throws ZipException, IOException {
+  public void testUpdateLocalFileHeaderWhenFileHeaderIsNullThrowsException() throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("invalid input parameters, cannot update local file header");
 
@@ -347,7 +345,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testUpdateLocalFileHeaderWhenZipModelIsNullThrowsException() throws ZipException, IOException {
+  public void testUpdateLocalFileHeaderWhenZipModelIsNullThrowsException() throws IOException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("invalid input parameters, cannot update local file header");
 
@@ -355,7 +353,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testUpdateLocalFileHeaderForNonZip64() throws IOException, ZipException {
+  public void testUpdateLocalFileHeaderForNonZip64() throws IOException {
     File headersFile = temporaryFolder.newFile();
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE, UNCOMPRESSED_SIZE, 23423);
 
@@ -369,7 +367,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testUpdateLocalFileHeaderForZip64() throws IOException, ZipException {
+  public void testUpdateLocalFileHeaderForZip64() throws IOException {
     File headersFile = temporaryFolder.newFile();
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, 546423);
 
@@ -386,7 +384,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   public void createAndUpdateLocalFileHeader(File headersFile, long compressedSize, long uncompressedSize, long crc)
-      throws IOException, ZipException {
+      throws IOException {
     ZipModel zipModel = createZipModel(3);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("LFH", compressedSize, uncompressedSize, false);
     localFileHeaderToWrite.setCompressedSize(compressedSize);
@@ -440,7 +438,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   private void testWriteExtendedLocalFileHeader(long compressedSize, long uncompressedSize, long crc,
-                                                boolean isZip64Format) throws IOException, ZipException {
+                                                boolean isZip64Format) throws IOException {
     LocalFileHeader localFileHeader = createLocalFileHeader("SOME_NAME", compressedSize, uncompressedSize, true);
     localFileHeader.setCrc(crc);
     localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(isZip64Format);
@@ -465,7 +463,7 @@ public class HeaderWriterIT extends AbstractIT {
     assertThat(dataDescriptor.getCrc()).isEqualTo(crc);
   }
 
-  private void testWriteLocalFileHeaderWithAes(AesKeyStrength aesKeyStrength) throws IOException, ZipException {
+  private void testWriteLocalFileHeaderWithAes(AesKeyStrength aesKeyStrength) throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("TEXT", COMPRESSED_SIZE, UNCOMPRESSED_SIZE, true);
     localFileHeaderToWrite.setEncryptionMethod(EncryptionMethod.AES);
@@ -503,7 +501,7 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   private void testWriteLocalFileHeaderWithFileName(String fileNameSuffix, boolean useUtf8,
-                                                    boolean expectFileNamesToMatch) throws IOException, ZipException {
+                                                    boolean expectFileNamesToMatch) throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader(fileNameSuffix, COMPRESSED_SIZE, UNCOMPRESSED_SIZE,
         useUtf8);

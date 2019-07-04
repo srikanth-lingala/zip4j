@@ -46,19 +46,13 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public void putNextEntry(ZipParameters zipParameters) throws IOException {
-    try {
-      verifyZipParameters(zipParameters);
-      initializeAndWriteFileHeader(zipParameters);
+    verifyZipParameters(zipParameters);
+    initializeAndWriteFileHeader(zipParameters);
 
-      //Initialisation of below compressedOutputStream should happen after writing local file header
-      //because local header data should be written first and then the encryption header data
-      //and below initialisation writes encryption header data
-      compressedOutputStream = initializeCompressedOutputStream(zipParameters);
-    } catch (IOException e) {
-      throw e;
-    } catch (ZipException e) {
-      throw new IOException(e);
-    }
+    //Initialisation of below compressedOutputStream should happen after writing local file header
+    //because local header data should be written first and then the encryption header data
+    //and below initialisation writes encryption header data
+    compressedOutputStream = initializeCompressedOutputStream(zipParameters);
   }
 
   public void write(int b) throws IOException {
@@ -76,44 +70,35 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public FileHeader closeEntry() throws IOException {
-    try {
-      compressedOutputStream.closeEntry();
+    compressedOutputStream.closeEntry();
 
-      long compressedSize = compressedOutputStream.getCompressedSize();
-      fileHeader.setCompressedSize(compressedSize);
-      localFileHeader.setCompressedSize(compressedSize);
+    long compressedSize = compressedOutputStream.getCompressedSize();
+    fileHeader.setCompressedSize(compressedSize);
+    localFileHeader.setCompressedSize(compressedSize);
 
-      fileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
-      localFileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
+    fileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
+    localFileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
 
-      //Skip writing crc for AES encrypted files
-      if (!fileHeader.isEncrypted() || !EncryptionMethod.AES.equals(fileHeader.getEncryptionMethod())) {
-        fileHeader.setCrc(crc32.getValue());
-        localFileHeader.setCrc(crc32.getValue());
-      }
-
-      zipModel.getLocalFileHeaders().add(localFileHeader);
-      zipModel.getCentralDirectory().getFileHeaders().add(fileHeader);
-
-      if (localFileHeader.isDataDescriptorExists()) {
-        headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
-      }
-      reset();
-      return fileHeader;
-    } catch (ZipException e) {
-      throw new IOException(e);
+    //Skip writing crc for AES encrypted files
+    if (!fileHeader.isEncrypted() || !EncryptionMethod.AES.equals(fileHeader.getEncryptionMethod())) {
+      fileHeader.setCrc(crc32.getValue());
+      localFileHeader.setCrc(crc32.getValue());
     }
+
+    zipModel.getLocalFileHeaders().add(localFileHeader);
+    zipModel.getCentralDirectory().getFileHeaders().add(fileHeader);
+
+    if (localFileHeader.isDataDescriptorExists()) {
+      headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
+    }
+    reset();
+    return fileHeader;
   }
 
   @Override
   public void close() throws IOException {
-    try {
-      zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
-      headerWriter.finalizeZipFile(zipModel, countingOutputStream);
-    } catch (ZipException e) {
-      throw new IOException(e);
-    }
-
+    zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
+    headerWriter.finalizeZipFile(zipModel, countingOutputStream);
     countingOutputStream.close();
   }
 
@@ -130,7 +115,7 @@ public class ZipOutputStream extends OutputStream {
     return zipModel;
   }
 
-  private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws ZipException, IOException {
+  private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws IOException {
     fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitZipFile(),
         countingOutputStream.getCurrentSplitFileCounter());
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
@@ -153,13 +138,14 @@ public class ZipOutputStream extends OutputStream {
     rawIO.writeIntLittleEndian(countingOutputStream, (int) HeaderSignature.SPLIT_ZIP.getValue());
   }
 
-  private CompressedOutputStream initializeCompressedOutputStream(ZipParameters zipParameters) throws IOException, ZipException {
+  private CompressedOutputStream initializeCompressedOutputStream(ZipParameters zipParameters) throws IOException {
     ZipEntryOutputStream zipEntryOutputStream = new ZipEntryOutputStream(countingOutputStream);
     CipherOutputStream cipherOutputStream = initializeCipherOutputStream(zipEntryOutputStream, zipParameters);
     return initializeCompressedOutputStream(cipherOutputStream, zipParameters);
   }
 
-  private CipherOutputStream initializeCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters) throws IOException, ZipException {
+  private CipherOutputStream initializeCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream,
+                                                          ZipParameters zipParameters) throws IOException {
     if (!zipParameters.isEncryptFiles()) {
       return new NoCipherOutputStream(zipEntryOutputStream, zipParameters, null);
     }
@@ -177,7 +163,8 @@ public class ZipOutputStream extends OutputStream {
     }
   }
 
-  private CompressedOutputStream initializeCompressedOutputStream(CipherOutputStream cipherOutputStream, ZipParameters zipParameters) {
+  private CompressedOutputStream initializeCompressedOutputStream(CipherOutputStream cipherOutputStream,
+                                                                  ZipParameters zipParameters) {
     if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
       return new DeflaterOutputStream(cipherOutputStream, zipParameters.getCompressionLevel());
     }

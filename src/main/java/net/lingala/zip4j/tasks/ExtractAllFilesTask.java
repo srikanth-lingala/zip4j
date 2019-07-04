@@ -1,7 +1,6 @@
 package net.lingala.zip4j.tasks;
 
 import lombok.AllArgsConstructor;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
@@ -23,7 +22,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
-      throws ZipException {
+      throws IOException {
     try (ZipInputStream zipInputStream = prepareZipInputStream()) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
@@ -36,10 +35,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
         verifyIfTaskIsCancelled();
       }
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
-
   }
 
   @Override
@@ -58,20 +54,16 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return totalWork;
   }
 
-  private ZipInputStream prepareZipInputStream() throws ZipException {
-    try {
-      splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
-          getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+  private ZipInputStream prepareZipInputStream() throws IOException {
+    splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
+        getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
 
-      FileHeader fileHeader = getFirstFileHeader(getZipModel());
-      if (fileHeader != null) {
-        splitInputStream.prepareExtractionForFileHeader(fileHeader);
-      }
-
-      return new ZipInputStream(splitInputStream, password);
-    } catch (IOException e) {
-      throw new ZipException(e);
+    FileHeader fileHeader = getFirstFileHeader(getZipModel());
+    if (fileHeader != null) {
+      splitInputStream.prepareExtractionForFileHeader(fileHeader);
     }
+
+    return new ZipInputStream(splitInputStream, password);
   }
 
   private FileHeader getFirstFileHeader(ZipModel zipModel) {

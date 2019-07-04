@@ -1,7 +1,6 @@
 package net.lingala.zip4j.tasks;
 
 import lombok.AllArgsConstructor;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
@@ -24,7 +23,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
   @Override
   protected void executeTask(AddStreamToZipTaskParameters taskParameters, ProgressMonitor progressMonitor)
-      throws ZipException {
+      throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
 
@@ -45,8 +44,6 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       }
 
       zipOutputStream.closeEntry();
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
   }
 

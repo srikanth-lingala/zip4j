@@ -1,6 +1,5 @@
 package net.lingala.zip4j;
 
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipModel;
@@ -14,7 +13,6 @@ import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +26,7 @@ public class ZipFileZip64IT extends AbstractIT {
   private byte[] readBuffer = new byte[4096];
 
   @Test
-  public void testZip64WithSingleLargeZipEntry() throws IOException, ZipException {
+  public void testZip64WithSingleLargeZipEntry() throws IOException {
     long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
 
     ZipParameters zipParameters = new ZipParameters();
@@ -42,7 +40,7 @@ public class ZipFileZip64IT extends AbstractIT {
   }
 
   @Test
-  public void testZip64WithCentralDirectoryOffsetGreaterThanZip64Limit() throws IOException, ZipException {
+  public void testZip64WithCentralDirectoryOffsetGreaterThanZip64Limit() throws IOException {
     long eachEntrySize = (InternalZipConstants.ZIP_64_SIZE_LIMIT / 2) + 100;
 
     ZipParameters zipParameters = new ZipParameters();
@@ -55,7 +53,7 @@ public class ZipFileZip64IT extends AbstractIT {
   }
 
   @Test
-  public void testZip64WithNumberOfEntriesGreaterThan70k() throws IOException, ZipException {
+  public void testZip64WithNumberOfEntriesGreaterThan70k() throws IOException {
     long eachEntrySize = 100;
 
     ZipParameters zipParameters = new ZipParameters();
@@ -68,7 +66,7 @@ public class ZipFileZip64IT extends AbstractIT {
     verifyZip64HeadersPresent();
   }
 
-  private void verifyZip64HeadersPresent() throws FileNotFoundException, ZipException {
+  private void verifyZip64HeadersPresent() throws IOException {
     HeaderReader headerReader = new HeaderReader();
     ZipModel zipModel = headerReader.readAllHeaders(new RandomAccessFile(generatedZipFile,
         RandomAccessFileMode.READ.getValue()));
@@ -95,5 +93,4 @@ public class ZipFileZip64IT extends AbstractIT {
       }
     }
   }
-
 }

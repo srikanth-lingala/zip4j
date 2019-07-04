@@ -14,10 +14,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ExtractZipFileIT extends AbstractIT {
 
@@ -25,7 +27,7 @@ public class ExtractZipFileIT extends AbstractIT {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
-  public void testExtractAllStoreAndNoEncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllStoreAndNoEncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile);
@@ -38,7 +40,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllStoreAndZipStandardEncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllStoreAndZipStandardEncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
@@ -51,7 +53,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllStoreAndAes128EncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllStoreAndAes128EncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
@@ -64,7 +66,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllStoreAndAes256EncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllStoreAndAes256EncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
@@ -77,7 +79,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllDeflateAndNoEncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllDeflateAndNoEncryptionExtractsSuccessfully() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
@@ -88,7 +90,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllDeflateAndZipStandardEncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllDeflateAndZipStandardEncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -100,7 +102,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllDeflateAndAes128EncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllDeflateAndAes128EncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -112,7 +114,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractAllDeflateAndAes256EncryptionExtractsSuccessfully() throws ZipException {
+  public void testExtractAllDeflateAndAes256EncryptionExtractsSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -124,7 +126,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractFileWithFileHeaderWithAes128() throws ZipException {
+  public void testExtractFileWithFileHeaderWithAes128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -138,7 +140,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractFileWithFileHeaderWithAes128AndInDirectory() throws ZipException {
+  public void testExtractFileWithFileHeaderWithAes128AndInDirectory() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
@@ -151,7 +153,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractFileWithFileHeaderWithAes256AndWithANewFileName() throws ZipException {
+  public void testExtractFileWithFileHeaderWithAes256AndWithANewFileName() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
@@ -176,7 +178,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractFileWithFileNameWithZipStandardEncryption() throws ZipException {
+  public void testExtractFileWithFileNameWithZipStandardEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
@@ -188,7 +190,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractFileWithFileNameWithZipStandardEncryptionAndNewFileName() throws ZipException {
+  public void testExtractFileWithFileNameWithZipStandardEncryptionAndNewFileName() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
@@ -198,6 +200,55 @@ public class ExtractZipFileIT extends AbstractIT {
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
     ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("sample_directory/favicon.ico"), outputFile);
+  }
+
+  @Test
+  public void testExtractFilesThrowsExceptionForWrongPasswordForAes() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    try {
+      zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
+      zipFile.extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e).isNotNull();
+      assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
+    }
+  }
+
+  @Test
+  public void testExtractFilesThrowsExceptionForWrongPasswordForZipStandardAndDeflate() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    try {
+      zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
+      zipFile.extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e).isNotNull();
+      assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
+    }
+  }
+
+  @Test
+  public void testExtractFilesThrowsExceptionForWrongPasswordForZipStandardAndStore() throws ZipException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    try {
+      zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
+      zipFile.extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e).isNotNull();
+      assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
+    }
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

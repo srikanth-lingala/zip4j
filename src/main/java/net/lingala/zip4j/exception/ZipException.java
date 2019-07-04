@@ -16,7 +16,9 @@
 
 package net.lingala.zip4j.exception;
 
-public class ZipException extends Exception {
+import java.io.IOException;
+
+public class ZipException extends IOException {
 
   private static final long serialVersionUID = 1L;
 
@@ -36,6 +38,11 @@ public class ZipException extends Exception {
 
   public ZipException(String message, Type type) {
     super(message);
+    this.type = type;
+  }
+
+  public ZipException(Throwable throwable, Type type) {
+    super(throwable);
     this.type = type;
   }
 

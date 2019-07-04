@@ -97,36 +97,32 @@ public class SplitOutputStream extends OutputStream {
   }
 
   private void startNextSplitFile() throws IOException {
-    try {
-      String zipFileWithoutExt = getZipFileNameWithoutExtension(zipFile.getName());
-      String zipFileName = zipFile.getAbsolutePath();
-      String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent()
-          + System.getProperty("file.separator");
+    String zipFileWithoutExt = getZipFileNameWithoutExtension(zipFile.getName());
+    String zipFileName = zipFile.getAbsolutePath();
+    String parentPath = (zipFile.getParent() == null) ? "" : zipFile.getParent()
+        + System.getProperty("file.separator");
 
-      String fileExtension = ".z0" + (currSplitFileCounter + 1);
-      if (currSplitFileCounter >= 9) {
-        fileExtension = ".z" + (currSplitFileCounter + 1);
-      }
-
-      File currSplitFile = new File(parentPath + zipFileWithoutExt + fileExtension);
-
-      raf.close();
-
-      if (currSplitFile.exists()) {
-        throw new IOException("split file: " + currSplitFile.getName()
-            + " already exists in the current directory, cannot rename this file");
-      }
-
-      if (!zipFile.renameTo(currSplitFile)) {
-        throw new IOException("cannot rename newly created split file");
-      }
-
-      zipFile = new File(zipFileName);
-      raf = new RandomAccessFile(zipFile, RandomAccessFileMode.WRITE.getValue());
-      currSplitFileCounter++;
-    } catch (ZipException e) {
-      throw new IOException(e);
+    String fileExtension = ".z0" + (currSplitFileCounter + 1);
+    if (currSplitFileCounter >= 9) {
+      fileExtension = ".z" + (currSplitFileCounter + 1);
     }
+
+    File currSplitFile = new File(parentPath + zipFileWithoutExt + fileExtension);
+
+    raf.close();
+
+    if (currSplitFile.exists()) {
+      throw new IOException("split file: " + currSplitFile.getName()
+          + " already exists in the current directory, cannot rename this file");
+    }
+
+    if (!zipFile.renameTo(currSplitFile)) {
+      throw new IOException("cannot rename newly created split file");
+    }
+
+    zipFile = new File(zipFileName);
+    raf = new RandomAccessFile(zipFile, RandomAccessFileMode.WRITE.getValue());
+    currSplitFileCounter++;
   }
 
   private boolean isHeaderData(byte[] buff) {
@@ -174,9 +170,8 @@ public class SplitOutputStream extends OutputStream {
    *
    * @param bufferSize
    * @return true if the buffer size is fit in the current split file or else false.
-   * @throws ZipException
    */
-  private boolean isBufferSizeFitForCurrSplitFile(int bufferSize) throws ZipException {
+  private boolean isBufferSizeFitForCurrSplitFile(int bufferSize) {
     if (splitLength >= MIN_SPLIT_LENGTH) {
       return (bytesWrittenForThisPart + bufferSize <= splitLength);
     } else {

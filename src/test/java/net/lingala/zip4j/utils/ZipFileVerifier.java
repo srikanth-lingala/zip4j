@@ -1,13 +1,13 @@
 package net.lingala.zip4j.utils;
 
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.CrcUtil;
 import net.lingala.zip4j.util.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
@@ -16,18 +16,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ZipFileVerifier {
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, File outputFolder,
-                                                       int expectedNumberOfEntries) throws ZipException {
+                                                       int expectedNumberOfEntries) throws IOException {
     verifyZipFileByExtractingAllFiles(zipFileToExtract, null, outputFolder, expectedNumberOfEntries);
   }
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
-                                                       int expectedNumberOfEntries) throws ZipException {
+                                                       int expectedNumberOfEntries) throws IOException {
     verifyZipFileByExtractingAllFiles(zipFileToExtract, password, outputFolder, expectedNumberOfEntries, true);
   }
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
                                                        int expectedNumberOfEntries, boolean verifyFileContents)
-      throws ZipException {
+      throws IOException {
 
     assertThat(zipFileToExtract).isNotNull();
     assertThat(zipFileToExtract).exists();
@@ -44,12 +44,12 @@ public class ZipFileVerifier {
     }
   }
 
-  public static void verifyFileContent(File sourceFile, File extractedFile) throws ZipException {
+  public static void verifyFileContent(File sourceFile, File extractedFile) throws IOException {
     assertThat(extractedFile.length()).isEqualTo(sourceFile.length());
     verifyFileCrc(sourceFile, extractedFile);
   }
 
-  public static void verifyFolderContentsSameAsSourceFiles(File outputFolder) throws ZipException {
+  public static void verifyFolderContentsSameAsSourceFiles(File outputFolder) throws IOException {
     File[] filesInOutputFolder = outputFolder.listFiles();
 
     for (File file : filesInOutputFolder) {
@@ -69,7 +69,7 @@ public class ZipFileVerifier {
     return localFileHeader.getUncompressedSize();
   }
 
-  private static void verifyFileCrc(File sourceFile, File extractedFile) throws ZipException {
+  private static void verifyFileCrc(File sourceFile, File extractedFile) throws IOException {
     ProgressMonitor progressMonitor = new ProgressMonitor();
     long sourceFileCrc = CrcUtil.computeFileCrc(sourceFile, progressMonitor);
     long extractedFileCrc = CrcUtil.computeFileCrc(extractedFile, progressMonitor);

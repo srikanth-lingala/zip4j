@@ -19,7 +19,7 @@ public class SetCommentTask extends AsyncZipTask<String> {
   }
 
   @Override
-  protected void executeTask(String comment, ProgressMonitor progressMonitor) throws ZipException {
+  protected void executeTask(String comment, ProgressMonitor progressMonitor) throws IOException {
     if (comment == null) {
       throw new ZipException("comment is null, cannot update Zip file with comment");
     }
@@ -37,8 +37,6 @@ public class SetCommentTask extends AsyncZipTask<String> {
 
       HeaderWriter headerWriter = new HeaderWriter();
       headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
-    } catch (IOException e) {
-      throw new ZipException(e);
     }
   }
 

@@ -9,6 +9,7 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddFilesToZipTask.AddFilesToZipTaskParameters;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTaskParameters> {
@@ -20,7 +21,7 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
 
   @Override
   protected void executeTask(AddFilesToZipTaskParameters taskParameters, ProgressMonitor progressMonitor)
-      throws ZipException {
+      throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
     addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters);
