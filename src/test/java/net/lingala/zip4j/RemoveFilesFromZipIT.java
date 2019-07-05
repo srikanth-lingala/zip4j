@@ -50,7 +50,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   public void testRemoveFileAsFileNameThrowsExceptionForSplitArchive() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     expectedException.expect(ZipException.class);
@@ -74,7 +74,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   public void testRemoveFileAsFileNameRemovesSuccessfullyWithFolderNameInPath() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     zipFile.removeFile("test-files/öüäöäö/asöäööl");
 
@@ -86,7 +86,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   public void testRemoveFileAsFileHeaderThrowsExceptionForSplitArchive() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     expectedException.expect(ZipException.class);
@@ -99,7 +99,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   public void testRemoveFileAsFileHeaderRemovesSuccessfully() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     zipFile.removeFile(zipFile.getFileHeader("test-files/sample_directory/favicon.ico"));
 

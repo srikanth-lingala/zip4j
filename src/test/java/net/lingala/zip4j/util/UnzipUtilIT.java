@@ -47,7 +47,7 @@ public class UnzipUtilIT extends AbstractIT {
       }
     }
 
-    assertThat(extractedFile.length()).isEqualTo(TestUtils.getFileFromResources("sample_text_large.txt").length());
+    assertThat(extractedFile.length()).isEqualTo(TestUtils.getTestFileFromResources("sample_text_large.txt").length());
   }
 
   @Test
@@ -102,8 +102,8 @@ public class UnzipUtilIT extends AbstractIT {
   private ZipFile createZipFile() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile, "password".toCharArray());
     zipFile.addFiles(Arrays.asList(
-        TestUtils.getFileFromResources("sample_text1.txt"),
-        TestUtils.getFileFromResources("sample_text_large.txt")
+        TestUtils.getTestFileFromResources("sample_text1.txt"),
+        TestUtils.getTestFileFromResources("sample_text_large.txt")
     ));
     return zipFile;
   }

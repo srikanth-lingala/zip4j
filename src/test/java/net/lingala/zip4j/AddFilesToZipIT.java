@@ -49,7 +49,7 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddFileAsStringParameterWithoutZipParameterAddsAsDeflate() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.addFile(TestUtils.getFileFromResources("sample.pdf").getPath());
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample.pdf").getPath());
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample.pdf"), CompressionMethod.DEFLATE, null, null);
@@ -61,7 +61,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt").getPath(), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt").getPath(), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
@@ -85,13 +85,13 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
-    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"), zipParameters);
   }
 
   @Test
   public void testAddFileWithoutZipParameterAddsAsDeflate() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("file_PDF_1MB.pdf"), CompressionMethod.DEFLATE, null,
@@ -104,7 +104,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
@@ -117,7 +117,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
@@ -130,7 +130,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
@@ -142,7 +142,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"));
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.DEFLATE,
@@ -152,11 +152,11 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddFileRemovesExistingFileNoEncryptionSingleFileInZip() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"));
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"));
 
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
@@ -168,10 +168,10 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(1, TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(1, TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.addFiles(filesToAdd, zipParameters);
 
-    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size()
         + 1);
@@ -188,7 +188,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
     progressMonitor.setState(ProgressMonitor.State.BUSY);
 
-    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
   }
 
   @Test
@@ -200,7 +200,7 @@ public class AddFilesToZipIT extends AbstractIT {
     boolean taskNameSet = false;
 
     zipFile.setRunInThread(true);
-    zipFile.addFile(TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"),
         createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
 
     while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
@@ -239,8 +239,8 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
     zipFile.addFiles(asList(
-          TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
-          TestUtils.getFileFromResources("zero_byte_file.txt")
+          TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"),
+          TestUtils.getTestFileFromResources("zero_byte_file.txt")
     ));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
@@ -253,8 +253,8 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
     zipFile.addFiles(asList(
-        TestUtils.getFileFromResources("file_PDF_1MB.pdf"),
-        TestUtils.getFileFromResources("sample_text1.txt")
+        TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"),
+        TestUtils.getTestFileFromResources("sample_text1.txt")
     ), new ZipParameters());
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
@@ -267,7 +267,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("zero_byte_file.txt")), zipParameters);
+    zipFile.addFiles(singletonList(TestUtils.getTestFileFromResources("zero_byte_file.txt")), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("zero_byte_file.txt"),
@@ -331,25 +331,25 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddFilesToSplitZipThrowsException() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.createSplitZipFile(singletonList(TestUtils.getFileFromResources("file_PDF_1MB.pdf")), new ZipParameters(),
+    zipFile.createSplitZipFile(singletonList(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf")), new ZipParameters(),
         true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("Zip file already exists. " +
         "Zip file format does not allow updating split/spanned files");
 
-    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("sample.pdf")));
+    zipFile.addFiles(singletonList(TestUtils.getTestFileFromResources("sample.pdf")));
   }
 
   @Test
   public void testAddFilesWithDifferentEncryptionType() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("sample.pdf")), zipParameters);
+    zipFile.addFiles(singletonList(TestUtils.getTestFileFromResources("sample.pdf")), zipParameters);
 
     zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
 
-    zipFile.addFiles(singletonList(TestUtils.getFileFromResources("file_PDF_1MB.pdf")), zipParameters);
+    zipFile.addFiles(singletonList(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf")), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 2);
   }
@@ -360,11 +360,11 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
     zipFile.addFiles(asList(
-        TestUtils.getFileFromResources("sample.pdf"),
-        TestUtils.getFileFromResources("бореиская.txt"),
-        TestUtils.getFileFromResources("zero_byte_file.txt"),
-        TestUtils.getFileFromResources("sample_text1.txt"),
-        TestUtils.getFileFromResources("가나다.abc")
+        TestUtils.getTestFileFromResources("sample.pdf"),
+        TestUtils.getTestFileFromResources("бореиская.txt"),
+        TestUtils.getTestFileFromResources("zero_byte_file.txt"),
+        TestUtils.getTestFileFromResources("sample_text1.txt"),
+        TestUtils.getTestFileFromResources("가나다.abc")
     ), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 5);
@@ -388,7 +388,7 @@ public class AddFilesToZipIT extends AbstractIT {
     boolean taskNameSet = false;
 
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.setRunInThread(true);
     zipFile.addFiles(filesToAdd, createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
 
@@ -426,7 +426,7 @@ public class AddFilesToZipIT extends AbstractIT {
   public void testAddFolderWithoutZipParameters() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
 
-    zipFile.addFolder(TestUtils.getFileFromResources(""));
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
@@ -440,7 +440,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
@@ -454,7 +454,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setIncludeRootFolder(false);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
@@ -470,7 +470,7 @@ public class AddFilesToZipIT extends AbstractIT {
     boolean fileNameSet = false;
 
     zipFile.setRunInThread(true);
-    zipFile.addFolder(TestUtils.getFileFromResources(""),
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""),
         createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256));
 
     while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
@@ -499,7 +499,7 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddStreamToZipThrowsExceptionWhenFileNameIsNull() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    InputStream inputStream = new FileInputStream(TestUtils.getFileFromResources("бореиская.txt"));
+    InputStream inputStream = new FileInputStream(TestUtils.getTestFileFromResources("бореиская.txt"));
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip(null);
 
@@ -512,7 +512,7 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddStreamToZipThrowsExceptionWhenFileNameIsEmpty() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    InputStream inputStream = new FileInputStream(TestUtils.getFileFromResources("бореиская.txt"));
+    InputStream inputStream = new FileInputStream(TestUtils.getTestFileFromResources("бореиская.txt"));
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip("");
 
@@ -524,7 +524,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToZipWithoutEncryptionForNewZipAddsSuccessfully() throws IOException {
-    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile);
@@ -538,7 +538,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToWithStoreCompressionAndWithoutEncryption() throws IOException {
-    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     zipParameters.setFileNameInZip(fileToAdd.getName());
@@ -558,7 +558,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToZipWithAesEncryptionForNewZipAddsSuccessfully() throws IOException {
-    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
@@ -573,7 +573,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToZipWithoutEncryptionForExistingZipAddsSuccessfully() throws IOException {
-    File fileToAdd = TestUtils.getFileFromResources("가나다.abc");
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile);
@@ -588,7 +588,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToZipWithAesEncryptionForExistingZipAddsSuccessfully() throws IOException {
-    File fileToAdd = TestUtils.getFileFromResources("가나다.abc");
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);

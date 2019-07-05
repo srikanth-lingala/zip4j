@@ -78,7 +78,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws IOException {
-    LocalFileHeader localFileHeader = zipInputStream.getNextEntry();
+    LocalFileHeader localFileHeader = zipInputStream.getNextEntry(fileHeader);
 
     if (localFileHeader == null) {
       throw new ZipException("Could not read corresponding local file header for file header: "

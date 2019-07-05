@@ -33,7 +33,7 @@ public class MiscZipFileIT extends AbstractIT {
   public void testMergeSplitZipFilesMergesSuccessfully() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     File mergedZipFile = new File(temporaryFolder.getRoot().getPath() + InternalZipConstants.FILE_SEPARATOR
@@ -48,7 +48,7 @@ public class MiscZipFileIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     File mergedZipFile = new File(temporaryFolder.getRoot().getPath() + InternalZipConstants.FILE_SEPARATOR
@@ -82,7 +82,7 @@ public class MiscZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("бореиская.txt"));
+    zipFile.addFile(TestUtils.getTestFileFromResources("бореиская.txt"));
 
     List<FileHeader> fileHeaders = zipFile.getFileHeaders();
 
@@ -124,7 +124,7 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD);
 
     String fileToAdd = "file_PDF_1MB.pdf";
-    zipFile.addFile(TestUtils.getFileFromResources(fileToAdd));
+    zipFile.addFile(TestUtils.getTestFileFromResources(fileToAdd));
 
     FileHeader fileHeader = zipFile.getFileHeader(fileToAdd);
 
@@ -170,7 +170,7 @@ public class MiscZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
 
     assertThat(zipFile.isEncrypted()).isTrue();
   }
@@ -181,7 +181,7 @@ public class MiscZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD);
 
-    zipFile.addFile(TestUtils.getFileFromResources("sample_text_large.txt"), zipParameters);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
     zipFile.removeFile("sample_text_large.txt");
 
     assertThat(zipFile.isEncrypted()).isFalse();
@@ -205,7 +205,7 @@ public class MiscZipFileIT extends AbstractIT {
   public void testIsSplitArchiveReturnsTrueForSplitZip() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     assertThat(zipFile.isSplitArchive()).isTrue();
@@ -224,7 +224,7 @@ public class MiscZipFileIT extends AbstractIT {
   public void testIsSplitArchiveReturnsFalseForMergedZipFile() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     File mergedZipFile = new File(temporaryFolder.getRoot().getPath() + InternalZipConstants.FILE_SEPARATOR
@@ -250,7 +250,7 @@ public class MiscZipFileIT extends AbstractIT {
   public void testSetCommentForMergedZipRetainsComment() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     String comment = "SOME_COMMENT";
@@ -289,7 +289,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     try (InputStream inputStream = zipFile.getInputStream(zipFile.getFileHeader("sample_text_large.txt"))) {
       assertThat(inputStream).isNotNull();
-      verifyInputStream(inputStream, TestUtils.getFileFromResources("sample_text_large.txt"));
+      verifyInputStream(inputStream, TestUtils.getTestFileFromResources("sample_text_large.txt"));
     }
 
   }
@@ -302,7 +302,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     try (InputStream inputStream = zipFile.getInputStream(zipFile.getFileHeader("sample_text_large.txt"))) {
       assertThat(inputStream).isNotNull();
-      verifyInputStream(inputStream, TestUtils.getFileFromResources("sample_text_large.txt"));
+      verifyInputStream(inputStream, TestUtils.getTestFileFromResources("sample_text_large.txt"));
     }
   }
 
@@ -311,24 +311,24 @@ public class MiscZipFileIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     try (InputStream inputStream = zipFile.getInputStream(zipFile.getFileHeader("file_PDF_1MB.pdf"))) {
       assertThat(inputStream).isNotNull();
-      verifyInputStream(inputStream, TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+      verifyInputStream(inputStream, TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     }
 
     //Check also with a new instance
     zipFile = new ZipFile(generatedZipFile, PASSWORD);
     try (InputStream inputStream = zipFile.getInputStream(zipFile.getFileHeader("file_PDF_1MB.pdf"))) {
-      verifyInputStream(inputStream, TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+      verifyInputStream(inputStream, TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     }
   }
 
   @Test
   public void testIsValidZipFileReturnsFalseForNonZipFile() {
-    assertThat(new ZipFile(TestUtils.getFileFromResources("sample_text_large.txt")).isValidZipFile()).isFalse();
+    assertThat(new ZipFile(TestUtils.getTestFileFromResources("sample_text_large.txt")).isValidZipFile()).isFalse();
   }
 
   @Test
@@ -359,7 +359,7 @@ public class MiscZipFileIT extends AbstractIT {
   public void testGetSplitZipFilesReturnsAllSplitZipFiles() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     List<File> splitZipFiles = zipFile.getSplitZipFiles();

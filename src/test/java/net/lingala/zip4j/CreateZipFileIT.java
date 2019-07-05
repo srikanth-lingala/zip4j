@@ -164,7 +164,7 @@ public class CreateZipFileIT extends AbstractIT {
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size() + 1);
@@ -175,7 +175,7 @@ public class CreateZipFileIT extends AbstractIT {
   public void testCreateSplitZipFileDeflateAndWithoutEncryption() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
 
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, 716800);
 
@@ -190,7 +190,7 @@ public class CreateZipFileIT extends AbstractIT {
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, 512000);
 
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size() + 1);
@@ -204,7 +204,7 @@ public class CreateZipFileIT extends AbstractIT {
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, InternalZipConstants.MIN_SPLIT_LENGTH);
 
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size() + 1);
@@ -218,7 +218,7 @@ public class CreateZipFileIT extends AbstractIT {
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
-    filesToAdd.add(TestUtils.getFileFromResources("file_PDF_1MB.pdf"));
+    filesToAdd.add(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
     zipFile.createSplitZipFile(filesToAdd, zipParameters, true, InternalZipConstants.MIN_SPLIT_LENGTH + 2000);
 
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size() + 1);

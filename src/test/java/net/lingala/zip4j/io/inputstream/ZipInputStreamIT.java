@@ -15,7 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.utils.ZipFileVerifier.verifyFileContent;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,7 +78,7 @@ public class ZipInputStreamIT extends AbstractIT {
               outputStream.write(readBuffer, 0, readLen);
             }
           }
-          verifyFileContent(getFileFromResources(localFileHeader.getFileName()), extractedFile);
+          verifyFileContent(getTestFileFromResources(localFileHeader.getFileName()), extractedFile);
           numberOfEntriesExtracted++;
         }
       }

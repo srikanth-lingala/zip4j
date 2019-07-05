@@ -4,6 +4,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.utils.TestUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -13,16 +14,16 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractIT {
 
   protected static final char[] PASSWORD = "test123!".toCharArray();
   protected static final List<File> FILES_TO_ADD = Arrays.asList(
-      getFileFromResources("sample_text1.txt"),
-      getFileFromResources("sample_text_large.txt"),
-      getFileFromResources("sample.pdf")
+      getTestFileFromResources("sample_text1.txt"),
+      getTestFileFromResources("sample_text_large.txt"),
+      getTestFileFromResources("sample.pdf")
   );
 
   protected File generatedZipFile;
@@ -59,5 +60,9 @@ public abstract class AbstractIT {
 
       assertThat(fileFound).as("File with name %s not found in zip file", fileName).isTrue();
     }
+  }
+
+  protected File getTestArchiveFromResources(String archiveName) {
+    return TestUtils.getTestArchiveFromResources(archiveName);
   }
 }

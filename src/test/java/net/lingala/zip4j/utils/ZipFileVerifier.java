@@ -57,7 +57,7 @@ public class ZipFileVerifier {
         continue;
       }
 
-      File sourceFile = TestUtils.getFileFromResources(file.getName());
+      File sourceFile = TestUtils.getTestFileFromResources(file.getName());
       verifyFileContent(sourceFile, file);
     }
   }

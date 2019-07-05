@@ -8,10 +8,19 @@ import java.nio.charset.StandardCharsets;
 public class TestUtils {
 
   private static final String TEST_FILES_FOLDER_NAME = "test-files";
+  private static final String TEST_ARCHIVES_FOLDER_NAME = "test-archives";
 
-  public static File getFileFromResources(String fileName) {
+  public static File getTestFileFromResources(String fileName) {
+    return getFileFromResources(TEST_FILES_FOLDER_NAME, fileName);
+  }
+
+  public static File getTestArchiveFromResources(String fileName) {
+   return getFileFromResources(TEST_ARCHIVES_FOLDER_NAME, fileName);
+  }
+
+  private static File getFileFromResources(String parentFolder, String fileName) {
     try {
-      String path = "/" + TEST_FILES_FOLDER_NAME + "/" + fileName;
+      String path = "/" + parentFolder + "/" + fileName;
       String utfDecodedFilePath = URLDecoder.decode(TestUtils.class.getResource(path).getFile(),
           StandardCharsets.UTF_8.toString());
       return new File(utfDecodedFilePath);

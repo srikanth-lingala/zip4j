@@ -41,7 +41,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesWhenStartIsSameAsEndDoesNothing() throws IOException, ZipException {
-    File sourceFile = TestUtils.getFileFromResources("sample.pdf");
+    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -54,7 +54,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesCopiesCompleteFile() throws IOException, ZipException {
-    File sourceFile = TestUtils.getFileFromResources("sample.pdf");
+    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -66,7 +66,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesCopiesPartOfFile() throws IOException, ZipException {
-    File sourceFile = TestUtils.getFileFromResources("sample.pdf");
+    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -80,7 +80,7 @@ public class FileUtilsIT extends AbstractIT {
     expectedException.expectMessage("invalid offsets");
     expectedException.expect(ZipException.class);
 
-    File sourceFile = TestUtils.getFileFromResources("sample.pdf");
+    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(temporaryFolder.newFile())) {
       FileUtils.copyFile(randomAccessFile, outputStream, start, offset, progressMonitor);

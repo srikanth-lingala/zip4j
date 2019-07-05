@@ -136,20 +136,20 @@ public class ExtractZipFileIT extends AbstractIT {
 
     File[] outputFiles = outputFolder.listFiles();
     assertThat(outputFiles).hasSize(1);
-    ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("sample_text_large.txt"), outputFiles[0]);
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_text_large.txt"), outputFiles[0]);
   }
 
   @Test
   public void testExtractFileWithFileHeaderWithAes128AndInDirectory() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     FileHeader fileHeader = zipFile.getFileHeader("test-files/öüäöäö/asöäööl");
     zipFile.extractFile(fileHeader, outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "asöäööl");
-    ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("öüäöäö/asöäööl"), outputFile);
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
   }
 
   @Test
@@ -163,7 +163,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractFile(fileHeader, outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
-    ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("sample_text_large.txt"), outputFile);
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_text_large.txt"), outputFile);
   }
 
   @Test
@@ -181,25 +181,25 @@ public class ExtractZipFileIT extends AbstractIT {
   public void testExtractFileWithFileNameWithZipStandardEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "favicon.ico");
-    ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("sample_directory/favicon.ico"), outputFile);
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
   }
 
   @Test
   public void testExtractFileWithFileNameWithZipStandardEncryptionAndNewFileName() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getFileFromResources(""), zipParameters);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     String newFileName = "newFileName";
     zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
-    ZipFileVerifier.verifyFileContent(TestUtils.getFileFromResources("sample_directory/favicon.ico"), outputFile);
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
   }
 
   @Test
@@ -249,6 +249,13 @@ public class ExtractZipFileIT extends AbstractIT {
       assertThat(e).isNotNull();
       assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
     }
+  }
+
+  @Test
+  public void testExtractFilesForAZipMadeWithZip4jv1AndStoreCompressionWithAES() throws IOException {
+    File zipArchiveToTest = getTestArchiveFromResources("store_compression_made_with_v1.3.3.zip");
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(zipArchiveToTest, "aaaaaaaa".toCharArray(), outputFolder, 5,
+        false);
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

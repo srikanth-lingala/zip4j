@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
 
-import static net.lingala.zip4j.utils.TestUtils.getFileFromResources;
+import static net.lingala.zip4j.utils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,9 +58,9 @@ public class CrcUtilIT extends AbstractIT {
 
   @Test
   public void testComputeFileCrcGetsValueSuccessfully() throws IOException {
-    testComputeFileCrcForFile(getFileFromResources("sample.pdf"));
-    testComputeFileCrcForFile(getFileFromResources("sample_text1.txt"));
-    testComputeFileCrcForFile(getFileFromResources("sample_text_large.txt"));
+    testComputeFileCrcForFile(getTestFileFromResources("sample.pdf"));
+    testComputeFileCrcForFile(getTestFileFromResources("sample_text1.txt"));
+    testComputeFileCrcForFile(getTestFileFromResources("sample_text_large.txt"));
   }
 
   private void testComputeFileCrcForFile(File file) throws IOException {

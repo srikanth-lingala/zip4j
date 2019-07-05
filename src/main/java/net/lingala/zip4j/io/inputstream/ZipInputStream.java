@@ -22,6 +22,7 @@ import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.model.DataDescriptor;
 import net.lingala.zip4j.model.ExtraDataRecord;
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -57,6 +58,10 @@ public class ZipInputStream extends InputStream {
   }
 
   public LocalFileHeader getNextEntry() throws IOException {
+    return getNextEntry(null);
+  }
+
+  public LocalFileHeader getNextEntry(FileHeader fileHeader) throws IOException {
     localFileHeader = headerReader.readLocalFileHeader(inputStream);
 
     if (localFileHeader == null) {
@@ -65,6 +70,12 @@ public class ZipInputStream extends InputStream {
 
     verifyLocalFileHeader(localFileHeader);
     crc32.reset();
+
+    if (fileHeader != null) {
+      localFileHeader.setCrc(fileHeader.getCrc());
+      localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
+      localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
+    }
 
     if (!isZipEntryDirectory(localFileHeader.getFileName())) {
       this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
