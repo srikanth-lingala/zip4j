@@ -20,7 +20,7 @@ tag `zip4j` on [stackoverflow][10].
 ## About
 
 Zip4j is the most comprehensive java library for Zip files or streams. As of this writing, it is the only java library 
-which has support for zip encryption, apart from a bunch of other features. It tries to make handling zip files/streams 
+which has support for zip encryption, apart from several other features. It tries to make handling zip files/streams 
 a lot more easier. No more clunky boiler plate code with input streams and output streams. As you can see in the usage 
 section below, working with zip files can now even be a single line of code, compared to [this][5]. I mean no offense
 to the Java's in-built zip support. In fact, this library depends on Java's in-built zip code and it would have been 
