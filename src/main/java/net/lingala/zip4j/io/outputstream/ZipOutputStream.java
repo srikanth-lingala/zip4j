@@ -175,7 +175,8 @@ public class ZipOutputStream extends OutputStream {
   private void verifyZipParameters(ZipParameters zipParameters) {
     if (zipParameters.getCompressionMethod() == CompressionMethod.STORE
         && zipParameters.getEntrySize() < 0
-        && !isEntryDirectory(zipParameters.getFileNameInZip())) {
+        && !isEntryDirectory(zipParameters.getFileNameInZip())
+        && zipParameters.isWriteExtendedLocalFileHeader()) {
       throw new IllegalArgumentException("uncompressed size should be set for zip entries of compression type store");
     }
   }

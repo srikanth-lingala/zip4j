@@ -2,7 +2,6 @@ package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -23,48 +22,48 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ZipInputStreamIT extends AbstractIT {
 
   @Test
-  public void testExtractStoreWithoutEncryption() throws IOException, ZipException {
+  public void testExtractStoreWithoutEncryption() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.STORE);
     extractZipFileWithInputStreams(createdZipFile, null);
   }
 
   @Test
-  public void testExtractStoreWithZipStandardEncryption() throws IOException, ZipException {
+  public void testExtractStoreWithZipStandardEncryption() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.STORE, true, EncryptionMethod.ZIP_STANDARD, null, PASSWORD);
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
   @Test
-  public void testExtractStoreWithAesEncryption128() throws IOException, ZipException {
+  public void testExtractStoreWithAesEncryption128() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128, PASSWORD);
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
   @Test
-  public void testExtractStoreWithAesEncryption256() throws IOException, ZipException {
+  public void testExtractStoreWithAesEncryption256() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
   @Test
-  public void testExtractDeflateWithoutEncryption() throws IOException, ZipException {
+  public void testExtractDeflateWithoutEncryption() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.DEFLATE);
     extractZipFileWithInputStreams(createdZipFile, null);
   }
 
   @Test
-  public void testExtractDeflateWithAesEncryption128() throws IOException, ZipException {
+  public void testExtractDeflateWithAesEncryption128() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128, PASSWORD);
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
   @Test
-  public void testExtractDeflateWithAesEncryption256() throws IOException, ZipException {
+  public void testExtractDeflateWithAesEncryption256() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
     extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
-  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException, ZipException {
+  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     LocalFileHeader localFileHeader;
     int readLen;
     byte[] readBuffer = new byte[4096];
@@ -88,13 +87,13 @@ public class ZipInputStreamIT extends AbstractIT {
     assertThat(numberOfEntriesExtracted).isEqualTo(FILES_TO_ADD.size());
   }
 
-  private File createZipFile(CompressionMethod compressionMethod) throws IOException, ZipException {
+  private File createZipFile(CompressionMethod compressionMethod) throws IOException {
     return createZipFile(compressionMethod, false, null, null, null);
   }
 
   private File createZipFile(CompressionMethod compressionMethod, boolean encryptFiles,
                              EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength, char[] password)
-      throws IOException, ZipException {
+      throws IOException {
 
     File outputFile = temporaryFolder.newFile("output.zip");
     deleteFileIfExists(outputFile);

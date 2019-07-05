@@ -77,7 +77,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
         FileHeader fileHeader = zipOutputStream.closeEntry();
         fileHeader.setExternalFileAttributes(FileUtils.getFileAttributes(fileToAdd));
 
-        headerWriter.updateLocalFileHeader(fileHeader, zipModel, splitOutputStream);
+        updateLocalFileHeader(fileHeader, splitOutputStream);
       }
     }
   }
@@ -139,6 +139,10 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     } else {
       parameters.setEncryptionMethod(NONE);
     }
+  }
+
+  void updateLocalFileHeader(FileHeader fileHeader, SplitOutputStream splitOutputStream) throws IOException {
+    headerWriter.updateLocalFileHeader(fileHeader, getZipModel(), splitOutputStream);
   }
 
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,

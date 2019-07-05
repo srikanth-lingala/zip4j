@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.utils.TestUtils;
 import net.lingala.zip4j.utils.ZipFileVerifier;
@@ -533,6 +534,26 @@ public class AddFilesToZipIT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("бореиская.txt"), CompressionMethod.DEFLATE, null, null);
+  }
+
+  @Test
+  public void testAddStreamToWithStoreCompressionAndWithoutEncryption() throws IOException {
+    File fileToAdd = TestUtils.getFileFromResources("бореиская.txt");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("бореиская.txt"), CompressionMethod.STORE, null, null);
+
+    zipFile = new ZipFile(generatedZipFile);
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[0], 3)).isFalse();
   }
 
   @Test

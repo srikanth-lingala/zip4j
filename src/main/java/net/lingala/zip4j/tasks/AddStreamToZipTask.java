@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -27,6 +28,8 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
     verifyZipParameters(taskParameters.zipParameters);
 
+    taskParameters.zipParameters.setWriteExtendedLocalFileHeader(false);
+
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
 
@@ -43,7 +46,8 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
         }
       }
 
-      zipOutputStream.closeEntry();
+      FileHeader fileHeader = zipOutputStream.closeEntry();
+      updateLocalFileHeader(fileHeader, splitOutputStream);
     }
   }
 
