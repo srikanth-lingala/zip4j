@@ -16,6 +16,8 @@
 
 package net.lingala.zip4j.util;
 
+import net.lingala.zip4j.exception.ZipException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -150,7 +152,7 @@ public class RawIO {
   private void readFully(InputStream inputStream, byte[] buff, int readLen) throws IOException {
     int actualReadLength = inputStream.read(buff, 0, readLen);
     if (actualReadLength != readLen) {
-      throw new IOException("Could not fill buffer");
+      throw new ZipException("Could not fill buffer");
     }
   }
 

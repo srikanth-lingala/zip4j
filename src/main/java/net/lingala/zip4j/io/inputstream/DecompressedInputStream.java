@@ -7,13 +7,10 @@ import java.io.PushbackInputStream;
 abstract class DecompressedInputStream extends InputStream {
 
   private CipherInputStream cipherInputStream;
-  private long bytesRead = 0;
-  private long compressedSize;
   protected byte[] oneByteBuffer = new byte[1];
 
-  public DecompressedInputStream(CipherInputStream cipherInputStream, long compressedSize) {
+  public DecompressedInputStream(CipherInputStream cipherInputStream) {
     this.cipherInputStream = cipherInputStream;
-    this.compressedSize = compressedSize;
   }
 
   @Override
@@ -34,19 +31,7 @@ abstract class DecompressedInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if (compressedSize != -1) {
-      if (bytesRead >= compressedSize) {
-        return -1;
-      }
-
-      if (len > compressedSize - bytesRead) {
-        len = (int) (compressedSize - bytesRead);
-      }
-    }
-
-    int readLen = cipherInputStream.read(b, off, len);
-    bytesRead += readLen;
-    return readLen;
+    return cipherInputStream.read(b, off, len);
   }
 
   @Override
@@ -64,9 +49,5 @@ abstract class DecompressedInputStream extends InputStream {
 
   protected byte[] getLastReadRawDataCache() {
     return cipherInputStream.getLastReadRawDataCache();
-  }
-
-  protected long getCompressedSize() {
-    return compressedSize;
   }
 }

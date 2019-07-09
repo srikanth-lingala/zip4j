@@ -39,14 +39,18 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
 
   @Override
   public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
+    return this.read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     int readLen = zipEntryInputStream.read(b, off, len);
-    cacheRawData(b, readLen);
-    decrypter.decryptData(b, off, readLen);
+
+    if (readLen > 0) {
+      cacheRawData(b, readLen);
+      decrypter.decryptData(b, off, readLen);
+    }
+
     return readLen;
   }
 
@@ -60,7 +64,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
   }
 
   protected int readRaw(byte[] b) throws IOException {
-    return zipEntryInputStream.read(b);
+    return zipEntryInputStream.readHeaders(b);
   }
 
   private void cacheRawData(byte[] b, int len) {

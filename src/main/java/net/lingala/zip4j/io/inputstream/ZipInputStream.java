@@ -102,12 +102,20 @@ public class ZipInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if (isZipEntryDirectory(localFileHeader.getFileName())) {
+    if (len < 0) {
+      throw new IllegalArgumentException("Negative read length");
+    }
+
+    if (len == 0) {
+      return 0;
+    }
+
+    if (localFileHeader.isDirectory()) {
       return -1;
     }
 
     try {
-      int readLen = decompressedInputStream.read(b, off, (len - len %16));
+      int readLen = decompressedInputStream.read(b, off, len);
 
       if (readLen == -1) {
         endOfCompressedDataReached();
@@ -119,7 +127,7 @@ public class ZipInputStream extends InputStream {
     } catch (IOException e) {
       if (e.getCause() != null && e.getCause() instanceof DataFormatException
           && isEncryptionMethodZipStandard(localFileHeader)) {
-        throw new ZipException(e.getCause(), ZipException.Type.WRONG_PASSWORD);
+        throw new ZipException(e.getMessage(), e.getCause(), ZipException.Type.WRONG_PASSWORD);
       }
 
       throw e;
@@ -147,7 +155,7 @@ public class ZipInputStream extends InputStream {
   }
 
   private DecompressedInputStream initializeEntryInputStream(LocalFileHeader localFileHeader) throws IOException {
-    ZipEntryInputStream zipEntryInputStream = new ZipEntryInputStream(inputStream);
+    ZipEntryInputStream zipEntryInputStream = new ZipEntryInputStream(inputStream, getCompressedSize(localFileHeader));
     CipherInputStream cipherInputStream = initializeCipherInputStream(zipEntryInputStream, localFileHeader);
     return initializeDecompressorForThisEntry(cipherInputStream, localFileHeader);
   }
@@ -168,10 +176,10 @@ public class ZipInputStream extends InputStream {
     CompressionMethod compressionMethod = getCompressionMethod(localFileHeader);
 
     if (compressionMethod == CompressionMethod.DEFLATE) {
-      return new InflaterInputStream(cipherInputStream, getCompressedSize(localFileHeader));
+      return new InflaterInputStream(cipherInputStream);
     }
 
-    return new StoreInputStream(cipherInputStream, localFileHeader.getUncompressedSize());
+    return new StoreInputStream(cipherInputStream);
   }
 
   private void readExtendedLocalFileHeaderIfPresent() throws IOException {
@@ -242,6 +250,10 @@ public class ZipInputStream extends InputStream {
   }
 
   private long getCompressedSize(LocalFileHeader localFileHeader) {
+    if (getCompressionMethod(localFileHeader).equals(CompressionMethod.STORE)) {
+      return localFileHeader.getUncompressedSize();
+    }
+
     if (localFileHeader.isDataDescriptorExists()) {
       return -1;
     }

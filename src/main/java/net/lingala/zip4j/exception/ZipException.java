@@ -41,8 +41,8 @@ public class ZipException extends IOException {
     this.type = type;
   }
 
-  public ZipException(Throwable throwable, Type type) {
-    super(throwable);
+  public ZipException(String message, Throwable throwable, Type type) {
+    super(message, throwable);
     this.type = type;
   }
 

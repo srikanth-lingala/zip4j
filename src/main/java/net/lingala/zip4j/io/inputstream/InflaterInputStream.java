@@ -13,8 +13,8 @@ public class InflaterInputStream extends DecompressedInputStream {
   private byte[] singleByteBuffer = new byte[1];
   private int len;
 
-  public InflaterInputStream(CipherInputStream cipherInputStream, long compressedSize) {
-    super(cipherInputStream, compressedSize);
+  public InflaterInputStream(CipherInputStream cipherInputStream) {
+    super(cipherInputStream);
     this.inflater = new Inflater(true);
     buff = new byte[512];
   }

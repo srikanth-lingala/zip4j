@@ -16,29 +16,35 @@ import static net.lingala.zip4j.util.InternalZipConstants.AES_AUTH_LENGTH;
 
 class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
 
-  private byte[] aesBlockByte = new byte[16];
-  private int aesBytesReturned = 0;
-  private boolean non16ByteBlockRead = false;
+  private byte[] singleByteBuffer = new byte[1];
+  private byte[] aes16ByteBlock = new byte[16];
+  private int aes16ByteBlockPointer = 0;
+  private int remainingAes16ByteBlockLength = 0;
+  private int lengthToRead = 0;
+  private int offsetWithAesBlock = 0;
+  private int bytesCopiedInThisIteration = 0;
+  private int lengthToCopyInThisIteration = 0;
+  private int aes16ByteBlockReadLength = 0;
 
   public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password)
-      throws IOException, ZipException {
+      throws IOException {
     super(zipEntryInputStream, localFileHeader, password);
   }
 
   @Override
-  protected AESDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
+  protected AESDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException {
     return new AESDecrypter(localFileHeader.getAesExtraDataRecord(), password, getSalt(localFileHeader), getPasswordVerifier());
   }
 
   @Override
   public int read() throws IOException {
-    if (aesBytesReturned == 0 || aesBytesReturned == 16) {
-      if (read(aesBlockByte) == -1) {
-        return -1;
-      }
-      aesBytesReturned = 0;
+    int readLen = read(singleByteBuffer);
+
+    if (readLen == -1) {
+      return -1;
     }
-    return aesBlockByte[aesBytesReturned++] & 0xff;
+
+    return singleByteBuffer[0];
   }
 
   @Override
@@ -48,8 +54,65 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    assertNon16ByteBlockNotReadTwice(len);
-    return super.read(b, off, len);
+    lengthToRead = len;
+    offsetWithAesBlock = off;
+    bytesCopiedInThisIteration = 0;
+
+    if (remainingAes16ByteBlockLength != 0) {
+      copyBytesFromBuffer(b, offsetWithAesBlock);
+
+      if (bytesCopiedInThisIteration == len) {
+        return bytesCopiedInThisIteration;
+      }
+    }
+
+    if (lengthToRead < 16) {
+      aes16ByteBlockReadLength = super.read(aes16ByteBlock, 0, aes16ByteBlock.length);
+      aes16ByteBlockPointer = 0;
+
+      if (aes16ByteBlockReadLength == -1) {
+        remainingAes16ByteBlockLength = 0;
+
+        if (bytesCopiedInThisIteration > 0) {
+          return bytesCopiedInThisIteration;
+        }
+
+        return -1;
+      }
+
+      remainingAes16ByteBlockLength = aes16ByteBlockReadLength;
+
+      copyBytesFromBuffer(b, offsetWithAesBlock);
+
+      if (bytesCopiedInThisIteration == len) {
+        return bytesCopiedInThisIteration;
+      }
+    }
+
+    int readLen = super.read(b, offsetWithAesBlock, (lengthToRead - lengthToRead %16));
+
+    if (readLen == -1) {
+      if (bytesCopiedInThisIteration > 0) {
+        return bytesCopiedInThisIteration;
+      } else {
+        return -1;
+      }
+    } else {
+      return readLen + bytesCopiedInThisIteration;
+    }
+  }
+
+  private void copyBytesFromBuffer(byte[] b, int off) {
+    lengthToCopyInThisIteration = lengthToRead < remainingAes16ByteBlockLength ? lengthToRead : remainingAes16ByteBlockLength;
+    System.arraycopy(aes16ByteBlock, aes16ByteBlockPointer, b, off, lengthToCopyInThisIteration);
+
+    incrementAesByteBlockPointer(lengthToCopyInThisIteration);
+    decrementRemainingAesBytesLength(lengthToCopyInThisIteration);
+
+    bytesCopiedInThisIteration += lengthToCopyInThisIteration;
+
+    lengthToRead -= lengthToCopyInThisIteration;
+    offsetWithAesBlock += lengthToCopyInThisIteration;
   }
 
   @Override
@@ -82,19 +145,10 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
     int readLen = inputStream.read(storedMac);
 
     if (readLen != AES_AUTH_LENGTH) {
-      throw new IOException("Invalid AES Mac bytes. Could not read sufficient data");
+      throw new ZipException("Invalid AES Mac bytes. Could not read sufficient data");
     }
 
     return storedMac;
-  }
-
-  private void assertNon16ByteBlockNotReadTwice(int readLen) throws IOException {
-    if (readLen % 16 != 0) {
-      if (non16ByteBlockRead) {
-        throw new IOException("AES non-16 byte block already read");
-      }
-      non16ByteBlockRead = true;
-    }
   }
 
   private byte[] getSalt(LocalFileHeader localFileHeader) throws IOException {
@@ -112,5 +166,21 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
     byte[] pvBytes = new byte[2];
     readRaw(pvBytes);
     return pvBytes;
+  }
+
+  private void incrementAesByteBlockPointer(int incrementBy) {
+    aes16ByteBlockPointer += incrementBy;
+
+    if (aes16ByteBlockPointer >= 15) {
+      aes16ByteBlockPointer = 15;
+    }
+  }
+
+  private void decrementRemainingAesBytesLength(int decrementBy) {
+    remainingAes16ByteBlockLength -= decrementBy;
+
+    if (remainingAes16ByteBlockLength <= 0) {
+      remainingAes16ByteBlockLength = 0;
+    }
   }
 }
