@@ -267,7 +267,11 @@ public class HeaderReader {
   private List<ExtraDataRecord> readExtraDataRecords(RandomAccessFile zip4jRaf, int extraFieldLength)
       throws IOException {
 
-    if (extraFieldLength <= 0) {
+    if (extraFieldLength < 4) {
+      if (extraFieldLength > 0) {
+        zip4jRaf.skipBytes(extraFieldLength);
+      }
+
       return null;
     }
 
@@ -279,7 +283,11 @@ public class HeaderReader {
   private List<ExtraDataRecord> readExtraDataRecords(InputStream inputStream, int extraFieldLength)
       throws IOException {
 
-    if (extraFieldLength <= 0) {
+    if (extraFieldLength < 4) {
+      if (extraFieldLength > 0) {
+        inputStream.skip(extraFieldLength);
+      }
+
       return null;
     }
 

@@ -15,6 +15,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
@@ -257,6 +258,16 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(zipArchiveToTest, "aaaaaaaa".toCharArray(), outputFolder, 5,
         false);
   }
+
+  @Test
+  public void testExtractFilesForZipFileWhileWithCorruptExtraDataRecordLength() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("corrupt_extra_data_record_length.zip"));
+
+    zipFile.extractAll(outputFolder.getPath());
+
+    assertThat(zipFile.getFileHeaders()).hasSize(44);
+    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(44);
+   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {
     assertThat(outputFolder.listFiles()).hasSize(numberOfExpectedFiles);
