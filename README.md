@@ -280,7 +280,7 @@ This method will throw an exception if the split zip file (in this case `split_z
 ### List all files in a zip
 
 ~~~~
-List<FileHeader> fileHeaders = new ZipFile("zipfile.zip");
+List<FileHeader> fileHeaders = new ZipFile("zipfile.zip").getFileHeaders();
 fileHeaders.stream().forEach(fileHeader -> System.out.println(fileHeader.getFileName()));
 ~~~~
 
