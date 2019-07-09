@@ -164,6 +164,21 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFileWithDifferentFileNameSetsTheNewFileName() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("/data/newfile.txt");
+
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
+
+    zipFile = new ZipFile(generatedZipFile);
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(zipFile.getFileHeader("/data/newfile.txt")).isNotNull();
+    assertThat(zipFile.getFileHeader("sample_text_large.txt")).isNull();
+    zipFile.extractAll(outputFolder.getPath());
+  }
+
+  @Test
   public void testAddFileRemovesExistingFileWithAesEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);

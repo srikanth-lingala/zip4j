@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.FileUtils;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -149,7 +150,6 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
                                                     ProgressMonitor progressMonitor) throws IOException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
     clonedZipParameters.setLastModifiedFileTime(javaToDosTime((fileToAdd.lastModified())));
-    clonedZipParameters.setFileNameInZip(fileToAdd.getName());
 
     if (fileToAdd.isDirectory()) {
       clonedZipParameters.setEntrySize(0);
@@ -160,8 +160,10 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
     clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
 
-    String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
-    clonedZipParameters.setFileNameInZip(relativeFileName);
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
+      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
+      clonedZipParameters.setFileNameInZip(relativeFileName);
+    }
 
     if (fileToAdd.isDirectory()) {
       clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
