@@ -24,6 +24,7 @@ import net.lingala.zip4j.model.DataDescriptor;
 import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.BitUtils;
@@ -223,7 +224,8 @@ public class ZipInputStream extends InputStream {
   }
 
   private void verifyCrc() throws IOException {
-    if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
+    if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES
+        && localFileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.TWO)) {
       // Verification will be done in this case by AesCipherInputStream
       return;
     }
