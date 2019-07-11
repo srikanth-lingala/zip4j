@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.RawIO;
@@ -79,8 +80,7 @@ public class ZipOutputStream extends OutputStream {
     fileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
     localFileHeader.setUncompressedSize(uncompressedSizeForThisEntry);
 
-    //Skip writing crc for AES encrypted files
-    if (!fileHeader.isEncrypted() || !EncryptionMethod.AES.equals(fileHeader.getEncryptionMethod())) {
+    if (writeCrc(fileHeader)) {
       fileHeader.setCrc(crc32.getValue());
       localFileHeader.setCrc(crc32.getValue());
     }
@@ -179,6 +179,16 @@ public class ZipOutputStream extends OutputStream {
         && zipParameters.isWriteExtendedLocalFileHeader()) {
       throw new IllegalArgumentException("uncompressed size should be set for zip entries of compression type store");
     }
+  }
+
+  private boolean writeCrc(FileHeader fileHeader) {
+    boolean isAesEncrypted = fileHeader.isEncrypted() && fileHeader.getEncryptionMethod().equals(EncryptionMethod.AES);
+
+    if (!isAesEncrypted) {
+      return true;
+    }
+
+    return fileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.ONE);
   }
 
   private boolean isEntryDirectory(String entryName) {

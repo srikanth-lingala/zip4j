@@ -30,6 +30,7 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.RawIO;
@@ -648,7 +649,7 @@ public class HeaderReader {
         aesExtraDataRecord.setDataSize(extraDataRecord.getSizeOfData());
 
         byte[] aesData = extraDataRecord.getData();
-        aesExtraDataRecord.setVersionNumber(rawIO.readShortLittleEndian(aesData, 0));
+        aesExtraDataRecord.setAesVersion(AesVersion.getFromVersionNumber(rawIO.readShortLittleEndian(aesData, 0)));
         byte[] vendorIDBytes = new byte[2];
         System.arraycopy(aesData, 2, vendorIDBytes, 0, 2);
         aesExtraDataRecord.setVendorID(new String(vendorIDBytes));

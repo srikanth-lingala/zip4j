@@ -18,12 +18,13 @@ package net.lingala.zip4j.model;
 
 import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 
 public class AESExtraDataRecord extends ZipHeader {
 
   private int dataSize;
-  private int versionNumber;
+  private AesVersion aesVersion;
   private String vendorID;
   private AesKeyStrength aesKeyStrength;
   private CompressionMethod compressionMethod;
@@ -31,10 +32,7 @@ public class AESExtraDataRecord extends ZipHeader {
   public AESExtraDataRecord() {
     setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
     dataSize = 7;
-    // Always set the version number to 2 as we do not store CRC for any AES encrypted files
-    // only MAC is stored and as per the specification, if version number is 2, then MAC is read
-    // and CRC is ignored
-    versionNumber = 2;
+    aesVersion = AesVersion.TWO;
     vendorID = "AE";
     aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
     compressionMethod = CompressionMethod.DEFLATE;
@@ -48,12 +46,12 @@ public class AESExtraDataRecord extends ZipHeader {
     this.dataSize = dataSize;
   }
 
-  public int getVersionNumber() {
-    return versionNumber;
+  public AesVersion getAesVersion() {
+    return aesVersion;
   }
 
-  public void setVersionNumber(int versionNumber) {
-    this.versionNumber = versionNumber;
+  public void setAesVersion(AesVersion aesVersion) {
+    this.aesVersion = aesVersion;
   }
 
   public String getVendorID() {

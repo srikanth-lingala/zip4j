@@ -135,6 +135,10 @@ public class FileHeaderFactory {
   private AESExtraDataRecord generateAESExtraDataRecord(ZipParameters parameters) throws ZipException {
     AESExtraDataRecord aesExtraDataRecord = new AESExtraDataRecord();
 
+    if (parameters.getAesVersion() != null) {
+      aesExtraDataRecord.setAesVersion(parameters.getAesVersion());
+    }
+
     if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_128) {
       aesExtraDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
     } else if (parameters.getAesKeyStrength() == AesKeyStrength.KEY_STRENGTH_192) {

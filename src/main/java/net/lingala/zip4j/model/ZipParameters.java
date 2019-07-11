@@ -17,6 +17,7 @@
 package net.lingala.zip4j.model;
 
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -29,6 +30,7 @@ public class ZipParameters {
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
   private boolean readHiddenFiles = true;
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
+  private AesVersion aesVersion = AesVersion.TWO;
   private boolean includeRootFolder = true;
   private long entryCRC;
   private String defaultFolderPath;
@@ -47,6 +49,7 @@ public class ZipParameters {
     this.encryptionMethod = zipParameters.getEncryptionMethod();
     this.readHiddenFiles = zipParameters.isReadHiddenFiles();
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
+    this.aesVersion = zipParameters.getAesVersion();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
     this.entryCRC = zipParameters.getEntryCRC();
     this.defaultFolderPath = zipParameters.getDefaultFolderPath();
@@ -106,6 +109,14 @@ public class ZipParameters {
 
   public void setAesKeyStrength(AesKeyStrength aesKeyStrength) {
     this.aesKeyStrength = aesKeyStrength;
+  }
+
+  public AesVersion getAesVersion() {
+    return aesVersion;
+  }
+
+  public void setAesVersion(AesVersion aesVersion) {
+    this.aesVersion = aesVersion;
   }
 
   public boolean isIncludeRootFolder() {

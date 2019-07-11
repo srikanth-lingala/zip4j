@@ -12,6 +12,7 @@ import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
@@ -112,18 +113,33 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes256() throws IOException {
-    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_256);
+  public void testWriteLocalFileHeaderWithAes256v1() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes192() throws IOException {
-    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_192);
+  public void testWriteLocalFileHeaderWithAes192v1() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_192, AesVersion.ONE);
   }
 
   @Test
-  public void testWriteLocalFileHeaderWithAes128() throws IOException {
-    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_128);
+  public void testWriteLocalFileHeaderWithAes128v1() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_128, AesVersion.ONE);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderWithAes256v2() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_256, AesVersion.TWO);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderWithAes192v2() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_192, AesVersion.TWO);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderWithAes128v2() throws IOException {
+    testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_128, AesVersion.TWO);
   }
 
   @Test
@@ -224,7 +240,7 @@ public class HeaderWriterIT extends AbstractIT {
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
-        verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_192);
+        verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_192, AesVersion.TWO);
         assertThat(fileHeader.getZip64ExtendedInfo()).isNull();
       }
     }
@@ -407,7 +423,7 @@ public class HeaderWriterIT extends AbstractIT {
     for (FileHeader fileHeader : fileHeaders) {
       fileHeader.setEncrypted(true);
       fileHeader.setEncryptionMethod(EncryptionMethod.AES);
-      fileHeader.setAesExtraDataRecord(createAesExtraDataRecord(aesKeyStrength));
+      fileHeader.setAesExtraDataRecord(createAesExtraDataRecord(aesKeyStrength, AesVersion.TWO));
     }
   }
 
@@ -463,11 +479,12 @@ public class HeaderWriterIT extends AbstractIT {
     assertThat(dataDescriptor.getCrc()).isEqualTo(crc);
   }
 
-  private void testWriteLocalFileHeaderWithAes(AesKeyStrength aesKeyStrength) throws IOException {
+  private void testWriteLocalFileHeaderWithAes(AesKeyStrength aesKeyStrength, AesVersion aesVersion)
+      throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("TEXT", COMPRESSED_SIZE, UNCOMPRESSED_SIZE, true);
     localFileHeaderToWrite.setEncryptionMethod(EncryptionMethod.AES);
-    localFileHeaderToWrite.setAesExtraDataRecord(createAesExtraDataRecord(aesKeyStrength));
+    localFileHeaderToWrite.setAesExtraDataRecord(createAesExtraDataRecord(aesKeyStrength, aesVersion));
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
@@ -477,25 +494,26 @@ public class HeaderWriterIT extends AbstractIT {
     try(InputStream inputStream = new FileInputStream(headersFile)) {
       LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
       assertThat(readLocalFileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.AES);
-      verifyAesExtraDataRecord(readLocalFileHeader.getAesExtraDataRecord(), aesKeyStrength);
+      verifyAesExtraDataRecord(readLocalFileHeader.getAesExtraDataRecord(), aesKeyStrength, aesVersion);
     }
   }
 
-  private AESExtraDataRecord createAesExtraDataRecord(AesKeyStrength aesKeyStrength) {
+  private AESExtraDataRecord createAesExtraDataRecord(AesKeyStrength aesKeyStrength, AesVersion aesVersion) {
     AESExtraDataRecord aesDataRecord = new AESExtraDataRecord();
     aesDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
     aesDataRecord.setDataSize(7);
-    aesDataRecord.setVersionNumber(2);
+    aesDataRecord.setAesVersion(aesVersion);
     aesDataRecord.setVendorID("AE");
     aesDataRecord.setAesKeyStrength(aesKeyStrength);
     aesDataRecord.setCompressionMethod(CompressionMethod.DEFLATE);
     return aesDataRecord;
   }
 
-  private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength) {
+  private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength,
+                                        AesVersion aesVersion) {
     assertThat(aesExtraDataRecord).isNotNull();
     assertThat(aesExtraDataRecord.getAesKeyStrength()).isEqualTo(aesKeyStrength);
-    assertThat(aesExtraDataRecord.getVersionNumber()).isEqualTo(2);
+    assertThat(aesExtraDataRecord.getAesVersion()).isEqualTo(aesVersion);
     assertThat(aesExtraDataRecord.getCompressionMethod()).isEqualTo(CompressionMethod.DEFLATE);
     assertThat(aesExtraDataRecord.getVendorID()).isEqualTo("AE");
   }

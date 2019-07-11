@@ -6,6 +6,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.BitUtils;
@@ -29,48 +30,63 @@ public class ZipOutputStreamIT extends AbstractIT {
 
   @Test
   public void testZipOutputStreamStoreWithoutEncryption() throws IOException {
-    testZipOutputStream(CompressionMethod.STORE, false, null, null);
+    testZipOutputStream(CompressionMethod.STORE, false, null, null, null);
   }
 
   @Test
   public void testZipOutputStreamStoreWithStandardEncryption() throws IOException {
-    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.ZIP_STANDARD, null);
+    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.ZIP_STANDARD, null, null);
   }
 
   @Test
-  public void testZipOutputStreamStoreWithAES128() throws IOException {
-    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+  public void testZipOutputStreamStoreWithAES256V1() throws IOException {
+    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
 
   @Test
-  public void testZipOutputStreamStoreWithAES256() throws IOException {
-    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+  public void testZipOutputStreamStoreWithAES128V2() throws IOException {
+    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128, AesVersion.TWO);
+  }
+
+  @Test
+  public void testZipOutputStreamStoreWithAES256V2() throws IOException {
+    testZipOutputStream(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, AesVersion.TWO);
   }
 
   @Test
   public void testZipOutputStreamDeflateWithoutEncryption() throws IOException {
-    testZipOutputStream(CompressionMethod.DEFLATE, false, null, null);
+    testZipOutputStream(CompressionMethod.DEFLATE, false, null, null, null);
   }
 
   @Test
   public void testZipOutputStreamDeflateWithStandardEncryption() throws IOException {
-    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null);
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, null);
   }
 
   @Test
   public void testZipOutputStreamDeflateWithStandardEncryptionWhenModifiedFileTimeNotSet()
       throws IOException {
-    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, false);
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, null, false);
+  }
+
+  @Test
+  public void testZipOutputStreamDeflateWithAES128V1() throws IOException {
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128, AesVersion.ONE);
   }
 
   @Test
   public void testZipOutputStreamDeflateWithAES128() throws IOException {
-    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128, AesVersion.TWO);
   }
 
   @Test
   public void testZipOutputStreamDeflateWithAES256() throws IOException {
-    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, AesVersion.TWO);
+  }
+
+  @Test
+  public void testZipOutputStreamDeflateWithNullVersionUsesV2() throws IOException {
+    testZipOutputStream(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, null);
   }
 
   @Test
@@ -91,17 +107,20 @@ public class ZipOutputStreamIT extends AbstractIT {
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
-                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength)
+                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
+                                   AesVersion aesVersion)
       throws IOException {
-    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, true);
+    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, true);
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
-                                   boolean setLastModifiedTime)
+                                   AesVersion aesVersion, boolean setLastModifiedTime)
       throws IOException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
+    zipParameters.setAesVersion(aesVersion);
+
     byte[] buff = new byte[4096];
     int readLen;
 
@@ -127,14 +146,24 @@ public class ZipOutputStreamIT extends AbstractIT {
       }
     }
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
-    verifyDataDescriptorExistsForAllEntries();
+    verifyEntries();
   }
 
-  private void verifyDataDescriptorExistsForAllEntries() throws ZipException {
+  private void verifyEntries() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     for (FileHeader fileHeader : zipFile.getFileHeaders()) {
       byte[] generalPurposeBytes = fileHeader.getGeneralPurposeFlag();
       assertThat(BitUtils.isBitSet(generalPurposeBytes[0], 3)).isTrue();
+
+      if (fileHeader.isEncrypted()
+          && fileHeader.getEncryptionMethod().equals(EncryptionMethod.AES)) {
+
+        if (fileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.TWO)) {
+          assertThat(fileHeader.getCrc()).isZero();
+        } else if (fileHeader.getCompressedSize() > 0) {
+          assertThat(fileHeader.getCrc()).isNotZero();
+        }
+      }
     }
   }
 

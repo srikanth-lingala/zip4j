@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -290,7 +291,21 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
-  public void testAddFilesWithAes256Encryption() throws IOException {
+  public void testAddFilesWithAes256EncryptionV1() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setAesVersion(AesVersion.ONE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
+    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.AES,
+        AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
+  }
+
+  @Test
+  public void testAddFilesWithAes256EncryptionV2() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
@@ -598,11 +613,11 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile.addStream(inputStream, zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 4);
-    verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.NONE, null);
+    verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.NONE, null, null);
   }
 
   @Test
-  public void testAddStreamToZipWithAesEncryptionForExistingZipAddsSuccessfully() throws IOException {
+  public void testAddStreamToZipWithAesEncryptionV2ForExistingZipAddsSuccessfully() throws IOException {
     File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     zipParameters.setFileNameInZip(fileToAdd.getName());
@@ -614,16 +629,40 @@ public class AddFilesToZipIT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
     verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.AES,
-        AesKeyStrength.KEY_STRENGTH_128);
+        AesKeyStrength.KEY_STRENGTH_128, AesVersion.TWO);
+  }
+
+  @Test
+  public void testAddStreamToZipWithAesEncryptionV1ForExistingZipAddsSuccessfully() throws IOException {
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setAesVersion(AesVersion.ONE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
+    verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.AES,
+        AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
 
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
                                           CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
                                           AesKeyStrength aesKeyStrength) throws ZipException {
+    verifyZipFileContainsFiles(generatedZipFile, fileNames, compressionMethod, encryptionMethod, aesKeyStrength,
+        AesVersion.TWO);
+  }
+
+  private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
+                                          CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
+                                          AesKeyStrength aesKeyStrength, AesVersion aesVersion) throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     List<FileHeader> fileHeaders = zipFile.getFileHeaders();
     verifyFileHeadersContainsFiles(fileHeaders, fileNames);
-    verifyAllFilesAreOf(fileHeaders, compressionMethod, encryptionMethod, aesKeyStrength);
+    verifyAllFilesAreOf(fileHeaders, compressionMethod, encryptionMethod, aesKeyStrength, aesVersion);
   }
 
   private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile, char[] password)
@@ -665,12 +704,14 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   private void verifyAllFilesAreOf(List<FileHeader> fileHeaders, CompressionMethod compressionMethod,
-                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) {
+                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
+                                   AesVersion aesVersion) {
     for (FileHeader fileHeader : fileHeaders) {
       if (fileHeader.isDirectory()) {
         assertThat(fileHeader.getCompressionMethod()).isEqualTo(CompressionMethod.STORE);
         assertThat(fileHeader.isEncrypted()).isFalse();
         assertThat(fileHeader.getAesExtraDataRecord()).isNull();
+        assertThat(fileHeader.getCrc()).isZero();
       } else {
         CompressionMethod shouldBeCompressionMethod = getShouldBeCompressionMethod(
             encryptionMethod == EncryptionMethod.AES, compressionMethod, fileHeader.getUncompressedSize());
@@ -683,7 +724,15 @@ public class AddFilesToZipIT extends AbstractIT {
         }
 
         if (encryptionMethod == EncryptionMethod.AES) {
-          verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), aesKeyStrength);
+          verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), aesKeyStrength, aesVersion);
+
+          if (fileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.TWO)) {
+            assertThat(fileHeader.getCrc()).isZero();
+          } else {
+            if (fileHeader.getCompressedSize() != 0) {
+              assertThat(fileHeader.getCrc()).isNotZero();
+            }
+          }
         } else {
           assertThat(fileHeader.getAesExtraDataRecord()).isNull();
         }
@@ -692,7 +741,9 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   private void verifyFileIsOf(File generatedZipFile, String fileName, CompressionMethod compressionMethod,
-                              EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) throws ZipException {
+                              EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength, AesVersion aesVersion)
+      throws ZipException {
+
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     FileHeader fileHeader = getFileHeaderFrom(fileHeaders, fileName);
 
@@ -700,7 +751,7 @@ public class AddFilesToZipIT extends AbstractIT {
       assertThat(fileHeader.isEncrypted()).isFalse();
       assertThat(fileHeader.getEncryptionMethod()).isIn(null, EncryptionMethod.NONE);
     } else {
-      verifyAllFilesAreOf(singletonList(fileHeader), compressionMethod, encryptionMethod, aesKeyStrength);
+      verifyAllFilesAreOf(singletonList(fileHeader), compressionMethod, encryptionMethod, aesKeyStrength, aesVersion);
     }
   }
 
@@ -719,9 +770,11 @@ public class AddFilesToZipIT extends AbstractIT {
     return fileHeaders;
   }
 
-  private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength) {
+  private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength,
+                                        AesVersion aesVersion) {
     assertThat(aesExtraDataRecord).isNotNull();
     assertThat(aesExtraDataRecord.getAesKeyStrength()).isEqualTo(aesKeyStrength);
+    assertThat(aesExtraDataRecord.getAesVersion()).isEqualTo(aesVersion);
   }
 
   private CompressionMethod getShouldBeCompressionMethod(boolean isAesEncrypted, CompressionMethod compressionMethod,

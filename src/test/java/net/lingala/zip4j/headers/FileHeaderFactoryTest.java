@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -103,7 +104,7 @@ public class FileHeaderFactoryTest {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
-        CompressionMethod.DEFLATE);
+        CompressionMethod.DEFLATE, AesVersion.TWO);
   }
 
   @Test
@@ -116,7 +117,7 @@ public class FileHeaderFactoryTest {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_128,
-        CompressionMethod.DEFLATE);
+        CompressionMethod.DEFLATE, AesVersion.TWO);
   }
 
   @Test
@@ -129,7 +130,7 @@ public class FileHeaderFactoryTest {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_192,
-        CompressionMethod.DEFLATE);
+        CompressionMethod.DEFLATE, AesVersion.TWO);
   }
 
   @Test
@@ -142,7 +143,35 @@ public class FileHeaderFactoryTest {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
-        CompressionMethod.DEFLATE);
+        CompressionMethod.DEFLATE, AesVersion.TWO);
+  }
+
+  @Test
+  public void testGenerateFileHeaderWithAesEncryptionVersionV1() throws ZipException {
+    ZipParameters zipParameters = generateZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+    zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setAesVersion(AesVersion.ONE);
+
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    verifyFileHeader(fileHeader, zipParameters, false, 0, true);
+    verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
+        CompressionMethod.DEFLATE, AesVersion.ONE);
+  }
+
+  @Test
+  public void testGenerateFileHeaderWithAesEncryptionWithNullVersionUsesV2() throws ZipException {
+    ZipParameters zipParameters = generateZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+    zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setAesVersion(null);
+
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    verifyFileHeader(fileHeader, zipParameters, false, 0, true);
+    verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
+        CompressionMethod.DEFLATE, AesVersion.TWO);
   }
 
   @Test
@@ -318,13 +347,13 @@ public class FileHeaderFactoryTest {
   }
 
   private void verifyAesExtraDataRecord(AESExtraDataRecord aesExtraDataRecord, AesKeyStrength aesKeyStrength,
-                                        CompressionMethod compressionMethod) {
+                                        CompressionMethod compressionMethod, AesVersion aesVersion) {
     assertThat(aesExtraDataRecord).isNotNull();
     assertThat(aesExtraDataRecord.getSignature()).isEqualTo(HeaderSignature.AES_EXTRA_DATA_RECORD);
     assertThat(aesExtraDataRecord.getDataSize()).isEqualTo(7);
     assertThat(aesExtraDataRecord.getVendorID()).isEqualTo("AE");
     assertThat(aesExtraDataRecord.getCompressionMethod()).isEqualTo(compressionMethod);
-    assertThat(aesExtraDataRecord.getVersionNumber()).isEqualTo(2);
+    assertThat(aesExtraDataRecord.getAesVersion()).isEqualTo(aesVersion);
     assertThat(aesExtraDataRecord.getAesKeyStrength()).isEqualTo(aesKeyStrength);
   }
 
