@@ -13,6 +13,7 @@ import java.io.IOException;
 public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskParameters> {
 
   private char[] password;
+  private SplitInputStream splitInputStream;
 
   public ExtractFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password) {
     super(progressMonitor, runInThread, zipModel);
@@ -25,6 +26,10 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader)) {
       extractFile(zipInputStream, taskParameters.fileHeader, taskParameters.outputPath, taskParameters.newFileName,
           progressMonitor);
+    } finally {
+      if (splitInputStream != null) {
+        splitInputStream.close();
+      }
     }
   }
 
@@ -34,7 +39,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   }
 
   protected ZipInputStream createZipInputStream(FileHeader fileHeader) throws IOException {
-    SplitInputStream splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
+    splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
         getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
     splitInputStream.prepareExtractionForFileHeader(fileHeader);
     return new ZipInputStream(splitInputStream, password);

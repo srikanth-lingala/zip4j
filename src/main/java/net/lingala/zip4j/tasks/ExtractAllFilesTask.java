@@ -35,6 +35,10 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
         verifyIfTaskIsCancelled();
       }
+    } finally {
+      if (splitInputStream != null) {
+        splitInputStream.close();
+      }
     }
   }
 
