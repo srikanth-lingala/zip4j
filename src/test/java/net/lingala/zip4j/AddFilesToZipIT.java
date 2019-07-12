@@ -583,7 +583,28 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile = new ZipFile(generatedZipFile);
     byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
     // assert that extra data record is not present
-    assertThat(BitUtils.isBitSet(generalPurposeBytes[0], 3)).isFalse();
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[0], 3)).isTrue();
+  }
+
+  @Test
+  public void testAddStreamToWithStoreCompressionAndZipStandardEncryption() throws IOException {
+    File fileToAdd = TestUtils.getTestFileFromResources("sample_text_large.txt");
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
+        EncryptionMethod.ZIP_STANDARD, null);
+
+    zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[0], 3)).isTrue();
   }
 
   @Test

@@ -7,6 +7,7 @@ import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
 
@@ -28,7 +29,16 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
     verifyZipParameters(taskParameters.zipParameters);
 
-    taskParameters.zipParameters.setWriteExtendedLocalFileHeader(false);
+    // For streams, it is necessary to write extended local file header because of Zip standard encryption.
+    // If we do not write extended local file header, zip standard encryption needs a crc upfront for key,
+    // which cannot be calculated until we read the complete stream. If we use extended local file header,
+    // last modified file time is used, or current system time if not available.
+    taskParameters.zipParameters.setWriteExtendedLocalFileHeader(true);
+
+    if (taskParameters.zipParameters.getCompressionMethod().equals(CompressionMethod.STORE)) {
+      // Set some random value here. This will be updated again when closing entry
+      taskParameters.zipParameters.setEntrySize(0);
+    }
 
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
@@ -47,7 +57,10 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       }
 
       FileHeader fileHeader = zipOutputStream.closeEntry();
-      updateLocalFileHeader(fileHeader, splitOutputStream);
+
+      if (fileHeader.getCompressionMethod().equals(CompressionMethod.STORE)) {
+        updateLocalFileHeader(fileHeader, splitOutputStream);
+      }
     }
   }
 
