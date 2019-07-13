@@ -196,6 +196,19 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFileWithAfterDeflateRemainingBytesTestFile() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setAesVersion(AesVersion.TWO);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFile(TestUtils.getTestFileFromResources("after_deflate_remaining_bytes.bin"), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("after_deflate_remaining_bytes.bin"),
+        CompressionMethod.DEFLATE, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+  }
+
+  @Test
   public void testAddFileProgressMonitorThrowsExceptionWhenPerformingActionInBusyState() throws ZipException {
     expectedException.expectMessage("invalid operation - Zip4j is in busy state");
     expectedException.expect(ZipException.class);

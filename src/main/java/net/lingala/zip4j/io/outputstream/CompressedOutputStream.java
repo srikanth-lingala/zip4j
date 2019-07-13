@@ -26,10 +26,6 @@ abstract class CompressedOutputStream extends OutputStream {
     cipherOutputStream.write(b, off, len);
   }
 
-  protected void decrementBytesWrittenForThisEntry(int value) {
-    cipherOutputStream.decrementBytesWrittenForThisEntry(value);
-  }
-
   protected void closeEntry() throws IOException {
     cipherOutputStream.closeEntry();
   }

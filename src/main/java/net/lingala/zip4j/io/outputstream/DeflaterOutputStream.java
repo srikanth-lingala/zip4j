@@ -27,13 +27,10 @@ class DeflaterOutputStream extends CompressedOutputStream {
 
   private byte[] buff = new byte[BUFF_SIZE];
   protected Deflater deflater;
-  private boolean firstBytesRead;
 
   public DeflaterOutputStream(CipherOutputStream cipherOutputStream, CompressionLevel compressionLevel) {
     super(cipherOutputStream);
-    deflater = new Deflater();
-    deflater.setLevel(compressionLevel.getLevel());
-    firstBytesRead = false;
+    deflater = new Deflater(compressionLevel.getLevel(), true);
   }
 
   public void write(byte[] b) throws IOException {
@@ -56,20 +53,7 @@ class DeflaterOutputStream extends CompressedOutputStream {
   private void deflate() throws IOException {
     int len = deflater.deflate(buff, 0, buff.length);
     if (len > 0) {
-      if (deflater.finished()) {
-        if (len == 4) return;
-        if (len < 4) {
-          decrementBytesWrittenForThisEntry(4 - len);
-          return;
-        }
-        len -= 4;
-      }
-      if (!firstBytesRead) {
-        super.write(buff, 2, len - 2);
-        firstBytesRead = true;
-      } else {
-        super.write(buff, 0, len);
-      }
+      super.write(buff, 0, len);
     }
   }
 
@@ -80,7 +64,6 @@ class DeflaterOutputStream extends CompressedOutputStream {
         deflate();
       }
     }
-    firstBytesRead = false;
     deflater.end();
     super.closeEntry();
   }
