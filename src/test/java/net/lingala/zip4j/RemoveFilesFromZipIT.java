@@ -78,7 +78,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
 
     zipFile.removeFile("test-files/öüäöäö/asöäööl");
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
     verifyZipFileDoesNotContainFile(generatedZipFile, "test-files/öüäöäö/asöäööl");
   }
 
@@ -103,7 +103,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
 
     zipFile.removeFile(zipFile.getFileHeader("test-files/sample_directory/favicon.ico"));
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
     verifyZipFileDoesNotContainFile(generatedZipFile, "sample_directory/favicon.ico");
   }
 

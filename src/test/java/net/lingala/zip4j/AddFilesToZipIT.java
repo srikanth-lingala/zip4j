@@ -471,7 +471,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
     zipFile.addFolder(TestUtils.getTestFileFromResources(""));
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 13);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
     verifyFoldersInZip(fileHeaders, generatedZipFile, null);
@@ -485,7 +485,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
     verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
@@ -499,7 +499,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 11);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
     List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
     verifyAllFilesInZipDoesNotContainPath(fileHeaders, "test-files/");
     verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
@@ -536,7 +536,7 @@ public class AddFilesToZipIT extends AbstractIT {
     assertThat(progressMonitor.getException()).isNull();
     assertThat(percentBetweenZeroAndHundred).isTrue();
     assertThat(fileNameSet).isTrue();
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13);
   }
 
   @Test
