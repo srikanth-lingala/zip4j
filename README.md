@@ -321,7 +321,7 @@ new ZipFile("some_zip_file.zip").getComment();
 Note: This will only check for the validity of the headers and not the validity of each entry in the zip file.
 
 ~~~~
-new ZipFile("valid_zip_file.zip").isValid();
+new ZipFile("valid_zip_file.zip").isValidZipFile();
 ~~~~
 
 ## Working with streams
