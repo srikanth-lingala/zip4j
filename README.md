@@ -445,9 +445,9 @@ zipFile.setRunInThread(true);
 zipFile.addFolder("/some/folder");
 
 while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
-  Systetm.out.println("Percentage done: " + progressMonitor.getPercentDone());
-  Systetm.out.println("Current file: " + progressMonitor.getFileName());
-  Systetm.out.println("Current task: " + progressMonitor.getCurrentTask());
+  System.out.println("Percentage done: " + progressMonitor.getPercentDone());
+  System.out.println("Current file: " + progressMonitor.getFileName());
+  System.out.println("Current task: " + progressMonitor.getCurrentTask());
   
   Thread.sleep(100);
 }
