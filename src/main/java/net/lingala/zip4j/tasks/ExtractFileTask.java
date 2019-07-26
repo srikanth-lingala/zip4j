@@ -35,7 +35,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
 
   @Override
   protected long calculateTotalWork(ExtractFileTaskParameters taskParameters) {
-    return taskParameters.fileHeader.getCompressedSize();
+    return taskParameters.fileHeader.getUncompressedSize();
   }
 
   protected ZipInputStream createZipInputStream(FileHeader fileHeader) throws IOException {
