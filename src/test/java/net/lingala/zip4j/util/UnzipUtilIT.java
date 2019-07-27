@@ -66,10 +66,10 @@ public class UnzipUtilIT extends AbstractIT {
 
     UnzipUtil.applyFileAttributes(fileHeader, file);
 
-    verifyStatic();
+    verifyStatic(FileUtils.class);
     FileUtils.setFileLastModifiedTime(path, currentTime);
 
-    verifyStatic();
+    verifyStatic(FileUtils.class);
     FileUtils.setFileAttributes(path, externalFileAttributes);
   }
 
@@ -89,13 +89,13 @@ public class UnzipUtilIT extends AbstractIT {
 
     UnzipUtil.applyFileAttributes(fileHeader, file);
 
-    verifyStatic(never());
+    verifyStatic(FileUtils.class, never());
     FileUtils.setFileLastModifiedTime(path, currentTime);
 
-    verifyStatic(never());
+    verifyStatic(FileUtils.class, never());
     FileUtils.setFileAttributes(path, externalFileAttributes);
 
-    verifyStatic();
+    verifyStatic(FileUtils.class);
     FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
   }
 
