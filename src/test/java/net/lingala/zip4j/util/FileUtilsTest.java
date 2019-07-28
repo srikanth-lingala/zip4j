@@ -95,36 +95,48 @@ public class FileUtilsTest {
     expectedException.expectMessage("input path is null, cannot read files in the directory");
     expectedException.expect(ZipException.class);
 
-    FileUtils.getFilesInDirectoryRecursive(null, true);
+    FileUtils.getFilesInDirectoryRecursive(null, true, true);
   }
 
   @Test
   public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenInputFileIsNotDirectory() throws ZipException {
     File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(false, true, filesInDirectory, 0, true);
+    testGetFilesInDirectory(false, true, filesInDirectory, 0, true, true);
   }
 
   @Test
   public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenCannotReadInputFile() throws ZipException {
     File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, false, filesInDirectory, 0, true);
+    testGetFilesInDirectory(true, false, filesInDirectory, 0, true, true);
   }
 
   @Test
   public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenFilesInDirIsNull() throws ZipException {
-    testGetFilesInDirectory(true, true, null, 0, true);
+    testGetFilesInDirectory(true, true, null, 0, true, true);
   }
 
   @Test
   public void testGetFilesInDirectoryRecursiveWithHiddenModeOnListsHiddenFiles() throws ZipException {
     File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 5, true);
+    testGetFilesInDirectory(true, true, filesInDirectory, 6, true, true);
   }
 
   @Test
   public void testGetFilesInDirectoryRecursiveWithHiddenModeOffDoesNotListsHiddenFiles() throws ZipException {
     File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 3, false);
+    testGetFilesInDirectory(true, true, filesInDirectory, 5, false, true);
+  }
+
+  @Test
+  public void testGetFilesInDirectoryRecursiveWithHiddenModeOffDoesNotListsHiddenFolders() throws ZipException {
+    File[] filesInDirectory = generateFilesForDirectory();
+    testGetFilesInDirectory(true, true, filesInDirectory, 4, true, false);
+  }
+
+  @Test
+  public void testGetFilesInDirectoryRecursiveWithHiddenModeOffForFilesAndFolders() throws ZipException {
+    File[] filesInDirectory = generateFilesForDirectory();
+    testGetFilesInDirectory(true, true, filesInDirectory, 3, false, false);
   }
 
   @Test
@@ -258,13 +270,15 @@ public class FileUtilsTest {
   }
 
   private void testGetFilesInDirectory(boolean isDirectory, boolean canRead, File[] filesInDirectory,
-                                       int expectedReturnSize, boolean shouldReadHiddenFiles) throws ZipException {
+                                       int expectedReturnSize, boolean shouldReadHiddenFiles,
+                                       boolean shouldReadHiddenFolders) throws ZipException {
     File file = mock(File.class);
     when(file.isDirectory()).thenReturn(isDirectory);
     when(file.canRead()).thenReturn(canRead);
     when(file.listFiles()).thenReturn(filesInDirectory);
 
-    List<File> returnedFiles = FileUtils.getFilesInDirectoryRecursive(file, shouldReadHiddenFiles);
+    List<File> returnedFiles = FileUtils.getFilesInDirectoryRecursive(file, shouldReadHiddenFiles,
+        shouldReadHiddenFolders);
 
     assertThat(returnedFiles).hasSize(expectedReturnSize);
   }
@@ -275,7 +289,8 @@ public class FileUtilsTest {
         mockFile(false, false),
         mockFile(true, false),
         mockFile(true, true),
-        mockFile(false, true)
+        mockFile(false, true),
+        mockFile(true, true),
     };
   }
 

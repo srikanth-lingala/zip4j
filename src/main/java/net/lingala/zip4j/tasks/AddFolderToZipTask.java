@@ -32,7 +32,8 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   @Override
   protected long calculateTotalWork(AddFolderToZipTaskParameters taskParameters) throws ZipException {
     List<File> filesToAdd = getFilesInDirectoryRecursive(taskParameters.folderToAdd,
-        taskParameters.zipParameters.isReadHiddenFiles());
+        taskParameters.zipParameters.isReadHiddenFiles(),
+        taskParameters.zipParameters.isReadHiddenFolders());
 
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
       filesToAdd.add(taskParameters.folderToAdd);
@@ -55,7 +56,8 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
 
   private List<File> getFilesToAdd(AddFolderToZipTaskParameters taskParameters) throws ZipException {
     List<File> filesToAdd = getFilesInDirectoryRecursive(taskParameters.folderToAdd,
-        taskParameters.zipParameters.isReadHiddenFiles());
+        taskParameters.zipParameters.isReadHiddenFiles(),
+        taskParameters.zipParameters.isReadHiddenFolders());
 
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
       filesToAdd.add(taskParameters.folderToAdd);
