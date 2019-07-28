@@ -1,6 +1,5 @@
 package net.lingala.zip4j.tasks;
 
-import lombok.AllArgsConstructor;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
@@ -45,10 +44,15 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     return new ZipInputStream(splitInputStream, password);
   }
 
-  @AllArgsConstructor
   public static class ExtractFileTaskParameters {
     private String outputPath;
     private FileHeader fileHeader;
     private String newFileName;
+
+    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName) {
+      this.outputPath = outputPath;
+      this.fileHeader = fileHeader;
+      this.newFileName = newFileName;
+    }
   }
 }

@@ -1,6 +1,5 @@
 package net.lingala.zip4j.tasks;
 
-import lombok.AllArgsConstructor;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.model.ZipModel;
@@ -66,10 +65,14 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     return filesToAdd;
   }
 
-  @AllArgsConstructor
   public static class AddFolderToZipTaskParameters {
     private File folderToAdd;
     private ZipParameters zipParameters;
+
+    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters) {
+      this.folderToAdd = folderToAdd;
+      this.zipParameters = zipParameters;
+    }
   }
 
 }

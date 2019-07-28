@@ -1,6 +1,5 @@
 package net.lingala.zip4j.tasks;
 
-import lombok.AllArgsConstructor;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
@@ -69,9 +68,13 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     return 0;
   }
 
-  @AllArgsConstructor
   public static class AddStreamToZipTaskParameters {
     private InputStream inputStream;
     private ZipParameters zipParameters;
+
+    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters) {
+      this.inputStream = inputStream;
+      this.zipParameters = zipParameters;
+    }
   }
 }
