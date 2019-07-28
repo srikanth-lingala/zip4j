@@ -87,7 +87,9 @@ public class FileUtils {
     }
   }
 
-  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles) throws ZipException {
+  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles, boolean readHiddenFolders)
+      throws ZipException {
+
     if (path == null) {
       throw new ZipException("input path is null, cannot read files in the directory");
     }
@@ -100,14 +102,21 @@ public class FileUtils {
     }
 
     for (File file : filesAndDirs) {
-      if (file.isHidden() && !readHiddenFiles) {
-        continue;
+      if (file.isHidden()) {
+        if (file.isDirectory()) {
+          if (!readHiddenFolders) {
+            continue;
+          }
+        } else if (!readHiddenFiles) {
+          continue;
+        }
       }
       result.add(file);
       if (file.isDirectory()) {
-        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles));
+        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles, readHiddenFolders));
       }
     }
+
     return result;
   }
 

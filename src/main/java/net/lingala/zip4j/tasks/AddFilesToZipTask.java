@@ -1,6 +1,5 @@
 package net.lingala.zip4j.tasks;
 
-import lombok.AllArgsConstructor;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.model.ZipModel;
@@ -37,9 +36,13 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
     return super.getTask();
   }
 
-  @AllArgsConstructor
   public static class AddFilesToZipTaskParameters {
     private List<File> filesToAdd;
     private ZipParameters zipParameters;
+
+    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters) {
+      this.filesToAdd = filesToAdd;
+      this.zipParameters = zipParameters;
+    }
   }
 }

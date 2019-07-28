@@ -16,14 +16,9 @@
 
 package net.lingala.zip4j.progress;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Setter;
-
 /**
  * If Zip4j is set to run in thread mode, this class helps retrieve current progress
  */
-@Data
 public class ProgressMonitor {
 
   public enum State { READY, BUSY }
@@ -32,7 +27,6 @@ public class ProgressMonitor {
 
   private State state;
   private long totalWork;
-  @Setter(AccessLevel.NONE)
   private long workCompleted;
   private int percentDone;
   private Task currentTask;
@@ -84,5 +78,81 @@ public class ProgressMonitor {
     totalWork = 0;
     workCompleted = 0;
     percentDone = 0;
+  }
+
+  public State getState() {
+    return state;
+  }
+
+  public void setState(State state) {
+    this.state = state;
+  }
+
+  public long getTotalWork() {
+    return totalWork;
+  }
+
+  public void setTotalWork(long totalWork) {
+    this.totalWork = totalWork;
+  }
+
+  public long getWorkCompleted() {
+    return workCompleted;
+  }
+
+  public int getPercentDone() {
+    return percentDone;
+  }
+
+  public void setPercentDone(int percentDone) {
+    this.percentDone = percentDone;
+  }
+
+  public Task getCurrentTask() {
+    return currentTask;
+  }
+
+  public void setCurrentTask(Task currentTask) {
+    this.currentTask = currentTask;
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public Result getResult() {
+    return result;
+  }
+
+  public void setResult(Result result) {
+    this.result = result;
+  }
+
+  public Exception getException() {
+    return exception;
+  }
+
+  public void setException(Exception exception) {
+    this.exception = exception;
+  }
+
+  public boolean isCancelAllTasks() {
+    return cancelAllTasks;
+  }
+
+  public void setCancelAllTasks(boolean cancelAllTasks) {
+    this.cancelAllTasks = cancelAllTasks;
+  }
+
+  public boolean isPause() {
+    return pause;
+  }
+
+  public void setPause(boolean pause) {
+    this.pause = pause;
   }
 }

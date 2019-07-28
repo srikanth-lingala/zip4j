@@ -1,6 +1,5 @@
 package net.lingala.zip4j.tasks;
 
-import lombok.AllArgsConstructor;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
@@ -80,9 +79,12 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return zipModel.getCentralDirectory().getFileHeaders().get(0);
   }
 
-  @AllArgsConstructor
   public static class ExtractAllFilesTaskParameters {
     private String outputPath;
+
+    public ExtractAllFilesTaskParameters(String outputPath) {
+      this.outputPath = outputPath;
+    }
   }
 
 }

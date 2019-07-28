@@ -274,7 +274,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   private File getFileWithNameFrom(File outputFolder, String fileName) throws ZipException {
-    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(outputFolder, true);
+    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
     Optional<File> file = filesInFolder.stream().filter(e -> e.getName().equals(fileName)).findFirst();
     assertThat(file).isPresent();
     return file.get();

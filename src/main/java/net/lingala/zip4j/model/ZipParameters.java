@@ -29,6 +29,7 @@ public class ZipParameters {
   private boolean encryptFiles = false;
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
   private boolean readHiddenFiles = true;
+  private boolean readHiddenFolders = true;
   private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
   private AesVersion aesVersion = AesVersion.TWO;
   private boolean includeRootFolder = true;
@@ -48,6 +49,7 @@ public class ZipParameters {
     this.encryptFiles = zipParameters.isEncryptFiles();
     this.encryptionMethod = zipParameters.getEncryptionMethod();
     this.readHiddenFiles = zipParameters.isReadHiddenFiles();
+    this.readHiddenFolders = zipParameters.isReadHiddenFolders();
     this.aesKeyStrength = zipParameters.getAesKeyStrength();
     this.aesVersion = zipParameters.getAesVersion();
     this.includeRootFolder = zipParameters.isIncludeRootFolder();
@@ -97,6 +99,14 @@ public class ZipParameters {
 
   public void setReadHiddenFiles(boolean readHiddenFiles) {
     this.readHiddenFiles = readHiddenFiles;
+  }
+
+  public boolean isReadHiddenFolders() {
+    return readHiddenFolders;
+  }
+
+  public void setReadHiddenFolders(boolean readHiddenFolders) {
+    this.readHiddenFolders = readHiddenFolders;
   }
 
   public Object clone() throws CloneNotSupportedException {
