@@ -41,6 +41,7 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
@@ -278,7 +279,13 @@ public class HeaderReader {
 
     byte[] extraFieldBuf = new byte[extraFieldLength];
     zip4jRaf.read(extraFieldBuf);
-    return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
+
+    try {
+      return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
+    } catch (Exception e) {
+      // Ignore any errors when parsing extra data records
+      return Collections.emptyList();
+    }
   }
 
   private List<ExtraDataRecord> readExtraDataRecords(InputStream inputStream, int extraFieldLength)
@@ -294,7 +301,13 @@ public class HeaderReader {
 
     byte[] extraFieldBuf = new byte[extraFieldLength];
     inputStream.read(extraFieldBuf);
-    return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
+
+    try {
+      return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
+    } catch (Exception e) {
+      // Ignore any errors when parsing extra data records
+      return Collections.emptyList();
+    }
   }
 
   private List<ExtraDataRecord> parseExtraDataRecords(byte[] extraFieldBuf, int extraFieldLength) {

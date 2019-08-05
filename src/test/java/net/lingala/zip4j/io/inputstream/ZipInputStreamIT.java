@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Random;
 
@@ -145,6 +146,19 @@ public class ZipInputStreamIT extends AbstractIT {
     }
 
     assertThat(numberOfEntriesExtracted).isEqualTo(FILES_TO_ADD.size());
+  }
+
+  @Test
+  public void testExtractFilesForZipFileWithInvalidExtraDataRecordIgnoresIt() throws IOException {
+    InputStream inputStream = new FileInputStream(getTestArchiveFromResources("invalid_extra_data_record.zip"));
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream, "password".toCharArray());
+    byte[] b = new byte[4096];
+    while (zipInputStream.getNextEntry() != null) {
+      while (zipInputStream.read(b) != -1) {
+
+      }
+    }
+    zipInputStream.close();
   }
 
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
