@@ -111,7 +111,9 @@ public class ZipInputStream extends InputStream {
       return 0;
     }
 
-    if (localFileHeader.isDirectory()) {
+    if (localFileHeader == null || localFileHeader.isDirectory()) {
+      // localfileheader can be null when end of compressed data is reached.  If null check is missing, read method will
+      // throw a NPE when end of compressed data is reached and read is called again.
       return -1;
     }
 
