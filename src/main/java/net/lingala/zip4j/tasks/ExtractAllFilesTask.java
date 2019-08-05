@@ -48,9 +48,9 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
       if (fileHeader.getZip64ExtendedInfo() != null &&
           fileHeader.getZip64ExtendedInfo().getUncompressedSize() > 0) {
-        totalWork += fileHeader.getZip64ExtendedInfo().getCompressedSize();
+        totalWork += fileHeader.getZip64ExtendedInfo().getUncompressedSize();
       } else {
-        totalWork += fileHeader.getCompressedSize();
+        totalWork += fileHeader.getUncompressedSize();
       }
     }
 
