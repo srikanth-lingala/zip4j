@@ -71,13 +71,17 @@ public class ProgressMonitor {
     reset();
   }
 
-  private void reset() {
-    currentTask = Task.NONE;
-    state = State.READY;
+  public void fullReset() {
+    reset();
     fileName = null;
     totalWork = 0;
     workCompleted = 0;
     percentDone = 0;
+  }
+
+  private void reset() {
+    currentTask = Task.NONE;
+    state = State.READY;
   }
 
   public State getState() {

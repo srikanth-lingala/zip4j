@@ -17,6 +17,7 @@ public abstract class AsyncZipTask<T> {
   }
 
   public void execute(T taskParameters) throws ZipException {
+    progressMonitor.fullReset();
     progressMonitor.setState(ProgressMonitor.State.BUSY);
     progressMonitor.setCurrentTask(getTask());
 
