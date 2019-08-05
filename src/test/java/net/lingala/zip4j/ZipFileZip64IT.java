@@ -6,10 +6,10 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
+import net.lingala.zip4j.testutils.RandomInputStream;
+import net.lingala.zip4j.testutils.SlowTests;
+import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.utils.RandomInputStream;
-import net.lingala.zip4j.utils.SlowTests;
-import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 

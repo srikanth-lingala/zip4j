@@ -4,7 +4,7 @@ import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.utils.TestUtils;
+import net.lingala.zip4j.testutils.TestUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

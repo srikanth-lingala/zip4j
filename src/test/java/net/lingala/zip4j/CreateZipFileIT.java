@@ -7,10 +7,10 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.testutils.TestUtils;
+import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
-import net.lingala.zip4j.utils.TestUtils;
-import net.lingala.zip4j.utils.ZipFileVerifier;
 import org.assertj.core.data.Offset;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.lingala.zip4j.utils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
+import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

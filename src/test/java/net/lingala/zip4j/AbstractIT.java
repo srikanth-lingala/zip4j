@@ -4,7 +4,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.utils.TestUtils;
+import net.lingala.zip4j.testutils.TestUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.lingala.zip4j.utils.TestUtils.getTestFileFromResources;
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractIT {

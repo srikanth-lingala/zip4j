@@ -20,7 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static net.lingala.zip4j.utils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
+import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipOutputStreamIT extends AbstractIT {

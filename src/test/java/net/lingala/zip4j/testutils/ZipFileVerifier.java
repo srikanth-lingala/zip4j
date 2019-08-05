@@ -1,4 +1,4 @@
-package net.lingala.zip4j.utils;
+package net.lingala.zip4j.testutils;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.LocalFileHeader;

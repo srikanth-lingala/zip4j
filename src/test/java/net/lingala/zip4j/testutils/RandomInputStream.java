@@ -1,4 +1,4 @@
-package net.lingala.zip4j.utils;
+package net.lingala.zip4j.testutils;
 
 import java.io.IOException;
 import java.io.InputStream;
