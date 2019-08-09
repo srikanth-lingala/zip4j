@@ -48,6 +48,7 @@ public class ZipInputStream extends InputStream {
   private char[] password;
   private LocalFileHeader localFileHeader;
   private CRC32 crc32 = new CRC32();
+  private boolean extraDataRecordReadForThisEntry = false;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null);
@@ -81,6 +82,8 @@ public class ZipInputStream extends InputStream {
     if (!isZipEntryDirectory(localFileHeader.getFileName())) {
       this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
     }
+
+    this.extraDataRecordReadForThisEntry = false;
     return localFileHeader;
   }
 
@@ -111,9 +114,17 @@ public class ZipInputStream extends InputStream {
       return 0;
     }
 
-    if (localFileHeader == null || localFileHeader.isDirectory()) {
+    if (localFileHeader == null) {
       // localfileheader can be null when end of compressed data is reached.  If null check is missing, read method will
       // throw a NPE when end of compressed data is reached and read is called again.
+      return -1;
+    }
+
+    if (localFileHeader.isDirectory()) {
+      if (!extraDataRecordReadForThisEntry) {
+        readExtendedLocalFileHeaderIfPresent();
+        extraDataRecordReadForThisEntry = true;
+      }
       return -1;
     }
 
