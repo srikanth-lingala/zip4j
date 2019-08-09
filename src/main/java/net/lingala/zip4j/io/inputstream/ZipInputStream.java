@@ -144,6 +144,10 @@ public class ZipInputStream extends InputStream {
     }
   }
 
+  public int getAvailableBytesInPushBackInputStream() throws IOException {
+    return inputStream.available();
+  }
+
   private void endOfCompressedDataReached() throws IOException {
     //With inflater, without knowing the compressed or uncompressed size, we over read necessary data
     //In such cases, we have to push back the inputstream to the end of data
