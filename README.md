@@ -78,7 +78,7 @@ new ZipFile("filename.zip").addFile("filename.ext");
 &nbsp;&nbsp; Or
 
 ~~~~
-new ZipFile("filename.zip").addFile("filename.ext");
+new ZipFile("filename.zip").addFile(new File("filename.ext"));
 ~~~~
 
 ### Creating a zip file with multiple files / Adding multiple files to an existing zip
