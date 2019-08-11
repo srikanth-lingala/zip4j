@@ -329,30 +329,32 @@ new ZipFile("valid_zip_file.zip").isValidZipFile();
 ### Adding entries with ZipOutputStream
 
 ~~~~
-import net.lingala.zip4j.AbstractIT;
-import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
-public void zipOutputStreamExample(CompressionMethod compressionMethod, boolean encrypt,
-                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength)
-      throws IOException, ZipException {
+public class ZipOutputStreamExample {
+
+  public void zipOutputStreamExample(File outputZipFile, List<File> filesToAdd, char[] password,  
+                                     CompressionMethod compressionMethod, boolean encrypt,
+                                     EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength)
+      throws IOException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
     byte[] buff = new byte[4096];
     int readLen;
 
-    try(ZipOutputStream zos = initializeZipOutputStream(encrypt)) {
-      for (File fileToAdd : FILES_TO_ADD) {
+    try(ZipOutputStream zos = initializeZipOutputStream(outputZipFile, encrypt, password)) {
+      for (File fileToAdd : filesToAdd) {
 
         // Entry size has to be set if you want to add entries of STORE compression method (no compression)
         // This is not required for deflate compression
@@ -371,19 +373,21 @@ public void zipOutputStreamExample(CompressionMethod compressionMethod, boolean 
         zos.closeEntry();
       }
     }
-}
+  }
 
-private ZipOutputStream initializeZipOutputStream(boolean encrypt) throws IOException {
-    FileOutputStream fos = new FileOutputStream(generatedZipFile);
+  private ZipOutputStream initializeZipOutputStream(File outputZipFile, boolean encrypt, char[] password) 
+      throws IOException {
+    
+    FileOutputStream fos = new FileOutputStream(outputZipFile);
 
     if (encrypt) {
-      return new ZipOutputStream(fos, PASSWORD);
+      return new ZipOutputStream(fos, password);
     }
 
     return new ZipOutputStream(fos);
-}
+  }
 
-private ZipParameters buildZipParameters(CompressionMethod compressionMethod, boolean encrypt,
+  private ZipParameters buildZipParameters(CompressionMethod compressionMethod, boolean encrypt,
                                            EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(compressionMethod);
@@ -391,16 +395,15 @@ private ZipParameters buildZipParameters(CompressionMethod compressionMethod, bo
     zipParameters.setAesKeyStrength(aesKeyStrength);
     zipParameters.setEncryptFiles(encrypt);
     return zipParameters;
+  }
 }
 ~~~~
 
 ### Extract files with ZipInputStream
 
 ~~~~
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipParameters;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -408,24 +411,27 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public void extractWithInputStream(File zipFile, char[] password) throws IOException, ZipException {
+public class ZipInputStreamExample {
+  
+  public void extractWithZipInputStream(File zipFile, char[] password) throws IOException {
     LocalFileHeader localFileHeader;
     int readLen;
     byte[] readBuffer = new byte[4096];
 
-    try (FileInputStream fileInputStream = new FileInputStream(zipFile)) {
-      try (ZipInputStream zipInputStream = new ZipInputStream(fileInputStream, password)) {
-        while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
-          File extractedFile = new File(localFileHeader.getFileName());
-          try (OutputStream outputStream = new FileOutputStream(extractedFile)) {
-            while ((readLen = zipInputStream.read(readBuffer)) != -1) {
-              outputStream.write(readBuffer, 0, readLen);
-            }
+    try (FileInputStream fileInputStream = new FileInputStream(zipFile); 
+         ZipInputStream zipInputStream = new ZipInputStream(fileInputStream, password)) {
+      while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
+        File extractedFile = new File(localFileHeader.getFileName());
+        try (OutputStream outputStream = new FileOutputStream(extractedFile)) {
+          while ((readLen = zipInputStream.read(readBuffer)) != -1) {
+            outputStream.write(readBuffer, 0, readLen);
           }
         }
       }
     }
+  }
 }
+
 
 ~~~~
 
