@@ -351,7 +351,7 @@ public void zipOutputStreamExample(CompressionMethod compressionMethod, boolean 
     byte[] buff = new byte[4096];
     int readLen;
 
-    try(ZipOutputStream zos = initializeZipOutputStream(encrypt) {
+    try(ZipOutputStream zos = initializeZipOutputStream(encrypt)) {
       for (File fileToAdd : FILES_TO_ADD) {
 
         // Entry size has to be set if you want to add entries of STORE compression method (no compression)
