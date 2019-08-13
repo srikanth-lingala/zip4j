@@ -253,7 +253,7 @@ new ZipFile("filename.zip").removeFile("root-folder/folder1/fileNameInZipToRemov
 ~~~~
 
 If you want to be sure that the file you want to remove exists in zip file or if you don't want to deal with file names
-as string when dealing `removeFile` api, you can use the other overloaded method which takes in a `FileHeader:
+as string when dealing `removeFile` api, you can use the other overloaded method which takes in a `FileHeader`:
 
 ~~~~
 ZipFile zipFile = new ZipFile("someZip.zip");
