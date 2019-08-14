@@ -157,14 +157,18 @@ public class FileUtilsTest {
 
   @Test
   public void testGetZipFileNameWithoutExtensionForWindowsFileSeparator() throws ZipException {
+    final String ACTUAL_FILE_SEPARATOR = System.getProperty("file.separator");
     System.setProperty("file.separator", "\\");
     assertThat(FileUtils.getZipFileNameWithoutExtension("c:\\mydir\\somefile.zip")).isEqualTo("somefile");
+    System.setProperty("file.separator", ACTUAL_FILE_SEPARATOR);
   }
 
   @Test
   public void testGetZipFileNameWithoutExtensionForUnixFileSeparator() throws ZipException {
+    final String ACTUAL_FILE_SEPARATOR = System.getProperty("file.separator");
     System.setProperty("file.separator", "/");
     assertThat(FileUtils.getZipFileNameWithoutExtension("/usr/srikanth/somezip.zip")).isEqualTo("somezip");
+    System.setProperty("file.separator", ACTUAL_FILE_SEPARATOR);
   }
 
   @Test
@@ -223,7 +227,8 @@ public class FileUtilsTest {
 
   @Test
   public void testGetSplitZipFilesReturnsValidWhenSplitFile() throws ZipException {
-    String path = "/usr/parentdir/";
+    final String FILE_SEPARATOR = System.getProperty("file.separator");
+    String path = FILE_SEPARATOR + "usr" + FILE_SEPARATOR + "parentdir" + FILE_SEPARATOR;
     String zipFileName = "SomeName";
     File zipFile = mockZipFileAsExists(path, zipFileName);
     ZipModel zipModel = new ZipModel();
