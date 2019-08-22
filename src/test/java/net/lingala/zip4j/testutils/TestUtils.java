@@ -18,6 +18,11 @@ public class TestUtils {
    return getFileFromResources(TEST_ARCHIVES_FOLDER_NAME, fileName);
   }
 
+  public static Boolean isWindows() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("win"));
+  }
+
   private static File getFileFromResources(String parentFolder, String fileName) {
     try {
       String path = "/" + parentFolder + "/" + fileName;
