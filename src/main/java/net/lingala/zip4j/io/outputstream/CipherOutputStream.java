@@ -67,10 +67,6 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     return zipEntryOutputStream.getNumberOfBytesWrittenForThisEntry();
   }
 
-  public void decrementBytesWrittenForThisEntry(int value) {
-   zipEntryOutputStream.decrementBytesWrittenForThisEntry(value);
-  }
-
   protected T getEncrypter() {
     return encrypter;
   }

@@ -42,14 +42,6 @@ class ZipEntryOutputStream extends OutputStream {
     return numberOfBytesWrittenForThisEntry;
   }
 
-  public void decrementBytesWrittenForThisEntry(int value) {
-    if (value <= 0) return;
-
-    if (value <= this.numberOfBytesWrittenForThisEntry) {
-      this.numberOfBytesWrittenForThisEntry -= value;
-    }
-  }
-
   @Override
   public void close() throws IOException {
     // Do nothing
