@@ -535,8 +535,7 @@ public class ZipFile {
   }
 
   /**
-   * Returns the list of file headers in the zip file. Throws an exception if the
-   * zip file does not exist
+   * Returns the list of file headers in the zip file. Returns an empty list if the zip file does not exist.
    *
    * @return list of file headers
    * @throws ZipException

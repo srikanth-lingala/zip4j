@@ -399,6 +399,13 @@ public class ZipFileTest {
   }
 
   @Test
+  public void testGetFileHeadersReturnsEmptyListWhenZipFileDoesNotExist() throws ZipException {
+    File mockFile = mockFile(false);
+    ZipFile zipFile = new ZipFile(mockFile);
+    assertThat(zipFile.getFileHeaders()).isEmpty();
+  }
+
+  @Test
   public void testGetFileHeaderThrowsExceptionWhenFileNameIsNull() throws ZipException {
     expectedException.expectMessage("input file name is emtpy or null, cannot get FileHeader");
     expectedException.expect(ZipException.class);
