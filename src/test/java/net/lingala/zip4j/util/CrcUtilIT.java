@@ -23,7 +23,6 @@ public class CrcUtilIT extends AbstractIT {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private CrcUtil crcUtil = new CrcUtil();
   private ProgressMonitor progressMonitor = new ProgressMonitor();
 
   @Test

@@ -20,8 +20,6 @@ public class HeaderUtilTest {
 
   private static final String FILE_NAME = "test.txt";
 
-  private HeaderUtil headerUtil = new HeaderUtil();
-
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
