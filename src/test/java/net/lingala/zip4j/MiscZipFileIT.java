@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class MiscZipFileIT extends AbstractIT {
 
@@ -391,6 +392,22 @@ public class MiscZipFileIT extends AbstractIT {
 
     assertThat(generatedZipFile.renameTo(newFile)).isTrue();
     assertThat(new File(oldFile)).doesNotExist();
+  }
+
+  @Test
+  public void testZipSlipFix() throws Exception {
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("../../bad.txt");
+
+    ZipFile zip = new ZipFile(generatedZipFile);
+    zip.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"), zipParameters);
+
+    try {
+      zip.extractAll(outputFolder.getAbsolutePath());
+      fail("zip4j is vulnerable for slip zip");
+    } catch (ZipException e) {
+      assertThat(e).hasMessageStartingWith("illegal file name that breaks out of the target directory: ");
+    }
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {
