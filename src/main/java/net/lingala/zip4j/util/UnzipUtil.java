@@ -17,9 +17,11 @@ import static net.lingala.zip4j.util.FileUtils.setFileLastModifiedTimeWithoutNio
 public class UnzipUtil {
 
   public static ZipInputStream createZipInputStream(ZipModel zipModel, FileHeader fileHeader, char[] password)
-      throws ZipException {
+      throws IOException {
+
+    SplitInputStream splitInputStream = null;
     try {
-      SplitInputStream splitInputStream = new SplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
+      splitInputStream = new SplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
           zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
 
@@ -30,7 +32,10 @@ public class UnzipUtil {
 
       return zipInputStream;
     } catch (IOException e) {
-      throw new ZipException(e);
+      if (splitInputStream != null) {
+        splitInputStream.close();
+      }
+      throw e;
     }
   }
 

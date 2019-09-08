@@ -11,6 +11,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -488,7 +489,7 @@ public class ZipFileTest {
   }
 
   @Test
-  public void testGetInputStreamWhenFileHeaderIsNullThrowsException() throws ZipException {
+  public void testGetInputStreamWhenFileHeaderIsNullThrowsException() throws IOException {
     expectedException.expectMessage("FileHeader is null, cannot get InputStream");
     expectedException.expect(ZipException.class);
 

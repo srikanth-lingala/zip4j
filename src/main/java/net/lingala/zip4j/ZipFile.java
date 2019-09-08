@@ -759,7 +759,7 @@ public class ZipFile {
    * @return ZipInputStream
    * @throws ZipException
    */
-  public ZipInputStream getInputStream(FileHeader fileHeader) throws ZipException {
+  public ZipInputStream getInputStream(FileHeader fileHeader) throws IOException {
     if (fileHeader == null) {
       throw new ZipException("FileHeader is null, cannot get InputStream");
     }
