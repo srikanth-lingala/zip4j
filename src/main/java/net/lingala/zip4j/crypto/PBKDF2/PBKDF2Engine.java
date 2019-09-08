@@ -42,7 +42,6 @@ public class PBKDF2Engine {
   }
 
   public byte[] deriveKey(char[] inputPassword, int dkLen) {
-    byte[] r;
     byte p[];
     if (inputPassword == null) {
       throw new NullPointerException();
