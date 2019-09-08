@@ -72,6 +72,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
         progressMonitor.updateWorkCompleted(readLength);
         verifyIfTaskIsCancelled();
       }
+    } catch (Exception e) {
+      if (outputFile.exists()) {
+        outputFile.delete();
+      }
+      throw  e;
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);

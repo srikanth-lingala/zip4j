@@ -410,6 +410,22 @@ public class MiscZipFileIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testExtractFileDeletesOutputFileWhenWrongPassword() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, AesKeyStrength.KEY_STRENGTH_256);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"), zipParameters);
+
+    try {
+      zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
+      zipFile.extractAll(outputFolder.getCanonicalPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(new File(outputFolder.getCanonicalPath() + "sample_text1.txt")).doesNotExist();
+      assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
+    }
+  }
+
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {
     File outputFile = temporaryFolder.newFile();
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
