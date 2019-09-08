@@ -161,6 +161,17 @@ public class ZipInputStreamIT extends AbstractIT {
     zipInputStream.close();
   }
 
+  @Test
+  public void testGetNextEntryReturnsNextEntryEvenIfEntryNotCompletelyRead() throws IOException {
+    File createZipFile = createZipFile(CompressionMethod.DEFLATE);
+    ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(createZipFile));
+    int numberOfEntries = 0;
+    while (zipInputStream.getNextEntry() != null) {
+      numberOfEntries++;
+    }
+    assertThat(numberOfEntries).isEqualTo(FILES_TO_ADD.size());
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, 4096, AesVersion.TWO);
   }

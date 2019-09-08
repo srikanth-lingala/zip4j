@@ -49,6 +49,7 @@ public class ZipInputStream extends InputStream {
   private LocalFileHeader localFileHeader;
   private CRC32 crc32 = new CRC32();
   private boolean extraDataRecordReadForThisEntry = false;
+  private byte[] endOfEntryBuffer;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null);
@@ -64,6 +65,10 @@ public class ZipInputStream extends InputStream {
   }
 
   public LocalFileHeader getNextEntry(FileHeader fileHeader) throws IOException {
+    if (localFileHeader != null) {
+      readUntilEndOfEntry();
+    }
+
     localFileHeader = headerReader.readLocalFileHeader(inputStream);
 
     if (localFileHeader == null) {
@@ -298,6 +303,13 @@ public class ZipInputStream extends InputStream {
     } else {
       return 0;
     }
+  }
+
+  private void readUntilEndOfEntry() throws IOException {
+    if (endOfEntryBuffer == null) {
+      endOfEntryBuffer = new byte[512];
+    }
+    while (read(endOfEntryBuffer) != -1);
   }
 
   private boolean isEncryptionMethodZipStandard(LocalFileHeader localFileHeader) {
