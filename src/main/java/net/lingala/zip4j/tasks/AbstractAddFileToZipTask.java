@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.lingala.zip4j.headers.HeaderUtil.getFileHeader;
@@ -49,14 +50,14 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
       throws IOException {
 
-    removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
+    List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
          ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
 
-      for (File fileToAdd : filesToAdd) {
+      for (File fileToAdd : updatedFilesToAdd) {
         verifyIfTaskIsCancelled();
         ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd, progressMonitor);
         progressMonitor.setFileName(fileToAdd.getAbsolutePath());
@@ -184,10 +185,12 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return clonedZipParameters;
   }
 
-  private void removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor)
+  private List<File> removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor)
       throws ZipException {
+
+    List<File> filesToAdd = new ArrayList<>(files);
     if (!zipModel.getZipFile().exists()) {
-      return;
+      return filesToAdd;
     }
 
     for (File file : files) {
@@ -195,12 +198,18 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
       if (fileHeader != null) {
-        progressMonitor.setCurrentTask(REMOVE_ENTRY);
-        removeFile(fileHeader, progressMonitor);
-        verifyIfTaskIsCancelled();
-        progressMonitor.setCurrentTask(ADD_ENTRY);
+        if (zipParameters.isOverrideExistingFilesInZip()) {
+          progressMonitor.setCurrentTask(REMOVE_ENTRY);
+          removeFile(fileHeader, progressMonitor);
+          verifyIfTaskIsCancelled();
+          progressMonitor.setCurrentTask(ADD_ENTRY);
+        } else {
+          filesToAdd.remove(file);
+        }
       }
     }
+
+    return filesToAdd;
   }
 
   private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor) throws ZipException {

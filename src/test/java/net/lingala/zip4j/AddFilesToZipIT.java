@@ -151,6 +151,24 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFileDoesNotOverrideFileIfFlagIsDisabled() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFiles(FILES_TO_ADD);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+    zipParameters.setOverrideExistingFilesInZip(false);
+    zipFile.setPassword(PASSWORD);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+    verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.DEFLATE,
+        null, null);
+  }
+
+  @Test
   public void testAddFileRemovesExistingFileNoEncryptionSingleFileInZip() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFile(TestUtils.getTestFileFromResources("sample_text_large.txt"));

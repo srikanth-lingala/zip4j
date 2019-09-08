@@ -39,6 +39,7 @@ public class ZipParameters {
   private long lastModifiedFileTime = System.currentTimeMillis();
   private long entrySize = -1;
   private boolean writeExtendedLocalFileHeader = true;
+  private boolean overrideExistingFilesInZip = true;
 
   public ZipParameters() {
   }
@@ -59,6 +60,7 @@ public class ZipParameters {
     this.lastModifiedFileTime = zipParameters.getLastModifiedFileTime();
     this.entrySize = zipParameters.getEntrySize();
     this.writeExtendedLocalFileHeader = zipParameters.isWriteExtendedLocalFileHeader();
+    this.overrideExistingFilesInZip = zipParameters.isOverrideExistingFilesInZip();
   }
 
   public CompressionMethod getCompressionMethod() {
@@ -187,5 +189,13 @@ public class ZipParameters {
 
   public void setWriteExtendedLocalFileHeader(boolean writeExtendedLocalFileHeader) {
     this.writeExtendedLocalFileHeader = writeExtendedLocalFileHeader;
+  }
+
+  public boolean isOverrideExistingFilesInZip() {
+    return overrideExistingFilesInZip;
+  }
+
+  public void setOverrideExistingFilesInZip(boolean overrideExistingFilesInZip) {
+    this.overrideExistingFilesInZip = overrideExistingFilesInZip;
   }
 }
