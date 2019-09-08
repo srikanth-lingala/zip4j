@@ -176,7 +176,7 @@ public class AddFilesToZipIT extends AbstractIT {
     assertThat(zipFile.getFileHeaders()).hasSize(1);
     assertThat(zipFile.getFileHeader("/data/newfile.txt")).isNotNull();
     assertThat(zipFile.getFileHeader("sample_text_large.txt")).isNull();
-    zipFile.extractAll(outputFolder.getPath());
+    zipFile.extractAll(outputFolder.getCanonicalPath());
   }
 
   @Test

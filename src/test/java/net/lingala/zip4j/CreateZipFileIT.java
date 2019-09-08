@@ -225,6 +225,17 @@ public class CreateZipFileIT extends AbstractIT {
     verifySplitZip(generatedZipFile, 15, InternalZipConstants.MIN_SPLIT_LENGTH + 2000);
   }
 
+  @Test
+  public void testCreateZipFileWithSetPasswordSetter() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
+    zipFile.setPassword(PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
+  }
+
   private void verifySplitZip(File zipFile, int numberOfExpectedSplitFiles, long splitLength) throws ZipException {
     assertNumberOfSplitFile(zipFile, numberOfExpectedSplitFiles);
     assertSplitFileSizes(zipFile, numberOfExpectedSplitFiles, splitLength);

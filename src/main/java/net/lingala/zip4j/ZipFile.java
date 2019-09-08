@@ -809,6 +809,14 @@ public class ZipFile {
   }
 
   /**
+   * Sets a password to be used for the zip file. Will override if a password supplied via ZipFile constructor
+   * @param password - char array of the password to be used
+   */
+  public void setPassword(char[] password) {
+    this.password = password;
+  }
+
+  /**
    * Reads the zip header information for this zip file. If the zip file
    * does not exist, then this method throws an exception.<br><br>
    * <b>Note:</b> This method does not read local file header information
