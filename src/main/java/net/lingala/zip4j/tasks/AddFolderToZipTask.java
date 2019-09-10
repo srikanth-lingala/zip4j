@@ -41,13 +41,13 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     return calculateWorkForFiles(filesToAdd, taskParameters.zipParameters);
   }
 
-  private void setDefaultFolderPath(AddFolderToZipTaskParameters taskParameters) {
+  private void setDefaultFolderPath(AddFolderToZipTaskParameters taskParameters) throws IOException {
     String rootFolderPath;
     File folderToAdd = taskParameters.folderToAdd;
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
-      rootFolderPath = folderToAdd.getParentFile().getPath();
+      rootFolderPath = folderToAdd.getParentFile().getCanonicalPath();
     } else {
-      rootFolderPath = folderToAdd.getAbsolutePath();
+      rootFolderPath = folderToAdd.getCanonicalPath();
     }
 
     taskParameters.zipParameters.setDefaultFolderPath(rootFolderPath);

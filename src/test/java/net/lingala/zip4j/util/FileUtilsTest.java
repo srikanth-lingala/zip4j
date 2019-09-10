@@ -247,7 +247,7 @@ public class FileUtilsTest {
   }
 
   @Test
-  public void testGetRelativeFileNameWhenRootFoldersAreNull() {
+  public void testGetRelativeFileNameWhenRootFoldersAreNull() throws ZipException {
     assertThat(FileUtils.getRelativeFileName("somefile.txt", null)).isEqualTo("somefile.txt");
   }
 
