@@ -35,7 +35,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -48,7 +48,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -61,7 +61,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -74,7 +74,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -85,7 +85,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFiles(FILES_TO_ADD);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -97,7 +97,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -109,7 +109,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -121,7 +121,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
     verifyNumberOfFilesInOutputFolder(outputFolder, 3);
@@ -134,7 +134,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     FileHeader fileHeader = zipFile.getFileHeader("sample_text_large.txt");
-    zipFile.extractFile(fileHeader, outputFolder.getCanonicalPath());
+    zipFile.extractFile(fileHeader, outputFolder.getPath());
 
     File[] outputFiles = outputFolder.listFiles();
     assertThat(outputFiles).hasSize(1);
@@ -148,7 +148,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     FileHeader fileHeader = zipFile.getFileHeader("test-files/öüäöäö/asöäööl");
-    zipFile.extractFile(fileHeader, outputFolder.getCanonicalPath());
+    zipFile.extractFile(fileHeader, outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "asöäööl");
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
@@ -162,7 +162,7 @@ public class ExtractZipFileIT extends AbstractIT {
 
     String newFileName = "newFileName";
     FileHeader fileHeader = zipFile.getFileHeader("sample_text_large.txt");
-    zipFile.extractFile(fileHeader, outputFolder.getCanonicalPath(), newFileName);
+    zipFile.extractFile(fileHeader, outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_text_large.txt"), outputFile);
@@ -185,7 +185,7 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
-    zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getCanonicalPath());
+    zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "favicon.ico");
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
@@ -198,7 +198,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     String newFileName = "newFileName";
-    zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getCanonicalPath(), newFileName);
+    zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
@@ -212,7 +212,7 @@ public class ExtractZipFileIT extends AbstractIT {
 
     try {
       zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
-      zipFile.extractAll(outputFolder.getCanonicalPath());
+      zipFile.extractAll(outputFolder.getPath());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e).isNotNull();
@@ -228,7 +228,7 @@ public class ExtractZipFileIT extends AbstractIT {
 
     try {
       zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
-      zipFile.extractAll(outputFolder.getCanonicalPath());
+      zipFile.extractAll(outputFolder.getPath());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e).isNotNull();
@@ -245,7 +245,7 @@ public class ExtractZipFileIT extends AbstractIT {
 
     try {
       zipFile = new ZipFile(generatedZipFile, "WRONG_PASSWORD".toCharArray());
-      zipFile.extractAll(outputFolder.getCanonicalPath());
+      zipFile.extractAll(outputFolder.getPath());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e).isNotNull();
@@ -264,7 +264,7 @@ public class ExtractZipFileIT extends AbstractIT {
   public void testExtractFilesForZipFileWhileWithCorruptExtraDataRecordLength() throws IOException {
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("corrupt_extra_data_record_length.zip"));
 
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(44);
     assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(44);
@@ -286,17 +286,14 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     ZipParameters parameters = new ZipParameters();
 
-    try {
-      String folderToAddPath = TestUtils.getTestFileFromResources("").getPath() + InternalZipConstants.FILE_SEPARATOR + ".." + InternalZipConstants.FILE_SEPARATOR + TestUtils.getTestFileFromResources("").getName();
-      File folderToAdd = new File(folderToAddPath);
-      zipFile.addFolder(folderToAdd, parameters);
-      File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
-      String fileToAddPath = folderToAddPath + InternalZipConstants.FILE_SEPARATOR + fileToAdd.getName();
-      zipFile.addFile(fileToAddPath, parameters);
-      ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 13);
-    } catch (IOException e) {
-      fail("Should not throw an exception");
-    }
+    String folderToAddPath = TestUtils.getTestFileFromResources("").getPath() + InternalZipConstants.FILE_SEPARATOR + ".." + InternalZipConstants.FILE_SEPARATOR + TestUtils.getTestFileFromResources("").getName();
+    File folderToAdd = new File(folderToAddPath);
+    zipFile.addFolder(folderToAdd, parameters);
+
+    File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
+    zipFile.addFile(fileToAdd, parameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 13);
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

@@ -414,13 +414,8 @@ public class MiscZipFileIT extends AbstractIT {
   public void testUnzipFileZipSlipWithNotNormalizedTarget() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD);
-
-    try {
-      zipFile.extractAll(new File(outputFolder.getPath(),
-              ".." + InternalZipConstants.FILE_SEPARATOR + outputFolder.getName()).getAbsolutePath());
-    } catch (ZipException e) {
-      fail("Should not throw an exception");
-    }
+    zipFile.extractAll(new File(outputFolder.getPath(),
+            ".." + InternalZipConstants.FILE_SEPARATOR + outputFolder.getName()).getAbsolutePath());
   }
 
   @Test

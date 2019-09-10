@@ -31,7 +31,7 @@ public class ZipFileVerifier {
     assertThat(zipFileToExtract).exists();
 
     ZipFile zipFile = new ZipFile(zipFileToExtract, password);
-    zipFile.extractAll(outputFolder.getCanonicalPath());
+    zipFile.extractAll(outputFolder.getPath());
     assertThat(zipFile.getFileHeaders().size()).as("Number of file headers").isEqualTo(expectedNumberOfEntries);
 
     List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
