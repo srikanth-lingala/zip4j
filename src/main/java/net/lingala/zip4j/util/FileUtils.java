@@ -181,41 +181,46 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderPath) {
+  public static String getRelativeFileName(String file, String rootFolderPath) throws ZipException {
 
     String fileName;
-    if (isStringNotNullAndNotEmpty(rootFolderPath)) {
-      File rootFolderFile = new File(rootFolderPath);
-      String rootFolderFileRef = rootFolderFile.getPath();
+    try {
+      String fileCanonicalPath = new File(file).getCanonicalPath();
+      if (isStringNotNullAndNotEmpty(rootFolderPath)) {
+        File rootFolderFile = new File(rootFolderPath);
+        String rootFolderFileRef = rootFolderFile.getCanonicalPath();
 
-      if (!rootFolderFileRef.endsWith(FILE_SEPARATOR)) {
-        rootFolderFileRef += FILE_SEPARATOR;
-      }
+        if (!rootFolderFileRef.endsWith(FILE_SEPARATOR)) {
+          rootFolderFileRef += FILE_SEPARATOR;
+        }
 
-      String tmpFileName = file.substring(rootFolderFileRef.length());
-      if (tmpFileName.startsWith(System.getProperty("file.separator"))) {
-        tmpFileName = tmpFileName.substring(1);
-      }
+        String tmpFileName = fileCanonicalPath.substring(rootFolderFileRef.length());
+        if (tmpFileName.startsWith(System.getProperty("file.separator"))) {
+          tmpFileName = tmpFileName.substring(1);
+        }
 
-      File tmpFile = new File(file);
+        File tmpFile = new File(fileCanonicalPath);
 
-      if (tmpFile.isDirectory()) {
-        tmpFileName = tmpFileName.replaceAll("\\\\", "/");
-        tmpFileName += ZIP_FILE_SEPARATOR;
+        if (tmpFile.isDirectory()) {
+          tmpFileName = tmpFileName.replaceAll("\\\\", "/");
+          tmpFileName += ZIP_FILE_SEPARATOR;
+        } else {
+          String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
+          bkFileName = bkFileName.replaceAll("\\\\", "/");
+          tmpFileName = bkFileName + tmpFile.getName();
+        }
+
+        fileName = tmpFileName;
       } else {
-        String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
-        bkFileName = bkFileName.replaceAll("\\\\", "/");
-        tmpFileName = bkFileName + tmpFile.getName();
+        File relFile = new File(fileCanonicalPath);
+        if (relFile.isDirectory()) {
+          fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
+        } else {
+          fileName = relFile.getName();
+        }
       }
-
-      fileName = tmpFileName;
-    } else {
-      File relFile = new File(file);
-      if (relFile.isDirectory()) {
-        fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
-      } else {
-        fileName = relFile.getName();
-      }
+    } catch (IOException e) {
+      throw new ZipException(e);
     }
 
     return fileName;

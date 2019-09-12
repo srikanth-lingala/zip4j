@@ -411,6 +411,14 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testUnzipFileZipSlipWithNotNormalizedTarget() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFiles(FILES_TO_ADD);
+    zipFile.extractAll(new File(outputFolder.getPath(),
+            ".." + InternalZipConstants.FILE_SEPARATOR + outputFolder.getName()).getAbsolutePath());
+  }
+
+  @Test
   public void testExtractFileDeletesOutputFileWhenWrongPassword() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, AesKeyStrength.KEY_STRENGTH_256);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
