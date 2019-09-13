@@ -558,6 +558,24 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFolderWithNotNormalizedPath() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters parameters = new ZipParameters();
+
+    String folderToAddPath = TestUtils.getTestFileFromResources("").getPath()
+        + InternalZipConstants.FILE_SEPARATOR + ".."
+        + InternalZipConstants.FILE_SEPARATOR
+        + TestUtils.getTestFileFromResources("").getName();
+    File folderToAdd = new File(folderToAddPath);
+    zipFile.addFolder(folderToAdd, parameters);
+
+    File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
+    zipFile.addFile(fileToAdd, parameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 13);
+  }
+
+  @Test
   public void testAddStreamToZipThrowsExceptionWhenFileNameIsNull() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(TestUtils.getTestFileFromResources("бореиская.txt"));

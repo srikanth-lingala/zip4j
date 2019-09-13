@@ -9,7 +9,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.FileUtils;
-import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -282,18 +281,13 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testAddFolderWithNotNormalizedPath() throws IOException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    ZipParameters parameters = new ZipParameters();
+  public void testExtractZipFileWithMissingExtendedLocalFileHeader() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("missing_exended_local_file_header.zip"));
 
-    String folderToAddPath = TestUtils.getTestFileFromResources("").getPath() + InternalZipConstants.FILE_SEPARATOR + ".." + InternalZipConstants.FILE_SEPARATOR + TestUtils.getTestFileFromResources("").getName();
-    File folderToAdd = new File(folderToAddPath);
-    zipFile.addFolder(folderToAdd, parameters);
+    zipFile.extractAll(outputFolder.getPath());
 
-    File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
-    zipFile.addFile(fileToAdd, parameters);
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 13);
+    assertThat(zipFile.getFileHeaders()).hasSize(3);
+    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(3);
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

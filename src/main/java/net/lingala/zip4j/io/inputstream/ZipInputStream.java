@@ -27,7 +27,6 @@ import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.IOException;
@@ -48,8 +47,9 @@ public class ZipInputStream extends InputStream {
   private char[] password;
   private LocalFileHeader localFileHeader;
   private CRC32 crc32 = new CRC32();
-  private boolean extraDataRecordReadForThisEntry = false;
   private byte[] endOfEntryBuffer;
+  private boolean extraDataRecordReadForThisEntry = false;
+  private boolean canSkipExtendedLocalFileHeader = false;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null);
@@ -82,6 +82,9 @@ public class ZipInputStream extends InputStream {
       localFileHeader.setCrc(fileHeader.getCrc());
       localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
       localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
+      canSkipExtendedLocalFileHeader = true;
+    } else {
+      canSkipExtendedLocalFileHeader = false;
     }
 
     if (!isZipEntryDirectory(localFileHeader.getFileName())) {
@@ -206,7 +209,7 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readExtendedLocalFileHeaderIfPresent() throws IOException {
-    if (!isExtendedLocalFileHeaderPresent(localFileHeader)) {
+    if (!localFileHeader.isDataDescriptorExists() || canSkipExtendedLocalFileHeader) {
       return;
     }
 
@@ -215,11 +218,6 @@ public class ZipInputStream extends InputStream {
     localFileHeader.setCompressedSize(dataDescriptor.getCompressedSize());
     localFileHeader.setUncompressedSize(dataDescriptor.getUncompressedSize());
     localFileHeader.setCrc(dataDescriptor.getCrc());
-  }
-
-  private boolean isExtendedLocalFileHeaderPresent(LocalFileHeader localFileHeader) {
-    byte[] generalPurposeFlags = localFileHeader.getGeneralPurposeFlag();
-    return BitUtils.isBitSet(generalPurposeFlags[0], 3);
   }
 
   private void verifyLocalFileHeader(LocalFileHeader localFileHeader) throws IOException {
@@ -278,7 +276,7 @@ public class ZipInputStream extends InputStream {
       return localFileHeader.getUncompressedSize();
     }
 
-    if (localFileHeader.isDataDescriptorExists()) {
+    if (localFileHeader.isDataDescriptorExists() && !canSkipExtendedLocalFileHeader) {
       return -1;
     }
 
