@@ -290,6 +290,17 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(3);
   }
 
+  @Test
+  public void testExtractZipFileWithZip64ExtraDataRecordWithOnlyFileSizesInIt() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("zip64_with_only_file_sizes.zip"),
+        "Shu1an@2019GTS".toCharArray());
+
+    zipFile.extractAll(outputFolder.getPath());
+
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(1);
+  }
+
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {
     assertThat(outputFolder.listFiles()).hasSize(numberOfExpectedFiles);
   }

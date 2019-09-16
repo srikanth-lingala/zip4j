@@ -417,10 +417,22 @@ public class HeaderReader {
     }
 
     fileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
-    fileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
-    fileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
-    fileHeader.setOffsetLocalHeader(zip64ExtendedInfo.getOffsetLocalHeader());
-    fileHeader.setDiskNumberStart(zip64ExtendedInfo.getDiskNumberStart());
+
+    if (zip64ExtendedInfo.getUncompressedSize() != -1) {
+      fileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
+    }
+
+    if (zip64ExtendedInfo.getCompressedSize() != -1) {
+      fileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
+    }
+
+    if (zip64ExtendedInfo.getOffsetLocalHeader() != -1) {
+      fileHeader.setOffsetLocalHeader(zip64ExtendedInfo.getOffsetLocalHeader());
+    }
+
+    if (zip64ExtendedInfo.getDiskNumberStart() != -1) {
+      fileHeader.setDiskNumberStart(zip64ExtendedInfo.getDiskNumberStart());
+    }
   }
 
   private void readZip64ExtendedInfo(LocalFileHeader localFileHeader, RawIO rawIO) throws ZipException {
@@ -439,8 +451,14 @@ public class HeaderReader {
     }
 
     localFileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
-    localFileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
-    localFileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
+
+    if (zip64ExtendedInfo.getUncompressedSize() != -1) {
+      localFileHeader.setUncompressedSize(zip64ExtendedInfo.getUncompressedSize());
+    }
+
+    if (zip64ExtendedInfo.getCompressedSize() != -1) {
+      localFileHeader.setCompressedSize(zip64ExtendedInfo.getCompressedSize());
+    }
   }
 
   private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO)
