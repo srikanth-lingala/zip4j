@@ -16,8 +16,10 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -299,6 +301,24 @@ public class ExtractZipFileIT extends AbstractIT {
 
     assertThat(zipFile.getFileHeaders()).hasSize(1);
     assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(1);
+  }
+
+  /**
+   * this test file is got from issue#45
+   * @throws IOException
+   */
+  @Test
+  public void testExtractZipFileWithChineseCharsetGBK() throws IOException {
+    String expactedFileName = "fff - 副本.txt";
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
+
+    zipFile.setCharset("GBK");
+    zipFile.extractAll(outputFolder.getPath());
+
+    assertThat(zipFile.getFileHeaders()).hasSize(2);
+    Set<String> filenameSet = new HashSet<>();
+    Files.walk(outputFolder.toPath()).forEach(file -> filenameSet.add(file.getFileName().toString()));
+    assertThat(filenameSet.contains(expactedFileName)).isTrue();
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

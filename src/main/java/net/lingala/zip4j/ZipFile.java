@@ -430,7 +430,7 @@ public class ZipFile {
     }
 
     new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password).execute(
-        new ExtractAllFilesTaskParameters(destinationPath));
+        new ExtractAllFilesTaskParameters(destinationPath, charset));
   }
 
   /**
@@ -474,7 +474,7 @@ public class ZipFile {
     readZipInfo();
 
     new ExtractFileTask(progressMonitor, runInThread, zipModel, password).execute(
-        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName));
+        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, charset));
   }
 
   /**

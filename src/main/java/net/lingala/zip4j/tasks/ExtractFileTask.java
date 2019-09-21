@@ -22,7 +22,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   @Override
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader)) {
+    try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader, taskParameters.charset)) {
       extractFile(zipInputStream, taskParameters.fileHeader, taskParameters.outputPath, taskParameters.newFileName,
           progressMonitor);
     } finally {
@@ -37,22 +37,24 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     return taskParameters.fileHeader.getUncompressedSize();
   }
 
-  protected ZipInputStream createZipInputStream(FileHeader fileHeader) throws IOException {
+  protected ZipInputStream createZipInputStream(FileHeader fileHeader, String charset) throws IOException {
     splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
         getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
     splitInputStream.prepareExtractionForFileHeader(fileHeader);
-    return new ZipInputStream(splitInputStream, password);
+    return new ZipInputStream(splitInputStream, password, charset);
   }
 
   public static class ExtractFileTaskParameters {
     private String outputPath;
     private FileHeader fileHeader;
     private String newFileName;
+    private String charset;
 
-    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName) {
+    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName, String charset) {
       this.outputPath = outputPath;
       this.fileHeader = fileHeader;
       this.newFileName = newFileName;
+      this.charset = charset;
     }
   }
 }

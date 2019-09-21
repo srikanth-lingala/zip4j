@@ -53,12 +53,17 @@ public class ZipInputStream extends InputStream {
   private String charset = null;
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null);
+    this(inputStream, null, null);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
+    this(inputStream, password, null);
+  }
+
+  public ZipInputStream(InputStream inputStream, char[] password, String charset) {
     this.inputStream = new PushbackInputStream(inputStream, 512);
     this.password = password;
+    this.charset = charset;
   }
 
   public LocalFileHeader getNextEntry() throws IOException {

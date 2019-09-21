@@ -22,7 +22,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try (ZipInputStream zipInputStream = prepareZipInputStream()) {
+    try (ZipInputStream zipInputStream = prepareZipInputStream(taskParameters.charset)) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
@@ -58,7 +58,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return totalWork;
   }
 
-  private ZipInputStream prepareZipInputStream() throws IOException {
+  private ZipInputStream prepareZipInputStream(String charset) throws IOException {
     splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
         getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
 
@@ -67,7 +67,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
     }
 
-    return new ZipInputStream(splitInputStream, password);
+    return new ZipInputStream(splitInputStream, password, charset);
   }
 
   private FileHeader getFirstFileHeader(ZipModel zipModel) {
@@ -83,8 +83,11 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   public static class ExtractAllFilesTaskParameters {
     private String outputPath;
 
-    public ExtractAllFilesTaskParameters(String outputPath) {
+    private String charset;
+
+    public ExtractAllFilesTaskParameters(String outputPath, String charset) {
       this.outputPath = outputPath;
+      this.charset = charset;
     }
   }
 
