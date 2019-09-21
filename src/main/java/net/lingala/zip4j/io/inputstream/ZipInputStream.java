@@ -50,6 +50,7 @@ public class ZipInputStream extends InputStream {
   private byte[] endOfEntryBuffer;
   private boolean extraDataRecordReadForThisEntry = false;
   private boolean canSkipExtendedLocalFileHeader = false;
+  private String charset = null;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null);
@@ -69,7 +70,7 @@ public class ZipInputStream extends InputStream {
       readUntilEndOfEntry();
     }
 
-    localFileHeader = headerReader.readLocalFileHeader(inputStream);
+    localFileHeader = headerReader.readLocalFileHeader(inputStream, charset);
 
     if (localFileHeader == null) {
       return null;
@@ -314,4 +315,11 @@ public class ZipInputStream extends InputStream {
     return localFileHeader.isEncrypted() && EncryptionMethod.ZIP_STANDARD.equals(localFileHeader.getEncryptionMethod());
   }
 
+  public String getCharset() {
+    return charset;
+  }
+
+  public void setCharset(String charset) {
+    this.charset = charset;
+  }
 }

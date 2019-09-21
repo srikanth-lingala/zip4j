@@ -67,7 +67,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       verifyLocalFileHeader(readLocalFileHeader, FILE_NAME_PREFIX + "LFH", COMPRESSED_SIZE, UNCOMPRESSED_SIZE);
     }
   }
@@ -84,7 +84,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       verifyLocalFileHeader(readLocalFileHeader, FILE_NAME_PREFIX + "LFH", COMPRESSED_SIZE_ZIP64,
           UNCOMPRESSED_SIZE_ZIP64);
       verifyZip64ExtendedInfo(readLocalFileHeader.getZip64ExtendedInfo(), COMPRESSED_SIZE_ZIP64,
@@ -192,7 +192,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -213,7 +213,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -236,7 +236,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -258,7 +258,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -280,7 +280,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -319,7 +319,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -340,7 +340,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -374,7 +374,7 @@ public class HeaderWriterIT extends AbstractIT {
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE, UNCOMPRESSED_SIZE, 23423);
 
     try (InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(COMPRESSED_SIZE + 100);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(UNCOMPRESSED_SIZE + 100);
       assertThat(readLocalFileHeader.getCrc()).isEqualTo(23423);
@@ -388,7 +388,7 @@ public class HeaderWriterIT extends AbstractIT {
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, 546423);
 
     try (InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(COMPRESSED_SIZE_ZIP64 + 100);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(UNCOMPRESSED_SIZE_ZIP64 + 100);
       assertThat(readLocalFileHeader.getCrc()).isEqualTo(546423);
@@ -492,7 +492,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       assertThat(readLocalFileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.AES);
       verifyAesExtraDataRecord(readLocalFileHeader.getAesExtraDataRecord(), aesKeyStrength, aesVersion);
     }
@@ -530,7 +530,7 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
       if (expectFileNamesToMatch) {
         assertThat(readLocalFileHeader.getFileName()).isEqualTo(FILE_NAME_PREFIX + fileNameSuffix);
       } else {

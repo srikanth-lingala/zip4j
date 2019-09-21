@@ -74,6 +74,7 @@ public class ZipFile {
   private boolean runInThread;
   private char[] password;
   private HeaderWriter headerWriter = new HeaderWriter();
+  private String charset;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -835,7 +836,7 @@ public class ZipFile {
 
     try (RandomAccessFile randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue())) {
       HeaderReader headerReader = new HeaderReader();
-      zipModel = headerReader.readAllHeaders(randomAccessFile);
+      zipModel = headerReader.readAllHeaders(randomAccessFile, charset);
       zipModel.setZipFile(zipFile);
     } catch (IOException e) {
       throw new ZipException(e);
@@ -877,6 +878,14 @@ public class ZipFile {
 
   public File getFile() {
     return zipFile;
+  }
+
+  public String getCharset() {
+    return charset;
+  }
+
+  public void setCharset(String charset) {
+    this.charset = charset;
   }
 
   @Override

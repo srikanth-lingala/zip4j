@@ -69,7 +69,7 @@ public class ZipFileZip64IT extends AbstractIT {
   private void verifyZip64HeadersPresent() throws IOException {
     HeaderReader headerReader = new HeaderReader();
     ZipModel zipModel = headerReader.readAllHeaders(new RandomAccessFile(generatedZipFile,
-        RandomAccessFileMode.READ.getValue()));
+        RandomAccessFileMode.READ.getValue()), null);
     assertThat(zipModel.getZip64EndOfCentralDirectoryLocator()).isNotNull();
     assertThat(zipModel.getZip64EndOfCentralDirectoryRecord()).isNotNull();
     assertThat(zipModel.isZip64Format()).isTrue();

@@ -5,6 +5,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -62,7 +63,16 @@ public class HeaderUtil {
     return -1;
   }
 
-  public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded) {
+  public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, String charset) {
+    // set the charset if it's a valid encoding charset
+    if(charset != null) {
+      try {
+        return new String(data, charset);
+      } catch (UnsupportedEncodingException e) {
+        // do nothing
+      }
+    }
+
     if (isUtf8Encoded) {
       return new String(data, StandardCharsets.UTF_8);
     }
