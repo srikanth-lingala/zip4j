@@ -16,8 +16,8 @@ import static net.lingala.zip4j.util.FileUtils.getFilesInDirectoryRecursive;
 public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipTaskParameters> {
 
   public AddFolderToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                            HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+                            HeaderWriter headerWriter,String charset) {
+    super(progressMonitor, runInThread, zipModel, password, headerWriter, charset);
   }
 
   @Override
@@ -25,7 +25,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
       throws IOException {
     List<File> filesToAdd = getFilesToAdd(taskParameters);
     setDefaultFolderPath(taskParameters);
-    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
+    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters);
   }
 
   @Override
@@ -68,12 +68,10 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   public static class AddFolderToZipTaskParameters {
     private File folderToAdd;
     private ZipParameters zipParameters;
-    private String charset;
 
-    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, String charset) {
+    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters) {
       this.folderToAdd = folderToAdd;
       this.zipParameters = zipParameters;
-      this.charset = charset;
     }
   }
 

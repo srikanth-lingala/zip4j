@@ -13,16 +13,18 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
 
   private char[] password;
   private SplitInputStream splitInputStream;
+  private String charset;
 
-  public ExtractFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password) {
+  public ExtractFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password, String charset) {
     super(progressMonitor, runInThread, zipModel);
     this.password = password;
+    this.charset = charset;
   }
 
   @Override
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader, taskParameters.charset)) {
+    try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader, charset)) {
       extractFile(zipInputStream, taskParameters.fileHeader, taskParameters.outputPath, taskParameters.newFileName,
           progressMonitor);
     } finally {
@@ -48,13 +50,11 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     private String outputPath;
     private FileHeader fileHeader;
     private String newFileName;
-    private String charset;
 
-    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName, String charset) {
+    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName) {
       this.outputPath = outputPath;
       this.fileHeader = fileHeader;
       this.newFileName = newFileName;
-      this.charset = charset;
     }
   }
 }

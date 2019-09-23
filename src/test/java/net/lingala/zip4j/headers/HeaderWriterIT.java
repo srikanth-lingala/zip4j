@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,6 +114,24 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithCharsetMs932ShouldMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, "Ms932");
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithBadCharsetWithUtf8ShouldMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", true, true, "BadCharset");
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithBadCharsetWithoutUtf8ShouldNotMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, false, "BadCharset");
+  }
+
+  @Test
   public void testWriteLocalFileHeaderWithAes256v1() throws IOException {
     testWriteLocalFileHeaderWithAes(AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
@@ -180,6 +199,11 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
     headerWriter.finalizeZipFile(new ZipModel(), null, null);
+  }
+
+  @Test
+  public void testFinalizeZipFileWithBadCharsetAndShouldNotThrowException() throws IOException {
+    headerWriter.finalizeZipFile(createZipModel(10), new FileOutputStream(temporaryFolder.newFile()), "BadCharset");
   }
 
   @Test
@@ -307,6 +331,12 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
     headerWriter.finalizeZipFileWithoutValidations(new ZipModel(), null, null);
+  }
+
+  @Test
+  public void testFinalizeZipFileWithoutValidationsWithBadCharsetAndShouldNotThrowException()
+          throws IOException {
+    headerWriter.finalizeZipFileWithoutValidations(createZipModel(10), new FileOutputStream(temporaryFolder.newFile()), "BadCharset");
   }
 
   @Test
@@ -520,17 +550,22 @@ public class HeaderWriterIT extends AbstractIT {
 
   private void testWriteLocalFileHeaderWithFileName(String fileNameSuffix, boolean useUtf8,
                                                     boolean expectFileNamesToMatch) throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset(fileNameSuffix, useUtf8, expectFileNamesToMatch, null);
+  }
+
+  private void testWriteLocalFileHeaderWithFileNameAndCharset(String fileNameSuffix, boolean useUtf8,
+                                                    boolean expectFileNamesToMatch, String charset) throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader(fileNameSuffix, COMPRESSED_SIZE, UNCOMPRESSED_SIZE,
         useUtf8);
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, charset);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, null);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, charset);
       if (expectFileNamesToMatch) {
         assertThat(readLocalFileHeader.getFileName()).isEqualTo(FILE_NAME_PREFIX + fileNameSuffix);
       } else {

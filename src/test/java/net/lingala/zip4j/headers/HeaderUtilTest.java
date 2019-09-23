@@ -264,6 +264,16 @@ public class HeaderUtilTest {
     assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, "BadCharset")).isEqualTo(englishString);
   }
 
+  @Test
+  public void testIsCharsetValidWithFinnishCharset() {
+    assertThat(HeaderUtil.isCharsetValid("ISO-8859-1")).isTrue();
+  }
+
+  @Test
+  public void testIsCharsetValidWithBadCharset() {
+    assertThat(HeaderUtil.isCharsetValid("BadCharset")).isFalse();
+  }
+
   private List<FileHeader> generateFileHeaderWithFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntriesToAdd; i++) {

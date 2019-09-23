@@ -19,7 +19,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,6 +59,16 @@ public class ZipOutputStreamIT extends AbstractIT {
   @Test
   public void testZipOutputStreamDeflateWithoutEncryption() throws IOException {
     testZipOutputStream(CompressionMethod.DEFLATE, false, null, null, null);
+  }
+
+  @Test
+  public void testZipOutputStreamDeflateWithoutEncryptionAndKoreanFilename() throws IOException {
+    List<File> filesToAdd = new ArrayList<>();
+    filesToAdd.add(getTestFileFromResources("가나다.abc"));
+    String koreanCharset = "Cp949";
+
+    testZipOutputStream(CompressionMethod.DEFLATE, false, null, null, null, true,
+            filesToAdd, koreanCharset);
   }
 
   @Test
@@ -97,7 +110,7 @@ public class ZipOutputStreamIT extends AbstractIT {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("uncompressed size should be set for zip entries of compression type store");
 
-    try(ZipOutputStream zos = initializeZipOutputStream(false)) {
+    try(ZipOutputStream zos = initializeZipOutputStream(false, null)) {
       for (File fileToAdd : FILES_TO_ADD) {
         zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
         zipParameters.setFileNameInZip(fileToAdd.getName());
@@ -116,6 +129,13 @@ public class ZipOutputStreamIT extends AbstractIT {
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion, boolean setLastModifiedTime)
+          throws IOException {
+    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, true, FILES_TO_ADD, null);
+  }
+
+  private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
+                                   EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
+                                   AesVersion aesVersion, boolean setLastModifiedTime, List<File> filesToAdd, String charset)
       throws IOException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
@@ -124,8 +144,8 @@ public class ZipOutputStreamIT extends AbstractIT {
     byte[] buff = new byte[4096];
     int readLen;
 
-    try(ZipOutputStream zos = initializeZipOutputStream(encrypt)) {
-      for (File fileToAdd : FILES_TO_ADD) {
+    try(ZipOutputStream zos = initializeZipOutputStream(encrypt, charset)) {
+      for (File fileToAdd : filesToAdd) {
 
         if (zipParameters.getCompressionMethod() == CompressionMethod.STORE) {
           zipParameters.setEntrySize(fileToAdd.length());
@@ -145,7 +165,7 @@ public class ZipOutputStreamIT extends AbstractIT {
         zos.closeEntry();
       }
     }
-    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, filesToAdd.size(), true, charset);
     verifyEntries();
   }
 
@@ -167,14 +187,14 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
   }
 
-  private ZipOutputStream initializeZipOutputStream(boolean encrypt) throws IOException {
+  private ZipOutputStream initializeZipOutputStream(boolean encrypt, String charset) throws IOException {
     FileOutputStream fos = new FileOutputStream(generatedZipFile);
 
     if (encrypt) {
-      return new ZipOutputStream(fos, PASSWORD);
+      return new ZipOutputStream(fos, PASSWORD, charset);
     }
 
-    return new ZipOutputStream(fos);
+    return new ZipOutputStream(fos, null, charset);
   }
 
   private ZipParameters buildZipParameters(CompressionMethod compressionMethod, boolean encrypt,

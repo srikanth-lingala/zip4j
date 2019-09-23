@@ -37,18 +37,18 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
-    this(outputStream, password, new ZipModel());
+    this(outputStream, password, null);
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel) throws IOException {
-    this(outputStream, password, zipModel, null);
+  public ZipOutputStream(OutputStream outputStream, char[] password, String charset) throws IOException {
+    this(outputStream, password, charset, new ZipModel());
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel, String charset) throws IOException {
+  public ZipOutputStream(OutputStream outputStream, char[] password, String charset, ZipModel zipModel) throws IOException {
     this.countingOutputStream = new CountingOutputStream(outputStream);
     this.password = password;
-    this.zipModel = initializeZipModel(zipModel, countingOutputStream);
     this.charset = charset;
+    this.zipModel = initializeZipModel(zipModel, countingOutputStream);
     writeSplitZipHeaderIfApplicable();
   }
 

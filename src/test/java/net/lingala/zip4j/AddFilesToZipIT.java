@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AddFilesToZipIT extends AbstractIT {
@@ -67,6 +68,19 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
         EncryptionMethod.ZIP_STANDARD, null);
+  }
+
+  @Test
+  public void testAddFileAsStringWithZipParametersStoreAndStandardEncryptionAndCharsetCp949() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    String charset = "Cp949";
+
+    zipFile.setCharset(charset);
+    zipFile.addFile(TestUtils.getTestFileFromResources("가나다.abc").getPath(), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, charset);
   }
 
   @Test
@@ -496,6 +510,21 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFolderWithoutZipParametersAndCharsetCp949() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    String charset = "Cp949";
+
+    zipFile.setCharset(charset);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13, true, charset);
+
+    // check the actual output and make sure it contains the correct files
+    String actualOutputFolderPath = outputFolder.getCanonicalPath() + InternalZipConstants.FILE_SEPARATOR + "test-files";
+    ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(new File(actualOutputFolderPath));
+  }
+
+  @Test
   public void testAddFolderWithStoreAndAes128() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
@@ -717,6 +746,20 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
     verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
+  }
+
+  @Test
+  public void testAddStreamToZipWithCharsetCp949() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    InputStream inputStream = new FileInputStream(fileToAdd);
+    String charset = "Cp949";
+    ZipParameters zipParameters = new ZipParameters();
+
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    zipFile.setCharset(charset);
+    zipFile.addStream(inputStream, zipParameters);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, charset);
   }
 
   @Test

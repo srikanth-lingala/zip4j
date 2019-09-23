@@ -25,12 +25,19 @@ public class ZipFileVerifier {
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
                                                        int expectedNumberOfEntries, boolean verifyFileContents)
+          throws IOException {
+    verifyZipFileByExtractingAllFiles(zipFileToExtract, password, outputFolder, expectedNumberOfEntries, verifyFileContents, null);
+  }
+
+  public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
+                                                       int expectedNumberOfEntries, boolean verifyFileContents, String charset)
       throws IOException {
 
     assertThat(zipFileToExtract).isNotNull();
     assertThat(zipFileToExtract).exists();
 
     ZipFile zipFile = new ZipFile(zipFileToExtract, password);
+    zipFile.setCharset(charset);
     zipFile.extractAll(outputFolder.getPath());
     assertThat(zipFile.getFileHeaders().size()).as("Number of file headers").isEqualTo(expectedNumberOfEntries);
 

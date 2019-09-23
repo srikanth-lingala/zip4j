@@ -14,8 +14,8 @@ import java.util.List;
 public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTaskParameters> {
 
   public AddFilesToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                           HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+                           HeaderWriter headerWriter, String charset) {
+    super(progressMonitor, runInThread, zipModel, password, headerWriter, charset);
   }
 
   @Override
@@ -23,7 +23,7 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
       throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
-    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
+    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters);
   }
 
   @Override
@@ -39,12 +39,10 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
   public static class AddFilesToZipTaskParameters {
     private List<File> filesToAdd;
     private ZipParameters zipParameters;
-    private String charset;
 
-    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters, String charset) {
+    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters) {
       this.filesToAdd = filesToAdd;
       this.zipParameters = zipParameters;
-      this.charset = charset;
     }
   }
 }

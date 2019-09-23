@@ -12,7 +12,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,23 +37,25 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   private ZipModel zipModel;
   private char[] password;
+  private String charset;
   private HeaderWriter headerWriter;
 
   AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
-                           char[] password, HeaderWriter headerWriter) {
+                           char[] password, HeaderWriter headerWriter, String charset) {
     super(progressMonitor, runInThread);
     this.zipModel = zipModel;
     this.password = password;
     this.headerWriter = headerWriter;
+    this.charset = charset;
   }
 
-  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters, String charset)
+  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
       throws IOException {
 
     List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor, charset);
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
-         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, charset)) {
+         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
 
@@ -111,7 +112,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return totalWork;
   }
 
-  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream, String charset) throws IOException {
+  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream) throws IOException {
     if (zipModel.getZipFile().exists()) {
       if (zipModel.getEndOfCentralDirectoryRecord() == null) {
         throw new ZipException("invalid end of central directory record");
@@ -119,7 +120,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       splitOutputStream.seek(zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
     }
 
-    return new ZipOutputStream(splitOutputStream, password, zipModel, charset);
+    return new ZipOutputStream(splitOutputStream, password, charset, zipModel);
   }
 
   void verifyZipParameters(ZipParameters parameters) throws ZipException {
@@ -215,8 +216,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor, String charset) throws ZipException {
     RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
-        zipModel);
-    removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+        zipModel, charset);
+    removeEntryFromZipFileTask.execute(fileHeader);
   }
 
   @Override

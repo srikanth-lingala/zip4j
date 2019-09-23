@@ -11,7 +11,6 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.RawIO;
-import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,25 +22,27 @@ import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.copyFile;
 
-public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskParameters> {
+public class MergeSplitZipFileTask extends AsyncZipTask<File> {
 
   private ZipModel zipModel;
   private RawIO rawIO = new RawIO();
+  private String charset;
 
-  public MergeSplitZipFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
+  public MergeSplitZipFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, String charset) {
     super(progressMonitor, runInThread);
     this.zipModel = zipModel;
+    this.charset = charset;
   }
 
   @Override
-  protected void executeTask(MergeSplitZipFileTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
+  protected void executeTask(File outputZipFile, ProgressMonitor progressMonitor) throws IOException {
     if (!zipModel.isSplitArchive()) {
       ZipException e = new ZipException("archive not a split zip file");
       progressMonitor.endProgressMonitor(e);
       throw e;
     }
 
-    try (OutputStream outputStream = new FileOutputStream(taskParameters.outputZipFile)) {
+    try (OutputStream outputStream = new FileOutputStream(outputZipFile)) {
       long totalBytesWritten = 0;
       int totalNumberOfSplitFiles = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
       if (totalNumberOfSplitFiles <= 0) {
@@ -74,7 +75,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
           verifyIfTaskIsCancelled();
         }
       }
-      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream, taskParameters.charset);
+      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream, charset);
       progressMonitor.endProgressMonitor();
     } catch (CloneNotSupportedException e) {
       throw new ZipException(e);
@@ -82,7 +83,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
   }
 
   @Override
-  protected long calculateTotalWork(MergeSplitZipFileTaskParameters outputZipFile) {
+  protected long calculateTotalWork(File outputZipFile) {
     if (!zipModel.isSplitArchive()) {
       return 0;
     }
@@ -186,15 +187,5 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
   @Override
   protected ProgressMonitor.Task getTask() {
     return ProgressMonitor.Task.MERGE_ZIP_FILES;
-  }
-
-  public static class MergeSplitZipFileTaskParameters {
-    private File outputZipFile;
-    private String charset;
-
-    public MergeSplitZipFileTaskParameters(File outputZipFile, String charset) {
-      this.outputZipFile = outputZipFile;
-      this.charset = charset;
-    }
   }
 }

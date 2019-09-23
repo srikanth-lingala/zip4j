@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,6 +41,19 @@ public class CreateZipFileIT extends AbstractIT {
     zipFile.createSplitZipFile(FILES_TO_ADD, new ZipParameters(), false, -1);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, FILES_TO_ADD.size());
+  }
+
+  @Test
+  public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringAndCharsetCp949() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile.getPath());
+    String charset = "Cp949";
+    List<File> filesToAdd = new ArrayList<>();
+    filesToAdd.add(getTestFileFromResources("가나다.abc"));
+
+    zipFile.setCharset(charset);
+    zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), false, -1);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, filesToAdd.size(), true, charset);
   }
 
   @Test

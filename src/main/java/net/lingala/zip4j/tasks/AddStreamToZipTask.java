@@ -21,8 +21,8 @@ import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipTaskParameters> {
 
   public AddStreamToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                            HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+                            HeaderWriter headerWriter, String charset) {
+    super(progressMonitor, runInThread, zipModel, password, headerWriter, charset);
   }
 
   @Override
@@ -49,7 +49,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     }
 
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
-        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, taskParameters.charset)) {
+        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
 
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
@@ -91,12 +91,10 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
   public static class AddStreamToZipTaskParameters {
     private InputStream inputStream;
     private ZipParameters zipParameters;
-    private String charset;
 
-    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters, String charset) {
+    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters) {
       this.inputStream = inputStream;
       this.zipParameters = zipParameters;
-      this.charset = charset;
     }
   }
 }

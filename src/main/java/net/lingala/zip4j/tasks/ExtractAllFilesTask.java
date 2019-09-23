@@ -13,16 +13,18 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
   private char[] password;
   private SplitInputStream splitInputStream;
+  private String charset;
 
-  public ExtractAllFilesTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password) {
+  public ExtractAllFilesTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password, String charset) {
     super(progressMonitor, runInThread, zipModel);
     this.password = password;
+    this.charset = charset;
   }
 
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try (ZipInputStream zipInputStream = prepareZipInputStream(taskParameters.charset)) {
+    try (ZipInputStream zipInputStream = prepareZipInputStream(charset)) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
@@ -83,11 +85,8 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   public static class ExtractAllFilesTaskParameters {
     private String outputPath;
 
-    private String charset;
-
-    public ExtractAllFilesTaskParameters(String outputPath, String charset) {
+    public ExtractAllFilesTaskParameters(String outputPath) {
       this.outputPath = outputPath;
-      this.charset = charset;
     }
   }
 
