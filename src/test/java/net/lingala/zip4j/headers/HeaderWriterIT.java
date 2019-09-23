@@ -63,7 +63,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
@@ -80,7 +80,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
@@ -171,7 +171,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFile(null, new FileOutputStream(temporaryFolder.newFile()));
+    headerWriter.finalizeZipFile(null, new FileOutputStream(temporaryFolder.newFile()), null);
   }
 
   @Test
@@ -179,7 +179,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFile(new ZipModel(), null);
+    headerWriter.finalizeZipFile(new ZipModel(), null, null);
   }
 
   @Test
@@ -188,7 +188,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -209,7 +209,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -232,7 +232,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -254,7 +254,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(SplitOutputStream outputStream = new SplitOutputStream(headersFile, 65536)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -276,7 +276,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(CountingOutputStream outputStream = new CountingOutputStream(new SplitOutputStream(headersFile, 65536))) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -297,7 +297,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFileWithoutValidations(null, new FileOutputStream(temporaryFolder.newFile()));
+    headerWriter.finalizeZipFileWithoutValidations(null, new FileOutputStream(temporaryFolder.newFile()), null);
   }
 
   @Test
@@ -306,7 +306,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFileWithoutValidations(new ZipModel(), null);
+    headerWriter.finalizeZipFileWithoutValidations(new ZipModel(), null, null);
   }
 
   @Test
@@ -315,7 +315,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -336,7 +336,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, null);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
@@ -408,7 +408,7 @@ public class HeaderWriterIT extends AbstractIT {
     localFileHeaderToWrite.setCrc(10);
 
     try (OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
     }
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile)) {
@@ -488,7 +488,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
@@ -526,7 +526,7 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, null);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {

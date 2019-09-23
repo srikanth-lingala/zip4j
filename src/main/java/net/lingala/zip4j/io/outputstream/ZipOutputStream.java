@@ -30,6 +30,7 @@ public class ZipOutputStream extends OutputStream {
   private CRC32 crc32 = new CRC32();
   private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
+  private String charset;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
     this(outputStream, null);
@@ -40,9 +41,14 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel) throws IOException {
+    this(outputStream, password, zipModel, null);
+  }
+
+  public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel, String charset) throws IOException {
     this.countingOutputStream = new CountingOutputStream(outputStream);
     this.password = password;
     this.zipModel = initializeZipModel(zipModel, countingOutputStream);
+    this.charset = charset;
     writeSplitZipHeaderIfApplicable();
   }
 
@@ -98,8 +104,16 @@ public class ZipOutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
-    headerWriter.finalizeZipFile(zipModel, countingOutputStream);
+    headerWriter.finalizeZipFile(zipModel, countingOutputStream, charset);
     countingOutputStream.close();
+  }
+
+  public String getCharset() {
+    return charset;
+  }
+
+  public void setCharset(String charset) {
+    this.charset = charset;
   }
 
   private ZipModel initializeZipModel(ZipModel zipModel, CountingOutputStream countingOutputStream) {
@@ -121,7 +135,7 @@ public class ZipOutputStream extends OutputStream {
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
     localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
-    headerWriter.writeLocalFileHeader(zipModel, localFileHeader, countingOutputStream);
+    headerWriter.writeLocalFileHeader(zipModel, localFileHeader, countingOutputStream, charset);
   }
 
   private void reset() throws IOException {

@@ -49,7 +49,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     }
 
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
-        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
+        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, taskParameters.charset)) {
 
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
@@ -91,10 +91,12 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
   public static class AddStreamToZipTaskParameters {
     private InputStream inputStream;
     private ZipParameters zipParameters;
+    private String charset;
 
-    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters) {
+    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters, String charset) {
       this.inputStream = inputStream;
       this.zipParameters = zipParameters;
+      this.charset = charset;
     }
   }
 }

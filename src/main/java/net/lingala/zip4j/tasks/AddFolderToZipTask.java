@@ -25,7 +25,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
       throws IOException {
     List<File> filesToAdd = getFilesToAdd(taskParameters);
     setDefaultFolderPath(taskParameters);
-    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters);
+    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
   }
 
   @Override
@@ -68,10 +68,12 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   public static class AddFolderToZipTaskParameters {
     private File folderToAdd;
     private ZipParameters zipParameters;
+    private String charset;
 
-    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters) {
+    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, String charset) {
       this.folderToAdd = folderToAdd;
       this.zipParameters = zipParameters;
+      this.charset = charset;
     }
   }
 

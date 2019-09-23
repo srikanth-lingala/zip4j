@@ -390,7 +390,7 @@ public class HeaderReaderIT extends AbstractIT {
     File headerFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headerFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeader, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeader, outputStream, null);
     }
 
     return headerFile;
@@ -399,7 +399,7 @@ public class HeaderReaderIT extends AbstractIT {
   private File writeZipHeaders(ZipModel zipModel) throws IOException, ZipException {
     File headersFile = temporaryFolder.newFile();
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, splitOutputStream);
+      headerWriter.finalizeZipFile(zipModel, splitOutputStream, null);
       return headersFile;
     }
   }

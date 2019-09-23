@@ -23,7 +23,7 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
       throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
-    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters);
+    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
   }
 
   @Override
@@ -39,10 +39,12 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
   public static class AddFilesToZipTaskParameters {
     private List<File> filesToAdd;
     private ZipParameters zipParameters;
+    private String charset;
 
-    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters) {
+    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters, String charset) {
       this.filesToAdd = filesToAdd;
       this.zipParameters = zipParameters;
+      this.charset = charset;
     }
   }
 }
