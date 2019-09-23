@@ -686,6 +686,40 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddStreamWithStoreCompressionAndCharset() throws IOException {
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.setCharset("Cp949");
+    zipFile.addStream(inputStream, zipParameters);
+
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isFalse();
+  }
+
+  @Test
+  public void testAddStreamWithStoreCompressionAndBadCharset() throws IOException {
+    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.setCharset("BadCharset");
+    zipFile.addStream(inputStream, zipParameters);
+
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isTrue();
+  }
+
+  @Test
   public void testAddStreamToZipWithAesEncryptionForNewZipAddsSuccessfully() throws IOException {
     File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);

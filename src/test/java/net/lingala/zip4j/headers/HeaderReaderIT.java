@@ -362,7 +362,7 @@ public class HeaderReaderIT extends AbstractIT {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntries; i++) {
       zipParameters.setFileNameInZip(FILE_NAME_PREFIX + i);
-      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, null);
       fileHeaders.add(fileHeader);
     }
     return fileHeaders;
