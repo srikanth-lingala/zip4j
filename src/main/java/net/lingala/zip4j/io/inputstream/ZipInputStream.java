@@ -32,6 +32,7 @@ import net.lingala.zip4j.util.InternalZipConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;
@@ -50,7 +51,7 @@ public class ZipInputStream extends InputStream {
   private byte[] endOfEntryBuffer;
   private boolean extraDataRecordReadForThisEntry = false;
   private boolean canSkipExtendedLocalFileHeader = false;
-  private String charset = null;
+  private Charset charset;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null, null);
@@ -60,7 +61,11 @@ public class ZipInputStream extends InputStream {
     this(inputStream, password, null);
   }
 
-  public ZipInputStream(InputStream inputStream, char[] password, String charset) {
+  public ZipInputStream(InputStream inputStream, Charset charset) {
+    this(inputStream, null, charset);
+  }
+
+  public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
     this.inputStream = new PushbackInputStream(inputStream, 512);
     this.password = password;
     this.charset = charset;
@@ -318,13 +323,5 @@ public class ZipInputStream extends InputStream {
 
   private boolean isEncryptionMethodZipStandard(LocalFileHeader localFileHeader) {
     return localFileHeader.isEncrypted() && EncryptionMethod.ZIP_STANDARD.equals(localFileHeader.getEncryptionMethod());
-  }
-
-  public String getCharset() {
-    return charset;
-  }
-
-  public void setCharset(String charset) {
-    this.charset = charset;
   }
 }

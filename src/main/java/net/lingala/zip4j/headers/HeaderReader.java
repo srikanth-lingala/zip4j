@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +58,7 @@ public class HeaderReader {
   private RawIO rawIO = new RawIO();
   private byte[] intBuff = new byte[4];
 
-  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, String charset) throws IOException {
+  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Charset charset) throws IOException {
     zipModel = new ZipModel();
 
     try {
@@ -127,7 +128,7 @@ public class HeaderReader {
     return endOfCentralDirectoryRecord;
   }
 
-  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO, String charset) throws IOException {
+  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset) throws IOException {
     CentralDirectory centralDirectory = new CentralDirectory();
     List<FileHeader> fileHeaders = new ArrayList<>();
 
@@ -522,7 +523,7 @@ public class HeaderReader {
     zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
   }
 
-  public LocalFileHeader readLocalFileHeader(InputStream inputStream, String charset) throws IOException {
+  public LocalFileHeader readLocalFileHeader(InputStream inputStream, Charset charset) throws IOException {
     LocalFileHeader localFileHeader = new LocalFileHeader();
     byte[] intBuff = new byte[4];
 

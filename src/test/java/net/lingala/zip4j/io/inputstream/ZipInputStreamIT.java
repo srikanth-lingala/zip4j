@@ -177,12 +177,11 @@ public class ZipInputStreamIT extends AbstractIT {
   @Test
   public void testGetFileNamesWithChineseCharset() throws IOException {
     InputStream inputStream = new FileInputStream(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
-    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream, charsetGBK);
     LocalFileHeader localFileHeader;
     String expactedFileName = "fff - 副本.txt";
     Set<String> filenameSet = new HashSet<>();
 
-    zipInputStream.setCharset("GBK");
     while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
       filenameSet.add(localFileHeader.getFileName());
     }

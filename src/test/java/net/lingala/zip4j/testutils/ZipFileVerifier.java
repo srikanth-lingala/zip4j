@@ -7,6 +7,7 @@ import net.lingala.zip4j.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +31,7 @@ public class ZipFileVerifier {
   }
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
-                                                       int expectedNumberOfEntries, boolean verifyFileContents, String charset)
+                                                       int expectedNumberOfEntries, boolean verifyFileContents, Charset charset)
       throws IOException {
 
     assertThat(zipFileToExtract).isNotNull();

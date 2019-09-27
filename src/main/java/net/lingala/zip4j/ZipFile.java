@@ -37,8 +37,11 @@ import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters
 import net.lingala.zip4j.tasks.ExtractFileTask;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
+import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 import net.lingala.zip4j.tasks.SetCommentTask;
+import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -46,6 +49,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -74,7 +79,7 @@ public class ZipFile {
   private boolean runInThread;
   private char[] password;
   private HeaderWriter headerWriter = new HeaderWriter();
-  private String charset;
+  private Charset charset = StandardCharsets.UTF_8;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -144,8 +149,8 @@ public class ZipFile {
     zipModel.setSplitArchive(splitArchive);
     zipModel.setSplitLength(splitLength);
 
-    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter, charset).execute(
-        new AddFilesToZipTaskParameters(filesToAdd, parameters));
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
+        new AddFilesToZipTaskParameters(filesToAdd, parameters, charset));
   }
 
   /**
@@ -285,8 +290,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter, charset).execute(
-        new AddFilesToZipTaskParameters(filesToAdd, parameters));
+    new AddFilesToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
+        new AddFilesToZipTaskParameters(filesToAdd, parameters, charset));
   }
 
   /**
@@ -357,8 +362,8 @@ public class ZipFile {
       }
     }
 
-    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter, charset).execute(
-        new AddFolderToZipTaskParameters(folderToAdd, zipParameters));
+    new AddFolderToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
+        new AddFolderToZipTaskParameters(folderToAdd, zipParameters, charset));
   }
 
   /**
@@ -394,8 +399,8 @@ public class ZipFile {
       throw new ZipException("Zip file already exists. Zip file format does not allow updating split/spanned files");
     }
 
-    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter, charset).execute(
-        new AddStreamToZipTaskParameters(inputStream, parameters));
+    new AddStreamToZipTask(progressMonitor, runInThread, zipModel, password, headerWriter).execute(
+        new AddStreamToZipTaskParameters(inputStream, parameters, charset));
   }
 
   /**
@@ -429,8 +434,8 @@ public class ZipFile {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password, charset).execute(
-        new ExtractAllFilesTaskParameters(destinationPath));
+    new ExtractAllFilesTask(progressMonitor, runInThread, zipModel, password).execute(
+        new ExtractAllFilesTaskParameters(destinationPath, charset));
   }
 
   /**
@@ -473,8 +478,8 @@ public class ZipFile {
 
     readZipInfo();
 
-    new ExtractFileTask(progressMonitor, runInThread, zipModel, password, charset).execute(
-        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName));
+    new ExtractFileTask(progressMonitor, runInThread, zipModel, password).execute(
+        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, charset));
   }
 
   /**
@@ -671,7 +676,8 @@ public class ZipFile {
       throw new ZipException("Zip file format does not allow updating split/spanned files");
     }
 
-    new RemoveEntryFromZipFileTask(progressMonitor, runInThread, zipModel, charset).execute(fileHeader);
+    new RemoveEntryFromZipFileTask(progressMonitor, runInThread, zipModel).execute(
+            new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
   }
 
   /**
@@ -696,7 +702,8 @@ public class ZipFile {
       throw new ZipException("zip model is null, corrupt zip file?");
     }
 
-    new MergeSplitZipFileTask(progressMonitor, runInThread, zipModel, charset).execute(outputZipFile);
+    new MergeSplitZipFileTask(progressMonitor, runInThread, zipModel).execute(
+            new MergeSplitZipFileTaskParameters(outputZipFile, charset));
   }
 
   /**
@@ -724,7 +731,8 @@ public class ZipFile {
       throw new ZipException("end of central directory is null, cannot set comment");
     }
 
-    new SetCommentTask(progressMonitor, runInThread, zipModel, charset).execute(comment);
+    new SetCommentTask(progressMonitor, runInThread, zipModel).execute(
+            new SetCommentTaskTaskParameters(comment, charset));
   }
 
   /**
@@ -880,11 +888,11 @@ public class ZipFile {
     return zipFile;
   }
 
-  public String getCharset() {
+  public Charset getCharset() {
     return charset;
   }
 
-  public void setCharset(String charset) {
+  public void setCharset(Charset charset) {
     this.charset = charset;
   }
 

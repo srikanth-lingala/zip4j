@@ -49,7 +49,7 @@ public class HeaderWriter {
   private byte[] longBuff = new byte[8];
 
   public void writeLocalFileHeader(ZipModel zipModel, LocalFileHeader localFileHeader, OutputStream outputStream,
-                                   String charsetName) throws IOException {
+                                   Charset charset) throws IOException {
 
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) localFileHeader.getSignature().getValue());
@@ -88,11 +88,11 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(localFileHeader.getFileName())) {
-        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-        if(HeaderUtil.isCharsetValid(charsetName)) {
-          charset = Charset.forName(charsetName);
-        } else if (BitUtils.isBitSet(localFileHeader.getGeneralPurposeFlag()[1], 3)) {
-          charset = StandardCharsets.UTF_8;
+        if(charset == null) {
+          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+          if(BitUtils.isBitSet(localFileHeader.getGeneralPurposeFlag()[1], 3)) {
+            charset = StandardCharsets.UTF_8;
+          }
         }
         fileNameBytes = localFileHeader.getFileName().getBytes(charset);
       }
@@ -171,7 +171,7 @@ public class HeaderWriter {
     }
   }
 
-  public void finalizeZipFile(ZipModel zipModel, OutputStream outputStream, String charset) throws IOException {
+  public void finalizeZipFile(ZipModel zipModel, OutputStream outputStream, Charset charset) throws IOException {
     if (zipModel == null || outputStream == null) {
       throw new ZipException("input parameters is null, cannot finalize zip file");
     }
@@ -215,7 +215,7 @@ public class HeaderWriter {
     }
   }
 
-  public void finalizeZipFileWithoutValidations(ZipModel zipModel, OutputStream outputStream, String charset) throws IOException {
+  public void finalizeZipFileWithoutValidations(ZipModel zipModel, OutputStream outputStream, Charset charset) throws IOException {
 
     if (zipModel == null || outputStream == null) {
       throw new ZipException("input parameters is null, cannot finalize zip file without validations");
@@ -336,7 +336,7 @@ public class HeaderWriter {
     return ((CountingOutputStream) outputStream).getCurrentSplitFileCounter();
   }
 
-  private void writeZipHeaderBytes(ZipModel zipModel, OutputStream outputStream, byte[] buff, String charset) throws IOException {
+  private void writeZipHeaderBytes(ZipModel zipModel, OutputStream outputStream, byte[] buff, Charset charset) throws IOException {
     if (buff == null) {
       throw new ZipException("invalid buff to write as zip headers");
     }
@@ -376,7 +376,7 @@ public class HeaderWriter {
     zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDiskStartOfCentralDir(currentSplitFileCounter);
   }
 
-  private void writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO, String charset)
+  private void writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO, Charset charset)
       throws ZipException {
 
     if (zipModel.getCentralDirectory() == null || zipModel.getCentralDirectory().getFileHeaders() == null
@@ -390,7 +390,7 @@ public class HeaderWriter {
   }
 
   private void writeFileHeader(ZipModel zipModel, FileHeader fileHeader, ByteArrayOutputStream byteArrayOutputStream,
-                              RawIO rawIO, String charsetName) throws ZipException {
+                              RawIO rawIO, Charset charset) throws ZipException {
     if (fileHeader == null) {
       throw new ZipException("input parameters is null, cannot write local file header");
     }
@@ -429,11 +429,11 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileHeader.getFileName())) {
-        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-        if(HeaderUtil.isCharsetValid(charsetName)) {
-          charset = Charset.forName(charsetName);
-        } else if (BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
-          charset = StandardCharsets.UTF_8;
+        if(charset == null) {
+          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+          if(BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
+            charset = StandardCharsets.UTF_8;
+          }
         }
         fileNameBytes = fileHeader.getFileName().getBytes(charset);
       }
@@ -462,11 +462,11 @@ public class HeaderWriter {
       String fileComment = fileHeader.getFileComment();
       byte[] fileCommentBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileComment)) {
-        Charset charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-        if(HeaderUtil.isCharsetValid(charsetName)) {
-          charset = Charset.forName(charsetName);
-        } else if (BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
-          charset = StandardCharsets.UTF_8;
+        if(charset == null) {
+          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
+          if(BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
+            charset = StandardCharsets.UTF_8;
+          }
         }
         fileCommentBytes = fileComment.getBytes(charset);
       }

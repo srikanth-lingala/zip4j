@@ -45,15 +45,16 @@ public class CreateZipFileIT extends AbstractIT {
 
   @Test
   public void testCreateSplitZipFileNotSplitArchiveWithZipNameAsStringAndCharsetCp949() throws IOException {
+    String koreanFileName = "가나다.abc";
     ZipFile zipFile = new ZipFile(generatedZipFile.getPath());
-    String charset = "Cp949";
     List<File> filesToAdd = new ArrayList<>();
-    filesToAdd.add(getTestFileFromResources("가나다.abc"));
+    filesToAdd.add(getTestFileFromResources(koreanFileName));
 
-    zipFile.setCharset(charset);
+    zipFile.setCharset(charsetCp949);
     zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), false, -1);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, filesToAdd.size(), true, charset);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, filesToAdd.size(), true, charsetCp949);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test

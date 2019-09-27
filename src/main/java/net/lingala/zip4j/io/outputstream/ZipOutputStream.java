@@ -15,6 +15,7 @@ import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.zip.CRC32;
 
 public class ZipOutputStream extends OutputStream {
@@ -30,21 +31,25 @@ public class ZipOutputStream extends OutputStream {
   private CRC32 crc32 = new CRC32();
   private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
-  private String charset;
+  private Charset charset;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
-    this(outputStream, null);
+    this(outputStream, null, null);
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
     this(outputStream, password, null);
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password, String charset) throws IOException {
+  public ZipOutputStream(OutputStream outputStream, Charset charset) throws IOException {
+    this(outputStream, null, charset);
+  }
+
+  public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset) throws IOException {
     this(outputStream, password, charset, new ZipModel());
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password, String charset, ZipModel zipModel) throws IOException {
+  public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset, ZipModel zipModel) throws IOException {
     this.countingOutputStream = new CountingOutputStream(outputStream);
     this.password = password;
     this.charset = charset;
@@ -106,14 +111,6 @@ public class ZipOutputStream extends OutputStream {
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
     headerWriter.finalizeZipFile(zipModel, countingOutputStream, charset);
     countingOutputStream.close();
-  }
-
-  public String getCharset() {
-    return charset;
-  }
-
-  public void setCharset(String charset) {
-    this.charset = charset;
   }
 
   private ZipModel initializeZipModel(ZipModel zipModel, CountingOutputStream countingOutputStream) {

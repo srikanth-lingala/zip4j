@@ -6,28 +6,28 @@ import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
-public class SetCommentTask extends AsyncZipTask<String> {
+public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
 
   private ZipModel zipModel;
-  private String charset;
 
-  public SetCommentTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, String charset) {
+  public SetCommentTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
     super(progressMonitor, runInThread);
     this.zipModel = zipModel;
-    this.charset = charset;
   }
 
   @Override
-  protected void executeTask(String comment, ProgressMonitor progressMonitor) throws IOException {
-    if (comment == null) {
+  protected void executeTask(SetCommentTaskTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
+    if (taskParameters.comment == null) {
       throw new ZipException("comment is null, cannot update Zip file with comment");
     }
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
-    endOfCentralDirectoryRecord.setComment(comment);
+    endOfCentralDirectoryRecord.setComment(taskParameters.comment);
 
     try (SplitOutputStream outputStream = new SplitOutputStream(zipModel.getZipFile())) {
       if (zipModel.isZip64Format()) {
@@ -38,17 +38,26 @@ public class SetCommentTask extends AsyncZipTask<String> {
       }
 
       HeaderWriter headerWriter = new HeaderWriter();
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, charset);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, taskParameters.charset);
     }
   }
 
   @Override
-  protected long calculateTotalWork(String comment) {
+  protected long calculateTotalWork(SetCommentTaskTaskParameters taskParameters) {
     return 0;
   }
 
   @Override
   protected ProgressMonitor.Task getTask() {
     return ProgressMonitor.Task.SET_COMMENT;
+  }
+
+  public static class SetCommentTaskTaskParameters extends AbstractZipTaskParameters {
+    private String comment;
+
+    public SetCommentTaskTaskParameters(String comment, Charset charset) {
+      super(charset);
+      this.comment = comment;
+    }
   }
 }

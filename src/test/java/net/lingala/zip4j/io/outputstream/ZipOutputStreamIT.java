@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,10 +66,9 @@ public class ZipOutputStreamIT extends AbstractIT {
   public void testZipOutputStreamDeflateWithoutEncryptionAndKoreanFilename() throws IOException {
     List<File> filesToAdd = new ArrayList<>();
     filesToAdd.add(getTestFileFromResources("가나다.abc"));
-    String koreanCharset = "Cp949";
 
     testZipOutputStream(CompressionMethod.DEFLATE, false, null, null, null, true,
-            filesToAdd, koreanCharset);
+            filesToAdd, charsetCp949);
   }
 
   @Test
@@ -135,7 +135,7 @@ public class ZipOutputStreamIT extends AbstractIT {
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
-                                   AesVersion aesVersion, boolean setLastModifiedTime, List<File> filesToAdd, String charset)
+                                   AesVersion aesVersion, boolean setLastModifiedTime, List<File> filesToAdd, Charset charset)
       throws IOException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
@@ -187,7 +187,7 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
   }
 
-  private ZipOutputStream initializeZipOutputStream(boolean encrypt, String charset) throws IOException {
+  private ZipOutputStream initializeZipOutputStream(boolean encrypt, Charset charset) throws IOException {
     FileOutputStream fos = new FileOutputStream(generatedZipFile);
 
     if (encrypt) {

@@ -75,12 +75,13 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    String charset = "Cp949";
 
-    zipFile.setCharset(charset);
-    zipFile.addFile(TestUtils.getTestFileFromResources("가나다.abc").getPath(), zipParameters);
+    zipFile.setCharset(charsetCp949);
+    String koreanFileName = "가나다.abc";
+    zipFile.addFile(TestUtils.getTestFileFromResources(koreanFileName).getPath(), zipParameters);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, charset);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, charsetCp949);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test
@@ -512,12 +513,11 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddFolderWithoutZipParametersAndCharsetCp949() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    String charset = "Cp949";
 
-    zipFile.setCharset(charset);
+    zipFile.setCharset(charsetCp949);
     zipFile.addFolder(TestUtils.getTestFileFromResources(""));
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13, true, charset);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13, true, charsetCp949);
 
     // check the actual output and make sure it contains the correct files
     String actualOutputFolderPath = outputFolder.getCanonicalPath() + InternalZipConstants.FILE_SEPARATOR + "test-files";
@@ -687,36 +687,40 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamWithStoreCompressionAndCharset() throws IOException {
-    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    String koreanFileName = "가나다.abc";
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(fileToAdd);
 
-    zipFile.setCharset("Cp949");
+    zipFile.setCharset(charsetCp949);
     zipFile.addStream(inputStream, zipParameters);
 
     byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
     // assert that extra data record is not present
     assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isFalse();
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test
-  public void testAddStreamWithStoreCompressionAndBadCharset() throws IOException {
-    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+  public void testAddStreamWithStoreCompressionAndNullCharset() throws IOException {
+    String koreanFileName = "가나다.abc";
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     zipParameters.setFileNameInZip(fileToAdd.getName());
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(fileToAdd);
 
-    zipFile.setCharset("BadCharset");
+    zipFile.setCharset(null);
     zipFile.addStream(inputStream, zipParameters);
 
     byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
     // assert that extra data record is not present
     assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isTrue();
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test
@@ -784,16 +788,17 @@ public class AddFilesToZipIT extends AbstractIT {
 
   @Test
   public void testAddStreamToZipWithCharsetCp949() throws IOException {
+    String koreanFileName = "가나다.abc";
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    File fileToAdd = TestUtils.getTestFileFromResources("가나다.abc");
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
     InputStream inputStream = new FileInputStream(fileToAdd);
-    String charset = "Cp949";
     ZipParameters zipParameters = new ZipParameters();
 
     zipParameters.setFileNameInZip(fileToAdd.getName());
-    zipFile.setCharset(charset);
+    zipFile.setCharset(charsetCp949);
     zipFile.addStream(inputStream, zipParameters);
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, charset);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, charsetCp949);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test

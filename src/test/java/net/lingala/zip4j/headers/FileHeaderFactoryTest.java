@@ -14,6 +14,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.nio.charset.Charset;
+
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -217,14 +219,14 @@ public class FileHeaderFactoryTest {
 
   @Test
   public void testGenerateFileHeaderWithCorrectCharset() throws ZipException {
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, "Cp949");
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, Charset.forName("Cp949"));
 
     assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isFalse();
   }
 
   @Test
-  public void testGenerateFileHeaderWithBadCharset() throws ZipException {
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, "BadCharset");
+  public void testGenerateFileHeaderWithNullCharset() throws ZipException {
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, null);
 
     assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isTrue();
   }

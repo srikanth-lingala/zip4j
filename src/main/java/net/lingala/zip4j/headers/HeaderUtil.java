@@ -64,12 +64,10 @@ public class HeaderUtil {
     return -1;
   }
 
-  public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, String charset) {
+  public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, Charset charset) {
     // set the charset if it's a valid encoding charset
-    try {
+    if(charset != null) {
       return new String(data, charset);
-    } catch (Exception e) {
-      // do nothing
     }
 
     if (isUtf8Encoded) {
@@ -80,15 +78,6 @@ public class HeaderUtil {
       return new String(data, ZIP_STANDARD_CHARSET);
     } catch (UnsupportedEncodingException e) {
       return new String(data);
-    }
-  }
-
-  public static boolean isCharsetValid(String charset) {
-    try {
-      Charset.forName(charset);
-      return true;
-    } catch (Exception e) {
-      return false;
     }
   }
 

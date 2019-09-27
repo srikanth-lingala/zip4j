@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -245,33 +246,23 @@ public class HeaderUtilTest {
     String finnishString = "asdäüöö";
     byte[] plainEncodedBytes = finnishString.getBytes("ISO-8859-1");
 
-    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, "ISO-8859-1")).isEqualTo(finnishString);
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, Charset.forName("ISO-8859-1"))).isEqualTo(finnishString);
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithBadCharsetAndKoreanChars() {
+  public void testDecodeStringWithCharsetWithNullCharsetAndKoreanChars() {
     String koreanString = "가나다";
     byte[] plainEncodedBytes = koreanString.getBytes(StandardCharsets.UTF_8);
 
-    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, true, "BadCharset")).isEqualTo(koreanString);
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, true, null)).isEqualTo(koreanString);
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithBadCharsetAndEnglishChars() {
+  public void testDecodeStringWithCharsetWithNullCharsetAndEnglishChars() {
     String englishString = "asdasda234234";
     byte[] plainEncodedBytes = englishString.getBytes();
 
-    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, "BadCharset")).isEqualTo(englishString);
-  }
-
-  @Test
-  public void testIsCharsetValidWithFinnishCharset() {
-    assertThat(HeaderUtil.isCharsetValid("ISO-8859-1")).isTrue();
-  }
-
-  @Test
-  public void testIsCharsetValidWithBadCharset() {
-    assertThat(HeaderUtil.isCharsetValid("BadCharset")).isFalse();
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(englishString);
   }
 
   private List<FileHeader> generateFileHeaderWithFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {

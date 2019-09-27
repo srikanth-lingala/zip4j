@@ -303,16 +303,12 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(1);
   }
 
-  /**
-   * this test file is got from issue#45
-   * @throws IOException
-   */
   @Test
   public void testExtractZipFileWithChineseCharsetGBK() throws IOException {
     String expactedFileName = "fff - 副本.txt";
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
 
-    zipFile.setCharset("GBK");
+    zipFile.setCharset(charsetGBK);
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(2);

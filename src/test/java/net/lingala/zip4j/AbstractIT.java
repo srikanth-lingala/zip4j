@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +29,9 @@ public abstract class AbstractIT {
 
   protected File generatedZipFile;
   protected File outputFolder;
+  protected Charset charsetMs932 = Charset.forName("Ms932");
+  protected Charset charsetGBK = Charset.forName("GBK");
+  protected Charset charsetCp949 = Charset.forName("Cp949");
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
