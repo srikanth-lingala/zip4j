@@ -2,11 +2,7 @@ package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.AbstractFileHeader;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -31,7 +27,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AddFilesToZipIT extends AbstractIT {
@@ -511,34 +506,6 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
-  public void testAddFolderWithoutZipParametersAndCharsetCp949() throws IOException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-
-    zipFile.setCharset(charsetCp949);
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13, true, charsetCp949);
-
-    // check the actual output and make sure it contains the correct files
-    String actualOutputFolderPath = outputFolder.getCanonicalPath() + InternalZipConstants.FILE_SEPARATOR + "test-files";
-    ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(new File(actualOutputFolderPath));
-  }
-
-  @Test
-  public void testAddFolderWithStoreAndAes128() throws IOException {
-    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
-    zipParameters.setCompressionMethod(CompressionMethod.STORE);
-    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
-
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13);
-    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
-    verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
-    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
-  }
-
-  @Test
   public void testAddFolderWithDeflateAndAes256AndWithoutRootFolder() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setIncludeRootFolder(false);
@@ -705,7 +672,7 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
-  public void testAddStreamWithStoreCompressionAndNullCharset() throws IOException {
+  public void testAddStreamWithStoreCompressionAndDefaultCharset() throws IOException {
     String koreanFileName = "가나다.abc";
     File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
     ZipParameters zipParameters = new ZipParameters();
@@ -714,7 +681,6 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(fileToAdd);
 
-    zipFile.setCharset(null);
     zipFile.addStream(inputStream, zipParameters);
 
     byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();

@@ -91,9 +91,7 @@ public class FileHeaderFactory {
   private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters, Charset charset) {
     byte[] generalPurposeBitFlag = new byte[2];
     generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted, zipParameters);
-    // zip4j set the utf-8 charset bit flag by default(charset == null)
-    // when the charset is not null and not UTF-8, then this flag should not be set
-    if(charset == null || charset.equals(StandardCharsets.UTF_8)) {
+    if(charset.equals(StandardCharsets.UTF_8)) {
       generalPurposeBitFlag[1] = setBit(generalPurposeBitFlag[1], 3); // set 3rd bit which corresponds to utf-8 file name charset
     }
     return generalPurposeBitFlag;

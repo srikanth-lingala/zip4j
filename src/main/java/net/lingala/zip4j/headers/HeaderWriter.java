@@ -19,13 +19,7 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
-import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
-import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 
@@ -88,12 +82,6 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(localFileHeader.getFileName())) {
-        if(charset == null) {
-          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-          if(BitUtils.isBitSet(localFileHeader.getGeneralPurposeFlag()[1], 3)) {
-            charset = StandardCharsets.UTF_8;
-          }
-        }
         fileNameBytes = localFileHeader.getFileName().getBytes(charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
@@ -429,12 +417,6 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileHeader.getFileName())) {
-        if(charset == null) {
-          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-          if(BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
-            charset = StandardCharsets.UTF_8;
-          }
-        }
         fileNameBytes = fileHeader.getFileName().getBytes(charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
@@ -462,12 +444,6 @@ public class HeaderWriter {
       String fileComment = fileHeader.getFileComment();
       byte[] fileCommentBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileComment)) {
-        if(charset == null) {
-          charset = Charset.forName(InternalZipConstants.ZIP_STANDARD_CHARSET);
-          if(BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)) {
-            charset = StandardCharsets.UTF_8;
-          }
-        }
         fileCommentBytes = fileComment.getBytes(charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileCommentBytes.length);

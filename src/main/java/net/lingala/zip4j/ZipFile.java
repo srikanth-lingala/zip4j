@@ -892,7 +892,10 @@ public class ZipFile {
     return charset;
   }
 
-  public void setCharset(Charset charset) {
+  public void setCharset(Charset charset) throws IllegalArgumentException {
+    if(charset == null) {
+      throw new IllegalArgumentException("charset could not be null");
+    }
     this.charset = charset;
   }
 

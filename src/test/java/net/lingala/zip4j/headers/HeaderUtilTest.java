@@ -250,7 +250,7 @@ public class HeaderUtilTest {
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithNullCharsetAndKoreanChars() {
+  public void testDecodeStringWithCharsetWithUTF8CharsetAndKoreanChars() {
     String koreanString = "가나다";
     byte[] plainEncodedBytes = koreanString.getBytes(StandardCharsets.UTF_8);
 

@@ -8,6 +8,7 @@ import net.lingala.zip4j.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,7 @@ public class ZipFileVerifier {
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
                                                        int expectedNumberOfEntries, boolean verifyFileContents)
           throws IOException {
-    verifyZipFileByExtractingAllFiles(zipFileToExtract, password, outputFolder, expectedNumberOfEntries, verifyFileContents, null);
+    verifyZipFileByExtractingAllFiles(zipFileToExtract, password, outputFolder, expectedNumberOfEntries, verifyFileContents, StandardCharsets.UTF_8);
   }
 
   public static void verifyZipFileByExtractingAllFiles(File zipFileToExtract, char[] password, File outputFolder,
