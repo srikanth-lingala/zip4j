@@ -33,7 +33,7 @@ public class ZipModel implements Cloneable {
   private boolean splitArchive;
   private long splitLength;
   private File zipFile;
-  private boolean isZip64Format;
+  private boolean isZip64Format = false;
   private boolean isNestedZipFile;
   private long start;
   private long end;

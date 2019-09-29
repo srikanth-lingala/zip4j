@@ -62,9 +62,11 @@ public class HeaderWriter {
 
       rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getCrc());
       byteArrayOutputStream.write(longBuff, 0, 4);
-      long uncompressedSize = localFileHeader.getUncompressedSize();
 
-      if (uncompressedSize >= ZIP_64_SIZE_LIMIT) {
+      boolean writeZip64Header = localFileHeader.getCompressedSize() >= ZIP_64_SIZE_LIMIT
+          || localFileHeader.getUncompressedSize() >= ZIP_64_SIZE_LIMIT;
+
+      if (writeZip64Header) {
         rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_SIZE_LIMIT);
 
         //Set the uncompressed size to ZipConstants.ZIP_64_SIZE_LIMIT as
@@ -81,7 +83,6 @@ public class HeaderWriter {
         rawIO.writeLongLittleEndian(longBuff, 0, localFileHeader.getUncompressedSize());
         byteArrayOutputStream.write(longBuff, 0, 4);
 
-        zipModel.setZip64Format(false);
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(false);
       }
 
@@ -112,7 +113,7 @@ public class HeaderWriter {
       //This is NOT according to any specification but if this is changed
       //corresponding logic for updateLocalFileHeader for compressed size
       //has to be modified as well
-      if (zipModel.isZip64Format()) {
+      if (writeZip64Header) {
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (int) HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue());
         rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE);
@@ -396,6 +397,10 @@ public class HeaderWriter {
       final byte[] emptyShortByte = {0, 0};
       boolean writeZip64ExtendedInfo = false;
 
+      if (isZip64Entry(fileHeader)) {
+        writeZip64ExtendedInfo = true;
+      }
+
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) fileHeader.getSignature().getValue());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getVersionMadeBy());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getVersionNeededToExtract());
@@ -408,11 +413,11 @@ public class HeaderWriter {
       rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getCrc());
       byteArrayOutputStream.write(longBuff, 0, 4);
 
-      if (fileHeader.getCompressedSize() >= ZIP_64_SIZE_LIMIT || fileHeader.getUncompressedSize() >= ZIP_64_SIZE_LIMIT) {
+      if (writeZip64ExtendedInfo) {
         rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_SIZE_LIMIT);
         byteArrayOutputStream.write(longBuff, 0, 4);
         byteArrayOutputStream.write(longBuff, 0, 4);
-        writeZip64ExtendedInfo = true;
+        zipModel.setZip64Format(true);
       } else {
         rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getCompressedSize());
         byteArrayOutputStream.write(longBuff, 0, 4);
@@ -433,10 +438,9 @@ public class HeaderWriter {
       //Compute offset bytes before extra field is written for Zip64 compatibility
       //NOTE: this data is not written now, but written at a later point
       byte[] offsetLocalHeaderBytes = new byte[4];
-      if (fileHeader.getOffsetLocalHeader() > ZIP_64_SIZE_LIMIT) {
+      if (writeZip64ExtendedInfo) {
         rawIO.writeLongLittleEndian(longBuff, 0, ZIP_64_SIZE_LIMIT);
         System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
-        writeZip64ExtendedInfo = true;
       } else {
         rawIO.writeLongLittleEndian(longBuff, 0, fileHeader.getOffsetLocalHeader());
         System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
@@ -629,4 +633,9 @@ public class HeaderWriter {
     return noEntries;
   }
 
+  private boolean isZip64Entry(FileHeader fileHeader) {
+    return fileHeader.getCompressedSize() >= ZIP_64_SIZE_LIMIT
+        || fileHeader.getUncompressedSize() >= ZIP_64_SIZE_LIMIT
+        || fileHeader.getOffsetLocalHeader() >= ZIP_64_SIZE_LIMIT;
+  }
 }
