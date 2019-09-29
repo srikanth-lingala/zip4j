@@ -582,7 +582,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip(null);
 
-    expectedException.expectMessage("fileNameInZip is null or empty");
+    expectedException.expectMessage("fileNameInZip has to be set in zipParameters when adding stream");
     expectedException.expect(ZipException.class);
 
     zipFile.addStream(inputStream, zipParameters);
@@ -595,7 +595,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip("");
 
-    expectedException.expectMessage("fileNameInZip is null or empty");
+    expectedException.expectMessage("fileNameInZip has to be set in zipParameters when adding stream");
     expectedException.expect(ZipException.class);
 
     zipFile.addStream(inputStream, zipParameters);

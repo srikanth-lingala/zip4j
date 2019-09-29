@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +30,10 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
+
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(taskParameters.zipParameters.getFileNameInZip())) {
+      throw new ZipException("fileNameInZip has to be set in zipParameters when adding stream");
+    }
 
     removeFileIfExists(getZipModel(), taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
 
