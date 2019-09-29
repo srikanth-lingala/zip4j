@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       throw new ZipException("fileNameInZip has to be set in zipParameters when adding stream");
     }
 
-    removeFileIfExists(getZipModel(), taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
+    removeFileIfExists(getZipModel(), taskParameters.charset, taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
 
     // For streams, it is necessary to write extended local file header because of Zip standard encryption.
     // If we do not write extended local file header, zip standard encryption needs a crc upfront for key,
@@ -78,14 +79,14 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     return 0;
   }
 
-  private void removeFileIfExists(ZipModel zipModel, String fileNameInZip, ProgressMonitor progressMonitor)
+  private void removeFileIfExists(ZipModel zipModel, Charset charset, String fileNameInZip, ProgressMonitor progressMonitor)
       throws ZipException {
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileNameInZip);
     if (fileHeader  != null) {
       RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
           zipModel);
-      removeEntryFromZipFileTask.execute(fileHeader);
+      removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
     }
   }
 
