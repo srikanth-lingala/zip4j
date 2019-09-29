@@ -308,7 +308,7 @@ public class ExtractZipFileIT extends AbstractIT {
     String expactedFileName = "fff - 副本.txt";
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
 
-    zipFile.setCharset(charsetGBK);
+    zipFile.setCharset(CHARSET_GBK);
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(2);

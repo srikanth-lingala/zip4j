@@ -2,7 +2,11 @@ package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
-import net.lingala.zip4j.model.*;
+import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.AbstractFileHeader;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -71,11 +75,11 @@ public class AddFilesToZipIT extends AbstractIT {
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 
-    zipFile.setCharset(charsetCp949);
+    zipFile.setCharset(CHARSET_CP_949);
     String koreanFileName = "가나다.abc";
     zipFile.addFile(TestUtils.getTestFileFromResources(koreanFileName).getPath(), zipParameters);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, charsetCp949);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, CHARSET_CP_949);
     assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
@@ -506,6 +510,20 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFolderWithStoreAndAes128() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13);
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipContainsPath(fileHeaders, "test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
+  }
+
+  @Test
   public void testAddFolderWithDeflateAndAes256AndWithoutRootFolder() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setIncludeRootFolder(false);
@@ -662,7 +680,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(fileToAdd);
 
-    zipFile.setCharset(charsetCp949);
+    zipFile.setCharset(CHARSET_CP_949);
     zipFile.addStream(inputStream, zipParameters);
 
     byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
@@ -761,9 +779,10 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipParameters zipParameters = new ZipParameters();
 
     zipParameters.setFileNameInZip(fileToAdd.getName());
-    zipFile.setCharset(charsetCp949);
+    zipFile.setCharset(CHARSET_CP_949);
     zipFile.addStream(inputStream, zipParameters);
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, charsetCp949);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, CHARSET_CP_949);
     assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 

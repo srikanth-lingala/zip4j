@@ -58,12 +58,12 @@ public class ZipInputStream extends InputStream {
     this(inputStream, null, StandardCharsets.UTF_8);
   }
 
-  public ZipInputStream(InputStream inputStream, char[] password) {
-    this(inputStream, password, StandardCharsets.UTF_8);
-  }
-
   public ZipInputStream(InputStream inputStream, Charset charset) {
     this(inputStream, null, charset);
+  }
+
+  public ZipInputStream(InputStream inputStream, char[] password) {
+    this(inputStream, password, StandardCharsets.UTF_8);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {

@@ -69,7 +69,7 @@ public class ZipOutputStreamIT extends AbstractIT {
     filesToAdd.add(getTestFileFromResources("가나다.abc"));
 
     testZipOutputStream(CompressionMethod.DEFLATE, false, null, null, null, true,
-            filesToAdd, charsetCp949);
+            filesToAdd, CHARSET_CP_949);
   }
 
   @Test

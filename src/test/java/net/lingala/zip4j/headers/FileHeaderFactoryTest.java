@@ -221,14 +221,12 @@ public class FileHeaderFactoryTest {
   @Test
   public void testGenerateFileHeaderWithCorrectCharset() throws ZipException {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, Charset.forName("Cp949"));
-
     assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isFalse();
   }
 
   @Test
   public void testGenerateFileHeaderWithUTF8Charset() throws ZipException {
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, StandardCharsets.UTF_8);
-
     assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isTrue();
   }
 

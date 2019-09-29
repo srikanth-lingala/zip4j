@@ -117,7 +117,7 @@ public class HeaderWriterIT extends AbstractIT {
   @Test
   public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithCharsetMs932ShouldMatch()
           throws IOException {
-    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, charsetMs932);
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, CHARSET_MS_932);
   }
 
   @Test

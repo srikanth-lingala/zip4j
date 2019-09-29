@@ -38,12 +38,12 @@ public class ZipOutputStream extends OutputStream {
     this(outputStream, null, StandardCharsets.UTF_8);
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
-    this(outputStream, password, StandardCharsets.UTF_8);
-  }
-
   public ZipOutputStream(OutputStream outputStream, Charset charset) throws IOException {
     this(outputStream, null, charset);
+  }
+
+  public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
+    this(outputStream, password, StandardCharsets.UTF_8);
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset) throws IOException {

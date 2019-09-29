@@ -19,7 +19,12 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
-import net.lingala.zip4j.model.*;
+import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
+import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
+import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 

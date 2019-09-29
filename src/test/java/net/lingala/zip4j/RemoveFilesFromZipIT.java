@@ -77,11 +77,11 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     filesToAdd.add(TestUtils.getTestFileFromResources("가나다.abc"));
     filesToAdd.add(TestUtils.getTestFileFromResources("sample_text1.txt"));
 
-    zipFile.setCharset(charsetCp949);
+    zipFile.setCharset(CHARSET_CP_949);
     zipFile.addFiles(filesToAdd);
     zipFile.removeFile("sample_text1.txt");
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, charsetCp949);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, CHARSET_CP_949);
     verifyZipFileDoesNotContainFile(generatedZipFile, "sample_text1.txt");
   }
 
