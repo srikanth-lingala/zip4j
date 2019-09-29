@@ -1,5 +1,7 @@
 package net.lingala.zip4j.tasks;
 
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
@@ -27,6 +29,8 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
+
+    removeFileIfExists(getZipModel(), taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
 
     // For streams, it is necessary to write extended local file header because of Zip standard encryption.
     // If we do not write extended local file header, zip standard encryption needs a crc upfront for key,
@@ -66,6 +70,17 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
   @Override
   protected long calculateTotalWork(AddStreamToZipTaskParameters taskParameters) {
     return 0;
+  }
+
+  private void removeFileIfExists(ZipModel zipModel, String fileNameInZip, ProgressMonitor progressMonitor)
+      throws ZipException {
+
+    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileNameInZip);
+    if (fileHeader  != null) {
+      RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
+          zipModel);
+      removeEntryFromZipFileTask.execute(fileHeader);
+    }
   }
 
   public static class AddStreamToZipTaskParameters {

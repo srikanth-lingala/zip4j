@@ -719,6 +719,21 @@ public class AddFilesToZipIT extends AbstractIT {
         AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
 
+  @Test
+  public void testAddStreamToZipWithSameEntryNameRemovesOldEntry() throws IOException {
+    File fileToAdd = TestUtils.getTestFileFromResources("sample.pdf");
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFile(fileToAdd);
+
+    try(InputStream inputStream = new FileInputStream(fileToAdd)) {
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setFileNameInZip("sample.pdf");
+      zipFile.addStream(inputStream, zipParameters);
+    }
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+  }
+
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
                                           CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
                                           AesKeyStrength aesKeyStrength) throws ZipException {
