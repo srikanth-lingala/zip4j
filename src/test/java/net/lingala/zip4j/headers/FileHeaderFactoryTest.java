@@ -14,6 +14,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,12 +36,12 @@ public class FileHeaderFactoryTest {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("fileNameInZip is null or empty");
 
-    fileHeaderFactory.generateFileHeader(new ZipParameters(), false, 0);
+    fileHeaderFactory.generateFileHeader(new ZipParameters(), false, 0, StandardCharsets.UTF_8);
   }
 
   @Test
   public void testGenerateFileHeaderDefaults() throws ZipException {
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, StandardCharsets.UTF_8);
 
     assertThat(fileHeader).isNotNull();
     assertThat(fileHeader.getCompressionMethod()).isEqualTo(CompressionMethod.DEFLATE);
@@ -57,7 +60,7 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, false);
   }
 
@@ -69,7 +72,7 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setEncryptFiles(true);
 
-    fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
   }
 
   @Test
@@ -78,7 +81,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptFiles(true);
     zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, false);
   }
 
@@ -92,7 +95,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
     zipParameters.setAesKeyStrength(null);
 
-    fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
   }
 
   @Test
@@ -101,7 +104,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptFiles(true);
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
         CompressionMethod.DEFLATE, AesVersion.TWO);
@@ -114,7 +117,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_128);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_128,
         CompressionMethod.DEFLATE, AesVersion.TWO);
@@ -127,7 +130,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_192);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_192,
         CompressionMethod.DEFLATE, AesVersion.TWO);
@@ -140,7 +143,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
         CompressionMethod.DEFLATE, AesVersion.TWO);
@@ -154,7 +157,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setAesVersion(AesVersion.ONE);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
         CompressionMethod.DEFLATE, AesVersion.ONE);
@@ -168,7 +171,7 @@ public class FileHeaderFactoryTest {
     zipParameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
     zipParameters.setAesVersion(null);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
     verifyFileHeader(fileHeader, zipParameters, false, 0, true);
     verifyAesExtraDataRecord(fileHeader.getAesExtraDataRecord(), AesKeyStrength.KEY_STRENGTH_256,
         CompressionMethod.DEFLATE, AesVersion.TWO);
@@ -180,7 +183,7 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setLastModifiedFileTime(lastModifiedFileTime);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
 
     assertThat(fileHeader.getLastModifiedTime()).isEqualTo(javaToDosTime(zipParameters.getLastModifiedFileTime()));
   }
@@ -190,7 +193,7 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.MAXIMUM);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
 
     verifyCompressionLevelGridForDeflate(CompressionLevel.MAXIMUM, fileHeader.getGeneralPurposeFlag()[0]);
   }
@@ -200,7 +203,7 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.FAST);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
 
     verifyCompressionLevelGridForDeflate(CompressionLevel.FAST, fileHeader.getGeneralPurposeFlag()[0]);
   }
@@ -210,9 +213,21 @@ public class FileHeaderFactoryTest {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.FASTEST);
 
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0);
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
 
     verifyCompressionLevelGridForDeflate(CompressionLevel.FASTEST, fileHeader.getGeneralPurposeFlag()[0]);
+  }
+
+  @Test
+  public void testGenerateFileHeaderWithCorrectCharset() throws ZipException {
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, Charset.forName("Cp949"));
+    assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isFalse();
+  }
+
+  @Test
+  public void testGenerateFileHeaderWithUTF8Charset() throws ZipException {
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(generateZipParameters(), false, 0, StandardCharsets.UTF_8);
+    assertThat(isBitSet(fileHeader.getGeneralPurposeFlag()[1], 3)).isTrue();
   }
 
   @Test

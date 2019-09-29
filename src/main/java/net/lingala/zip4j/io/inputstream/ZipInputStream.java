@@ -32,6 +32,8 @@ import net.lingala.zip4j.util.InternalZipConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;
@@ -50,14 +52,28 @@ public class ZipInputStream extends InputStream {
   private byte[] endOfEntryBuffer;
   private boolean extraDataRecordReadForThisEntry = false;
   private boolean canSkipExtendedLocalFileHeader = false;
+  private Charset charset;
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null);
+    this(inputStream, null, StandardCharsets.UTF_8);
+  }
+
+  public ZipInputStream(InputStream inputStream, Charset charset) {
+    this(inputStream, null, charset);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
+    this(inputStream, password, StandardCharsets.UTF_8);
+  }
+
+  public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
+    if(charset == null) {
+      charset = StandardCharsets.UTF_8;
+    }
+
     this.inputStream = new PushbackInputStream(inputStream, 512);
     this.password = password;
+    this.charset = charset;
   }
 
   public LocalFileHeader getNextEntry() throws IOException {
@@ -69,7 +85,7 @@ public class ZipInputStream extends InputStream {
       readUntilEndOfEntry();
     }
 
-    localFileHeader = headerReader.readLocalFileHeader(inputStream);
+    localFileHeader = headerReader.readLocalFileHeader(inputStream, charset);
 
     if (localFileHeader == null) {
       return null;
@@ -313,5 +329,4 @@ public class ZipInputStream extends InputStream {
   private boolean isEncryptionMethodZipStandard(LocalFileHeader localFileHeader) {
     return localFileHeader.isEncrypted() && EncryptionMethod.ZIP_STANDARD.equals(localFileHeader.getEncryptionMethod());
   }
-
 }

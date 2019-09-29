@@ -15,6 +15,8 @@ import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 
 public class ZipOutputStream extends OutputStream {
@@ -30,18 +32,32 @@ public class ZipOutputStream extends OutputStream {
   private CRC32 crc32 = new CRC32();
   private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
+  private Charset charset;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
-    this(outputStream, null);
+    this(outputStream, null, StandardCharsets.UTF_8);
+  }
+
+  public ZipOutputStream(OutputStream outputStream, Charset charset) throws IOException {
+    this(outputStream, null, charset);
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
-    this(outputStream, password, new ZipModel());
+    this(outputStream, password, StandardCharsets.UTF_8);
   }
 
-  public ZipOutputStream(OutputStream outputStream, char[] password, ZipModel zipModel) throws IOException {
+  public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset) throws IOException {
+    this(outputStream, password, charset, new ZipModel());
+  }
+
+  public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset, ZipModel zipModel) throws IOException {
+    if(charset == null) {
+      charset = StandardCharsets.UTF_8;
+    }
+
     this.countingOutputStream = new CountingOutputStream(outputStream);
     this.password = password;
+    this.charset = charset;
     this.zipModel = initializeZipModel(zipModel, countingOutputStream);
     writeSplitZipHeaderIfApplicable();
   }
@@ -98,7 +114,7 @@ public class ZipOutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
-    headerWriter.finalizeZipFile(zipModel, countingOutputStream);
+    headerWriter.finalizeZipFile(zipModel, countingOutputStream, charset);
     countingOutputStream.close();
   }
 
@@ -117,11 +133,11 @@ public class ZipOutputStream extends OutputStream {
 
   private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws IOException {
     fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitZipFile(),
-        countingOutputStream.getCurrentSplitFileCounter());
+        countingOutputStream.getCurrentSplitFileCounter(), charset);
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
     localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
-    headerWriter.writeLocalFileHeader(zipModel, localFileHeader, countingOutputStream);
+    headerWriter.writeLocalFileHeader(zipModel, localFileHeader, countingOutputStream, charset);
   }
 
   private void reset() throws IOException {

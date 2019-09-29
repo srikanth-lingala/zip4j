@@ -12,11 +12,13 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.Zip4jUtil;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,13 +49,13 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     this.headerWriter = headerWriter;
   }
 
-  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters)
+  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters, Charset charset)
       throws IOException {
 
-    List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor);
+    List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor, charset);
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
-         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
+         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, charset)) {
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
 
@@ -110,7 +112,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return totalWork;
   }
 
-  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream) throws IOException {
+  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream, Charset charset) throws IOException {
     if (zipModel.getZipFile().exists()) {
       if (zipModel.getEndOfCentralDirectoryRecord() == null) {
         throw new ZipException("invalid end of central directory record");
@@ -118,7 +120,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       splitOutputStream.seek(zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
     }
 
-    return new ZipOutputStream(splitOutputStream, password, zipModel);
+    return new ZipOutputStream(splitOutputStream, password, charset, zipModel);
   }
 
   void verifyZipParameters(ZipParameters parameters) throws ZipException {
@@ -185,7 +187,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return clonedZipParameters;
   }
 
-  private List<File> removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor)
+  private List<File> removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor, Charset charset)
       throws ZipException {
 
     List<File> filesToAdd = new ArrayList<>(files);
@@ -200,7 +202,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       if (fileHeader != null) {
         if (zipParameters.isOverrideExistingFilesInZip()) {
           progressMonitor.setCurrentTask(REMOVE_ENTRY);
-          removeFile(fileHeader, progressMonitor);
+          removeFile(fileHeader, progressMonitor, charset);
           verifyIfTaskIsCancelled();
           progressMonitor.setCurrentTask(ADD_ENTRY);
         } else {
@@ -212,10 +214,10 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return filesToAdd;
   }
 
-  private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor) throws ZipException {
+  private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor, Charset charset) throws ZipException {
     RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
         zipModel);
-    removeEntryFromZipFileTask.execute(fileHeader);
+    removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
   }
 
   @Override

@@ -8,17 +8,19 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Random;
 
 import static net.lingala.zip4j.headers.HeaderUtil.getIndexOfFileHeader;
 import static net.lingala.zip4j.util.FileUtils.copyFile;
 
-public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
+public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipFileTaskParameters>  {
 
   private ZipModel zipModel;
 
@@ -28,7 +30,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
   }
 
   @Override
-  protected void executeTask(FileHeader fileHeader, ProgressMonitor progressMonitor)
+  protected void executeTask(RemoveEntryFromZipFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
     if (zipModel.isSplitArchive()) {
       throw new ZipException("This is a split archive. Zip file format does not allow updating split/spanned files");
@@ -41,8 +43,8 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
          RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(),
              RandomAccessFileMode.READ.getValue())){
 
-      int indexOfFileHeader = getIndexOfFileHeader(zipModel, fileHeader);
-      long offsetLocalFileHeader = getOffsetLocalFileHeader(fileHeader);
+      int indexOfFileHeader = getIndexOfFileHeader(zipModel, taskParameters.fileHeader);
+      long offsetLocalFileHeader = getOffsetLocalFileHeader(taskParameters.fileHeader);
       long offsetStartOfCentralDirectory = getOffsetOfStartOfCentralDirectory(zipModel);
       List<FileHeader> fileHeaders = zipModel.getCentralDirectory().getFileHeaders();
       long offsetEndOfCompressedData = getOffsetEndOfCompressedData(indexOfFileHeader,
@@ -64,7 +66,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
 
       verifyIfTaskIsCancelled();
 
-      updateHeaders(zipModel, outputStream, indexOfFileHeader, offsetEndOfCompressedData, offsetLocalFileHeader);
+      updateHeaders(zipModel, outputStream, indexOfFileHeader, offsetEndOfCompressedData, offsetLocalFileHeader, taskParameters.charset);
       successFlag = true;
     } finally {
       cleanupFile(successFlag, zipModel.getZipFile(), temporaryZipFile);
@@ -120,7 +122,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
   }
 
   private void updateHeaders(ZipModel zipModel, SplitOutputStream splitOutputStream, int indexOfFileHeader, long
-      offsetEndOfCompressedFile, long offsetLocalFileHeader) throws IOException, ZipException {
+      offsetEndOfCompressedFile, long offsetLocalFileHeader, Charset charset) throws IOException {
 
     updateEndOfCentralDirectoryRecord(zipModel, splitOutputStream);
     zipModel.getCentralDirectory().getFileHeaders().remove(indexOfFileHeader);
@@ -128,7 +130,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
         offsetLocalFileHeader, indexOfFileHeader);
 
     HeaderWriter headerWriter = new HeaderWriter();
-    headerWriter.finalizeZipFile(zipModel, splitOutputStream);
+    headerWriter.finalizeZipFile(zipModel, splitOutputStream, charset);
   }
 
   private void updateEndOfCentralDirectoryRecord(ZipModel zipModel, SplitOutputStream splitOutputStream)
@@ -173,12 +175,21 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<FileHeader>  {
   }
 
   @Override
-  protected long calculateTotalWork(FileHeader fileHeader) {
-    return zipModel.getZipFile().length() - fileHeader.getCompressedSize();
+  protected long calculateTotalWork(RemoveEntryFromZipFileTaskParameters taskParameters) {
+    return zipModel.getZipFile().length() - taskParameters.fileHeader.getCompressedSize();
   }
 
   @Override
   protected ProgressMonitor.Task getTask() {
     return ProgressMonitor.Task.REMOVE_ENTRY;
+  }
+
+  public static class RemoveEntryFromZipFileTaskParameters extends AbstractZipTaskParameters {
+    private FileHeader fileHeader;
+
+    public RemoveEntryFromZipFileTaskParameters(FileHeader fileHeader, Charset charset) {
+      super(charset);
+      this.fileHeader = fileHeader;
+    }
   }
 }

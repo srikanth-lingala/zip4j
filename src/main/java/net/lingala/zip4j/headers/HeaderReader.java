@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +58,7 @@ public class HeaderReader {
   private RawIO rawIO = new RawIO();
   private byte[] intBuff = new byte[4];
 
-  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf) throws IOException {
+  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Charset charset) throws IOException {
     zipModel = new ZipModel();
 
     try {
@@ -79,7 +80,7 @@ public class HeaderReader {
       }
     }
 
-    zipModel.setCentralDirectory(readCentralDirectory(zip4jRaf, rawIO));
+    zipModel.setCentralDirectory(readCentralDirectory(zip4jRaf, rawIO, charset));
 
     return zipModel;
   }
@@ -127,7 +128,7 @@ public class HeaderReader {
     return endOfCentralDirectoryRecord;
   }
 
-  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO) throws IOException {
+  private CentralDirectory readCentralDirectory(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset) throws IOException {
     CentralDirectory centralDirectory = new CentralDirectory();
     List<FileHeader> fileHeaders = new ArrayList<>();
 
@@ -195,7 +196,7 @@ public class HeaderReader {
       if (fileNameLength > 0) {
         byte[] fileNameBuff = new byte[fileNameLength];
         zip4jRaf.readFully(fileNameBuff);
-        String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded());
+        String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded(), charset);
 
         if (fileName.contains(":\\")) {
           fileName = fileName.substring(fileName.indexOf(":\\") + 2);
@@ -214,7 +215,7 @@ public class HeaderReader {
       if (fileCommentLength > 0) {
         byte[] fileCommentBuff = new byte[fileCommentLength];
         zip4jRaf.readFully(fileCommentBuff);
-        fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded()));
+        fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded(), charset));
       }
 
       if (fileHeader.isEncrypted()) {
@@ -522,7 +523,7 @@ public class HeaderReader {
     zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
   }
 
-  public LocalFileHeader readLocalFileHeader(InputStream inputStream) throws IOException {
+  public LocalFileHeader readLocalFileHeader(InputStream inputStream, Charset charset) throws IOException {
     LocalFileHeader localFileHeader = new LocalFileHeader();
     byte[] intBuff = new byte[4];
 
@@ -565,7 +566,7 @@ public class HeaderReader {
       // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
 //				String fileName = new String(fileNameBuf, "Cp850");
 //				String fileName = Zip4jUtil.getCp850EncodedString(fileNameBuf);
-      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded());
+      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
 
       if (fileName == null) {
         throw new ZipException("file name is null, cannot assign file name to local file header");

@@ -11,10 +11,12 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 
@@ -35,7 +37,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
       throw new ZipException("fileNameInZip has to be set in zipParameters when adding stream");
     }
 
-    removeFileIfExists(getZipModel(), taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
+    removeFileIfExists(getZipModel(), taskParameters.charset, taskParameters.zipParameters.getFileNameInZip(), progressMonitor);
 
     // For streams, it is necessary to write extended local file header because of Zip standard encryption.
     // If we do not write extended local file header, zip standard encryption needs a crc upfront for key,
@@ -49,7 +51,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     }
 
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(getZipModel().getZipFile(), getZipModel().getSplitLength());
-        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream)) {
+        ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, taskParameters.charset)) {
 
       byte[] readBuff = new byte[BUFF_SIZE];
       int readLen = -1;
@@ -77,22 +79,23 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
     return 0;
   }
 
-  private void removeFileIfExists(ZipModel zipModel, String fileNameInZip, ProgressMonitor progressMonitor)
+  private void removeFileIfExists(ZipModel zipModel, Charset charset, String fileNameInZip, ProgressMonitor progressMonitor)
       throws ZipException {
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileNameInZip);
     if (fileHeader  != null) {
       RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
           zipModel);
-      removeEntryFromZipFileTask.execute(fileHeader);
+      removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
     }
   }
 
-  public static class AddStreamToZipTaskParameters {
+  public static class AddStreamToZipTaskParameters extends AbstractZipTaskParameters {
     private InputStream inputStream;
     private ZipParameters zipParameters;
 
-    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters) {
+    public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters, Charset charset) {
+      super(charset);
       this.inputStream = inputStream;
       this.zipParameters = zipParameters;
     }

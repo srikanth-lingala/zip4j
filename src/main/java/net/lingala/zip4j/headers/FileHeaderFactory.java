@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static net.lingala.zip4j.util.BitUtils.setBit;
@@ -19,7 +20,7 @@ import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 
 public class FileHeaderFactory {
 
-  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart)
+  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart, Charset charset)
       throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
@@ -63,7 +64,7 @@ public class FileHeaderFactory {
       fileHeader.setCrc(zipParameters.getEntryCRC());
     }
 
-    fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters));
+    fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters, charset));
     fileHeader.setDataDescriptorExists(zipParameters.isWriteExtendedLocalFileHeader());
     return fileHeader;
   }
@@ -87,10 +88,12 @@ public class FileHeaderFactory {
     return localFileHeader;
   }
 
-  private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters) {
+  private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters, Charset charset) {
     byte[] generalPurposeBitFlag = new byte[2];
     generalPurposeBitFlag[0] = generateFirstGeneralPurposeByte(isEncrypted, zipParameters);
-    generalPurposeBitFlag[1] = setBit(generalPurposeBitFlag[1], 3); // set 3rd bit which corresponds to utf-8 file name charset
+    if(charset.equals(StandardCharsets.UTF_8)) {
+      generalPurposeBitFlag[1] = setBit(generalPurposeBitFlag[1], 3); // set 3rd bit which corresponds to utf-8 file name charset
+    }
     return generalPurposeBitFlag;
   }
 

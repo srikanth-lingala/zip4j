@@ -9,6 +9,7 @@ import net.lingala.zip4j.tasks.AddFilesToZipTask.AddFilesToZipTaskParameters;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTaskParameters> {
@@ -23,7 +24,7 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
       throws IOException {
 
     verifyZipParameters(taskParameters.zipParameters);
-    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters);
+    addFilesToZip(taskParameters.filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
   }
 
   @Override
@@ -36,11 +37,12 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
     return super.getTask();
   }
 
-  public static class AddFilesToZipTaskParameters {
+  public static class AddFilesToZipTaskParameters extends AbstractZipTaskParameters {
     private List<File> filesToAdd;
     private ZipParameters zipParameters;
 
-    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters) {
+    public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters, Charset charset) {
+      super(charset);
       this.filesToAdd = filesToAdd;
       this.zipParameters = zipParameters;
     }

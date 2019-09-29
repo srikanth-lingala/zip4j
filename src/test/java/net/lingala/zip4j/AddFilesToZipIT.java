@@ -70,6 +70,20 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFileAsStringWithZipParametersStoreAndStandardEncryptionAndCharsetCp949() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.setCharset(CHARSET_CP_949);
+    String koreanFileName = "가나다.abc";
+    zipFile.addFile(TestUtils.getTestFileFromResources(koreanFileName).getPath(), zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, CHARSET_CP_949);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
+  }
+
+  @Test
   public void testAddFileThrowsExceptionWhenFileDoesNotExist() throws ZipException {
     expectedException.expectMessage("File does not exist: somefile.txt");
     expectedException.expect(ZipException.class);
@@ -657,6 +671,43 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddStreamWithStoreCompressionAndCharset() throws IOException {
+    String koreanFileName = "가나다.abc";
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.setCharset(CHARSET_CP_949);
+    zipFile.addStream(inputStream, zipParameters);
+
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isFalse();
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
+  }
+
+  @Test
+  public void testAddStreamWithStoreCompressionAndDefaultCharset() throws IOException {
+    String koreanFileName = "가나다.abc";
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+
+    zipFile.addStream(inputStream, zipParameters);
+
+    byte[] generalPurposeBytes = zipFile.getFileHeaders().get(0).getGeneralPurposeFlag();
+    // assert that extra data record is not present
+    assertThat(BitUtils.isBitSet(generalPurposeBytes[1], 3)).isTrue();
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
+  }
+
+  @Test
   public void testAddStreamToZipWithAesEncryptionForNewZipAddsSuccessfully() throws IOException {
     File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
@@ -717,6 +768,22 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 4);
     verifyFileIsOf(generatedZipFile, "가나다.abc", CompressionMethod.DEFLATE, EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
+  }
+
+  @Test
+  public void testAddStreamToZipWithCharsetCp949() throws IOException {
+    String koreanFileName = "가나다.abc";
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    File fileToAdd = TestUtils.getTestFileFromResources(koreanFileName);
+    InputStream inputStream = new FileInputStream(fileToAdd);
+    ZipParameters zipParameters = new ZipParameters();
+
+    zipParameters.setFileNameInZip(fileToAdd.getName());
+    zipFile.setCharset(CHARSET_CP_949);
+    zipFile.addStream(inputStream, zipParameters);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, CHARSET_CP_949);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
   }
 
   @Test

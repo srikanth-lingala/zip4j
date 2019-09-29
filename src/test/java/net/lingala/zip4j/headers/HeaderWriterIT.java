@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,11 +65,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, StandardCharsets.UTF_8);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
       verifyLocalFileHeader(readLocalFileHeader, FILE_NAME_PREFIX + "LFH", COMPRESSED_SIZE, UNCOMPRESSED_SIZE);
     }
   }
@@ -80,11 +82,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, StandardCharsets.UTF_8);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
       verifyLocalFileHeader(readLocalFileHeader, FILE_NAME_PREFIX + "LFH", COMPRESSED_SIZE_ZIP64,
           UNCOMPRESSED_SIZE_ZIP64);
       verifyZip64ExtendedInfo(readLocalFileHeader.getZip64ExtendedInfo(), COMPRESSED_SIZE_ZIP64,
@@ -107,9 +109,27 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithoutUtf8ShouldNotMatch()
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithoutUtf8ShouldMatch()
       throws IOException {
-    testWriteLocalFileHeaderWithFileName("公ゃ的年社", false, false);
+    testWriteLocalFileHeaderWithFileName("公ゃ的年社", false, true);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithCharsetMs932ShouldMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, CHARSET_MS_932);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithUTF8CharsetWithUtf8ShouldMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", true, true, StandardCharsets.UTF_8);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithUTF8CharsetWithoutUtf8ShouldMatch()
+          throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, StandardCharsets.UTF_8);
   }
 
   @Test
@@ -171,7 +191,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFile(null, new FileOutputStream(temporaryFolder.newFile()));
+    headerWriter.finalizeZipFile(null, new FileOutputStream(temporaryFolder.newFile()), StandardCharsets.UTF_8);
   }
 
   @Test
@@ -179,7 +199,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFile(new ZipModel(), null);
+    headerWriter.finalizeZipFile(new ZipModel(), null, StandardCharsets.UTF_8);
   }
 
   @Test
@@ -188,11 +208,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -209,11 +229,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -232,11 +252,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -254,11 +274,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(SplitOutputStream outputStream = new SplitOutputStream(headersFile, 65536)) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -276,11 +296,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(CountingOutputStream outputStream = new CountingOutputStream(new SplitOutputStream(headersFile, 65536))) {
-      headerWriter.finalizeZipFile(zipModel, outputStream);
+      headerWriter.finalizeZipFile(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -297,7 +317,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFileWithoutValidations(null, new FileOutputStream(temporaryFolder.newFile()));
+    headerWriter.finalizeZipFileWithoutValidations(null, new FileOutputStream(temporaryFolder.newFile()), null);
   }
 
   @Test
@@ -306,7 +326,7 @@ public class HeaderWriterIT extends AbstractIT {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input parameters is null, cannot finalize zip file");
 
-    headerWriter.finalizeZipFileWithoutValidations(new ZipModel(), null);
+    headerWriter.finalizeZipFileWithoutValidations(new ZipModel(), null, null);
   }
 
   @Test
@@ -315,11 +335,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, StandardCharsets.UTF_8);
       verifyZipModel(readZipModel, 10);
 
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
@@ -336,11 +356,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, StandardCharsets.UTF_8);
     }
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, StandardCharsets.UTF_8);
       verifyZipModel(readZipModel, 10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, true);
 
       List<FileHeader> fileHeaders = readZipModel.getCentralDirectory().getFileHeaders();
@@ -374,7 +394,7 @@ public class HeaderWriterIT extends AbstractIT {
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE, UNCOMPRESSED_SIZE, 23423);
 
     try (InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(COMPRESSED_SIZE + 100);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(UNCOMPRESSED_SIZE + 100);
       assertThat(readLocalFileHeader.getCrc()).isEqualTo(23423);
@@ -388,7 +408,7 @@ public class HeaderWriterIT extends AbstractIT {
     createAndUpdateLocalFileHeader(headersFile, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64, 546423);
 
     try (InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(COMPRESSED_SIZE_ZIP64 + 100);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(UNCOMPRESSED_SIZE_ZIP64 + 100);
       assertThat(readLocalFileHeader.getCrc()).isEqualTo(546423);
@@ -408,7 +428,7 @@ public class HeaderWriterIT extends AbstractIT {
     localFileHeaderToWrite.setCrc(10);
 
     try (OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, StandardCharsets.UTF_8);
     }
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile)) {
@@ -488,11 +508,11 @@ public class HeaderWriterIT extends AbstractIT {
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, StandardCharsets.UTF_8);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
       assertThat(readLocalFileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.AES);
       verifyAesExtraDataRecord(readLocalFileHeader.getAesExtraDataRecord(), aesKeyStrength, aesVersion);
     }
@@ -520,17 +540,22 @@ public class HeaderWriterIT extends AbstractIT {
 
   private void testWriteLocalFileHeaderWithFileName(String fileNameSuffix, boolean useUtf8,
                                                     boolean expectFileNamesToMatch) throws IOException {
+    testWriteLocalFileHeaderWithFileNameAndCharset(fileNameSuffix, useUtf8, expectFileNamesToMatch, StandardCharsets.UTF_8);
+  }
+
+  private void testWriteLocalFileHeaderWithFileNameAndCharset(String fileNameSuffix, boolean useUtf8,
+                                                    boolean expectFileNamesToMatch, Charset charset) throws IOException {
     ZipModel zipModel = createZipModel(10);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader(fileNameSuffix, COMPRESSED_SIZE, UNCOMPRESSED_SIZE,
         useUtf8);
     File headersFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headersFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeaderToWrite, outputStream, charset);
     }
 
     try(InputStream inputStream = new FileInputStream(headersFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, charset);
       if (expectFileNamesToMatch) {
         assertThat(readLocalFileHeader.getFileName()).isEqualTo(FILE_NAME_PREFIX + fileNameSuffix);
       } else {

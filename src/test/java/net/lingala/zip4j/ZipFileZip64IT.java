@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -69,7 +70,7 @@ public class ZipFileZip64IT extends AbstractIT {
   private void verifyZip64HeadersPresent() throws IOException {
     HeaderReader headerReader = new HeaderReader();
     ZipModel zipModel = headerReader.readAllHeaders(new RandomAccessFile(generatedZipFile,
-        RandomAccessFileMode.READ.getValue()));
+        RandomAccessFileMode.READ.getValue()), StandardCharsets.UTF_8);
     assertThat(zipModel.getZip64EndOfCentralDirectoryLocator()).isNotNull();
     assertThat(zipModel.getZip64EndOfCentralDirectoryRecord()).isNotNull();
     assertThat(zipModel.isZip64Format()).isTrue();

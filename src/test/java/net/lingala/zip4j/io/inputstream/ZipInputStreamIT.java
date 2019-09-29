@@ -17,7 +17,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyFileContent;
@@ -170,6 +172,20 @@ public class ZipInputStreamIT extends AbstractIT {
       numberOfEntries++;
     }
     assertThat(numberOfEntries).isEqualTo(FILES_TO_ADD.size());
+  }
+
+  @Test
+  public void testGetFileNamesWithChineseCharset() throws IOException {
+    InputStream inputStream = new FileInputStream(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream, CHARSET_GBK);
+    LocalFileHeader localFileHeader;
+    String expactedFileName = "fff - 副本.txt";
+    Set<String> filenameSet = new HashSet<>();
+
+    while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
+      filenameSet.add(localFileHeader.getFileName());
+    }
+    assertThat(filenameSet.contains(expactedFileName)).isTrue();
   }
 
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {

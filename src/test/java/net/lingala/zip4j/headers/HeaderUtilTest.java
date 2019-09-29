@@ -8,6 +8,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -217,7 +219,7 @@ public class HeaderUtilTest {
     String utf8StringToEncode = "asdäüöö";
     byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(StandardCharsets.UTF_8);
 
-    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, true)).isEqualTo(utf8StringToEncode);
+    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, true, null)).isEqualTo(utf8StringToEncode);
 
   }
 
@@ -226,7 +228,7 @@ public class HeaderUtilTest {
     String utf8StringToEncode = "asdäüöö";
     byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(StandardCharsets.UTF_8);
 
-    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false)).isNotEqualTo(utf8StringToEncode);
+    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false, null)).isNotEqualTo(utf8StringToEncode);
 
   }
 
@@ -235,8 +237,32 @@ public class HeaderUtilTest {
     String plainString = "asdasda234234";
     byte[] plainEncodedBytes = plainString.getBytes();
 
-    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false)).isEqualTo(plainString);
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(plainString);
 
+  }
+
+  @Test
+  public void testDecodeStringWithCharsetWithISO8859AndFinnishChars() throws UnsupportedEncodingException {
+    String finnishString = "asdäüöö";
+    byte[] plainEncodedBytes = finnishString.getBytes("ISO-8859-1");
+
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, Charset.forName("ISO-8859-1"))).isEqualTo(finnishString);
+  }
+
+  @Test
+  public void testDecodeStringWithCharsetWithUTF8CharsetAndKoreanChars() {
+    String koreanString = "가나다";
+    byte[] plainEncodedBytes = koreanString.getBytes(StandardCharsets.UTF_8);
+
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, true, null)).isEqualTo(koreanString);
+  }
+
+  @Test
+  public void testDecodeStringWithCharsetWithNullCharsetAndEnglishChars() {
+    String englishString = "asdasda234234";
+    byte[] plainEncodedBytes = englishString.getBytes();
+
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(englishString);
   }
 
   private List<FileHeader> generateFileHeaderWithFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {

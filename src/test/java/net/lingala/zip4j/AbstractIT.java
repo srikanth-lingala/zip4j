@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,6 +26,9 @@ public abstract class AbstractIT {
       getTestFileFromResources("sample_text_large.txt"),
       getTestFileFromResources("sample.pdf")
   );
+  protected static final Charset CHARSET_MS_932 = Charset.forName("Ms932");
+  protected static final Charset CHARSET_GBK = Charset.forName("GBK");
+  protected static final Charset CHARSET_CP_949 = Charset.forName("Cp949");
 
   protected File generatedZipFile;
   protected File outputFolder;

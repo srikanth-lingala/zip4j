@@ -8,6 +8,7 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFilesTaskParameters> {
 
@@ -22,7 +23,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try (ZipInputStream zipInputStream = prepareZipInputStream()) {
+    try (ZipInputStream zipInputStream = prepareZipInputStream(taskParameters.charset)) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
@@ -58,7 +59,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return totalWork;
   }
 
-  private ZipInputStream prepareZipInputStream() throws IOException {
+  private ZipInputStream prepareZipInputStream(Charset charset) throws IOException {
     splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
         getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
 
@@ -67,7 +68,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
     }
 
-    return new ZipInputStream(splitInputStream, password);
+    return new ZipInputStream(splitInputStream, password, charset);
   }
 
   private FileHeader getFirstFileHeader(ZipModel zipModel) {
@@ -80,10 +81,11 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return zipModel.getCentralDirectory().getFileHeaders().get(0);
   }
 
-  public static class ExtractAllFilesTaskParameters {
+  public static class ExtractAllFilesTaskParameters extends AbstractZipTaskParameters {
     private String outputPath;
 
-    public ExtractAllFilesTaskParameters(String outputPath) {
+    public ExtractAllFilesTaskParameters(String outputPath, Charset charset) {
+      super(charset);
       this.outputPath = outputPath;
     }
   }

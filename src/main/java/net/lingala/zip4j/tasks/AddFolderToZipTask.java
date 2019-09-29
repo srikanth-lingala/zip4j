@@ -9,6 +9,7 @@ import net.lingala.zip4j.tasks.AddFolderToZipTask.AddFolderToZipTaskParameters;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.getFilesInDirectoryRecursive;
@@ -25,7 +26,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
       throws IOException {
     List<File> filesToAdd = getFilesToAdd(taskParameters);
     setDefaultFolderPath(taskParameters);
-    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters);
+    addFilesToZip(filesToAdd, progressMonitor, taskParameters.zipParameters, taskParameters.charset);
   }
 
   @Override
@@ -65,11 +66,12 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     return filesToAdd;
   }
 
-  public static class AddFolderToZipTaskParameters {
+  public static class AddFolderToZipTaskParameters extends AbstractZipTaskParameters {
     private File folderToAdd;
     private ZipParameters zipParameters;
 
-    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters) {
+    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, Charset charset) {
+      super(charset);
       this.folderToAdd = folderToAdd;
       this.zipParameters = zipParameters;
     }

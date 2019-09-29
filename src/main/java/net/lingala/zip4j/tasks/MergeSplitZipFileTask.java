@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.File;
@@ -18,11 +19,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.copyFile;
 
-public class MergeSplitZipFileTask extends AsyncZipTask<File> {
+public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskParameters> {
 
   private ZipModel zipModel;
   private RawIO rawIO = new RawIO();
@@ -33,14 +35,14 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
   }
 
   @Override
-  protected void executeTask(File outputZipFile, ProgressMonitor progressMonitor) throws IOException {
+  protected void executeTask(MergeSplitZipFileTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
     if (!zipModel.isSplitArchive()) {
       ZipException e = new ZipException("archive not a split zip file");
       progressMonitor.endProgressMonitor(e);
       throw e;
     }
 
-    try (OutputStream outputStream = new FileOutputStream(outputZipFile)) {
+    try (OutputStream outputStream = new FileOutputStream(taskParameters.outputZipFile)) {
       long totalBytesWritten = 0;
       int totalNumberOfSplitFiles = zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk();
       if (totalNumberOfSplitFiles <= 0) {
@@ -73,7 +75,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
           verifyIfTaskIsCancelled();
         }
       }
-      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream);
+      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream, taskParameters.charset);
       progressMonitor.endProgressMonitor();
     } catch (CloneNotSupportedException e) {
       throw new ZipException(e);
@@ -81,7 +83,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
   }
 
   @Override
-  protected long calculateTotalWork(File outputZipFile) {
+  protected long calculateTotalWork(MergeSplitZipFileTaskParameters taskParameters) {
     if (!zipModel.isSplitArchive()) {
       return 0;
     }
@@ -124,7 +126,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
   }
 
   private void updateHeadersForMergeSplitFileAction(ZipModel zipModel, long totalBytesWritten,
-                                                    OutputStream outputStream)
+                                                    OutputStream outputStream, Charset charset)
       throws IOException, CloneNotSupportedException {
 
     ZipModel newZipModel = (ZipModel) zipModel.clone();
@@ -133,7 +135,7 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
     updateSplitZipModel(newZipModel, totalBytesWritten);
 
     HeaderWriter headerWriter = new HeaderWriter();
-    headerWriter.finalizeZipFileWithoutValidations(newZipModel, outputStream);
+    headerWriter.finalizeZipFileWithoutValidations(newZipModel, outputStream, charset);
   }
 
   private void updateSplitZipModel(ZipModel zipModel, long totalFileSize) {
@@ -185,5 +187,14 @@ public class MergeSplitZipFileTask extends AsyncZipTask<File> {
   @Override
   protected ProgressMonitor.Task getTask() {
     return ProgressMonitor.Task.MERGE_ZIP_FILES;
+  }
+
+  public static class MergeSplitZipFileTaskParameters extends AbstractZipTaskParameters {
+    private File outputZipFile;
+
+    public MergeSplitZipFileTaskParameters(File outputZipFile, Charset charset) {
+      super(charset);
+      this.outputZipFile = outputZipFile;
+    }
   }
 }
