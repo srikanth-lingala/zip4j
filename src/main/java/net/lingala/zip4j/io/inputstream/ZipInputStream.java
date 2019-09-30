@@ -267,7 +267,7 @@ public class ZipInputStream extends InputStream {
     }
 
     if (localFileHeader.getCrc() != crc32.getValue()) {
-      ZipException.Type exceptionType = ZipException.Type.UNKNOWN;
+      ZipException.Type exceptionType = ZipException.Type.CHECKSUM_MISMATCH;
 
       if (isEncryptionMethodZipStandard(localFileHeader)) {
         exceptionType = ZipException.Type.WRONG_PASSWORD;
