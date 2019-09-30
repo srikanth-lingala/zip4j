@@ -53,6 +53,7 @@ public class ZipException extends IOException {
   public enum Type {
     WRONG_PASSWORD,
     TASK_CANCELLED_EXCEPTION,
-    UNKNOWN
+    UNKNOWN,
+    CHECKSUM_MISMATCH
   }
 }
