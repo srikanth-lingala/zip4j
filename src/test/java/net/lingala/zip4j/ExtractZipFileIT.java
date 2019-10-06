@@ -317,6 +317,18 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(filenameSet.contains(expactedFileName)).isTrue();
   }
 
+  @Test
+  public void testExtractZipFileWithCheckoutMismatchThrowsExceptionWithType() {
+    try {
+      ZipFile zipFile = new ZipFile(getTestArchiveFromResources("entry_with_checksum_mismatch.zip"));
+      zipFile.extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e.getType()).isEqualTo(ZipException.Type.CHECKSUM_MISMATCH);
+      assertThat(e.getMessage()).isEqualTo("Reached end of entry, but crc verification failed for sample_text1.txt");
+    }
+  }
+
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {
     assertThat(outputFolder.listFiles()).hasSize(numberOfExpectedFiles);
   }
