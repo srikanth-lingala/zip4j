@@ -17,7 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

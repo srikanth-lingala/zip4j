@@ -10,7 +10,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

@@ -3,7 +3,7 @@ package net.lingala.zip4j.testutils;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 
 public class TestUtils {
 

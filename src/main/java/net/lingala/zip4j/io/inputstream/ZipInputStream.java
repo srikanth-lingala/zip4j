@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;

@@ -20,7 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 

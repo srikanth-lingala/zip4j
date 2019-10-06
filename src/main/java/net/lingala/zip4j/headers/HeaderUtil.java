@@ -6,7 +6,7 @@ import net.lingala.zip4j.model.ZipModel;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET;

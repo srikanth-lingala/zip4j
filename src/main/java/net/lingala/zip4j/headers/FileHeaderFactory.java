@@ -12,7 +12,7 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 
 import static net.lingala.zip4j.util.BitUtils.setBit;
 import static net.lingala.zip4j.util.BitUtils.unsetBit;

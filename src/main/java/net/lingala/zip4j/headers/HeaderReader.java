@@ -40,7 +40,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.lingala.zip4j.util.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
