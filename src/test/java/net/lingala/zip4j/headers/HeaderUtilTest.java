@@ -4,13 +4,13 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.CentralDirectory;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -217,7 +217,7 @@ public class HeaderUtilTest {
   @Test
   public void testDecodeStringWithCharsetForUtf8() {
     String utf8StringToEncode = "asdäüöö";
-    byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(StandardCharsets.UTF_8);
+    byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(InternalZipConstants.CHARSET_UTF_8);
 
     assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, true, null)).isEqualTo(utf8StringToEncode);
 
@@ -226,7 +226,7 @@ public class HeaderUtilTest {
   @Test
   public void testDecodeStringWithCharsetWithoutUtf8ForUtf8String() {
     String utf8StringToEncode = "asdäüöö";
-    byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(StandardCharsets.UTF_8);
+    byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(InternalZipConstants.CHARSET_UTF_8);
 
     assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false, null)).isNotEqualTo(utf8StringToEncode);
 
@@ -252,7 +252,7 @@ public class HeaderUtilTest {
   @Test
   public void testDecodeStringWithCharsetWithUTF8CharsetAndKoreanChars() {
     String koreanString = "가나다";
-    byte[] plainEncodedBytes = koreanString.getBytes(StandardCharsets.UTF_8);
+    byte[] plainEncodedBytes = koreanString.getBytes(InternalZipConstants.CHARSET_UTF_8);
 
     assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, true, null)).isEqualTo(koreanString);
   }

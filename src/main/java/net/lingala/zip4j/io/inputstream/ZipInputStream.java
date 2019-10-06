@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;
@@ -55,7 +54,7 @@ public class ZipInputStream extends InputStream {
   private Charset charset;
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null, StandardCharsets.UTF_8);
+    this(inputStream, null, InternalZipConstants.CHARSET_UTF_8);
   }
 
   public ZipInputStream(InputStream inputStream, Charset charset) {
@@ -63,12 +62,12 @@ public class ZipInputStream extends InputStream {
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
-    this(inputStream, password, StandardCharsets.UTF_8);
+    this(inputStream, password, InternalZipConstants.CHARSET_UTF_8);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
     if(charset == null) {
-      charset = StandardCharsets.UTF_8;
+      charset = InternalZipConstants.CHARSET_UTF_8;
     }
 
     this.inputStream = new PushbackInputStream(inputStream, 512);

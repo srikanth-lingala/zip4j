@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,7 +21,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +111,7 @@ public class ZipOutputStreamIT extends AbstractIT {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("uncompressed size should be set for zip entries of compression type store");
 
-    try(ZipOutputStream zos = initializeZipOutputStream(false, StandardCharsets.UTF_8)) {
+    try(ZipOutputStream zos = initializeZipOutputStream(false, InternalZipConstants.CHARSET_UTF_8)) {
       for (File fileToAdd : FILES_TO_ADD) {
         zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
         zipParameters.setFileNameInZip(fileToAdd.getName());
@@ -131,7 +131,7 @@ public class ZipOutputStreamIT extends AbstractIT {
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion, boolean setLastModifiedTime)
           throws IOException {
-    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, true, FILES_TO_ADD, StandardCharsets.UTF_8);
+    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, true, FILES_TO_ADD, InternalZipConstants.CHARSET_UTF_8);
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,

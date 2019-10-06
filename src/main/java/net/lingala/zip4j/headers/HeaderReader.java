@@ -33,6 +33,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
@@ -40,7 +41,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -120,7 +120,7 @@ public class HeaderReader {
     if (commentLength > 0) {
       byte[] commentBuf = new byte[commentLength];
       zip4jRaf.readFully(commentBuf);
-      endOfCentralDirectoryRecord.setComment(new String(commentBuf, StandardCharsets.UTF_8));
+      endOfCentralDirectoryRecord.setComment(new String(commentBuf, InternalZipConstants.CHARSET_UTF_8));
     } else {
       endOfCentralDirectoryRecord.setComment(null);
     }

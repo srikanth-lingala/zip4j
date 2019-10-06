@@ -3,10 +3,10 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET;
@@ -69,7 +69,7 @@ public class HeaderUtil {
     }
 
     if (isUtf8Encoded) {
-      return new String(data, StandardCharsets.UTF_8);
+      return new String(data, InternalZipConstants.CHARSET_UTF_8);
     }
 
     try {

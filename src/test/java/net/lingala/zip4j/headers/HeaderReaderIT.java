@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -218,7 +217,7 @@ public class HeaderReaderIT extends AbstractIT {
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.NONE);
 
     try(InputStream inputStream = new FileInputStream(headerFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, InternalZipConstants.CHARSET_UTF_8);
       assertThat(readLocalFileHeader).isNotNull();
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(entrySize);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(entrySize);
@@ -231,7 +230,7 @@ public class HeaderReaderIT extends AbstractIT {
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.AES);
 
     try(InputStream inputStream = new FileInputStream(headerFile)) {
-      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, StandardCharsets.UTF_8);
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, InternalZipConstants.CHARSET_UTF_8);
       assertThat(readLocalFileHeader).isNotNull();
       assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(entrySize);
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(entrySize);
@@ -321,7 +320,7 @@ public class HeaderReaderIT extends AbstractIT {
       String expectedFileName = FILE_NAME_PREFIX + i;
       FileHeader fileHeader = fileHeaders.get(i);
       assertThat(fileHeader.getFileName()).isEqualTo(expectedFileName);
-      int expectedFileNameLength = expectedFileName.getBytes(StandardCharsets.UTF_8).length;
+      int expectedFileNameLength = expectedFileName.getBytes(InternalZipConstants.CHARSET_UTF_8).length;
       assertThat(fileHeader.getFileNameLength()).isEqualTo(expectedFileNameLength);
     }
   }
@@ -362,7 +361,7 @@ public class HeaderReaderIT extends AbstractIT {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntries; i++) {
       zipParameters.setFileNameInZip(FILE_NAME_PREFIX + i);
-      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, StandardCharsets.UTF_8);
+      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8);
       fileHeaders.add(fileHeader);
     }
     return fileHeaders;
@@ -390,7 +389,7 @@ public class HeaderReaderIT extends AbstractIT {
     File headerFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headerFile)) {
-      headerWriter.writeLocalFileHeader(zipModel, localFileHeader, outputStream, StandardCharsets.UTF_8);
+      headerWriter.writeLocalFileHeader(zipModel, localFileHeader, outputStream, InternalZipConstants.CHARSET_UTF_8);
     }
 
     return headerFile;
@@ -399,7 +398,7 @@ public class HeaderReaderIT extends AbstractIT {
   private File writeZipHeaders(ZipModel zipModel) throws IOException, ZipException {
     File headersFile = temporaryFolder.newFile();
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile)) {
-      headerWriter.finalizeZipFile(zipModel, splitOutputStream, StandardCharsets.UTF_8);
+      headerWriter.finalizeZipFile(zipModel, splitOutputStream, InternalZipConstants.CHARSET_UTF_8);
       return headersFile;
     }
   }

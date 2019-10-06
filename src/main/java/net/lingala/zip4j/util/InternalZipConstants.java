@@ -16,6 +16,8 @@
 
 package net.lingala.zip4j.util;
 
+import java.nio.charset.Charset;
+
 public final class InternalZipConstants {
 
   private InternalZipConstants() {
@@ -51,4 +53,6 @@ public final class InternalZipConstants {
   public static final String ZIP_FILE_SEPARATOR = "/";
 
   public static final int MAX_ALLOWED_ZIP_COMMENT_LENGTH = 0xFFFF;
+
+  public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
 }

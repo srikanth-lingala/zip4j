@@ -1,9 +1,10 @@
 package net.lingala.zip4j.testutils;
 
+import net.lingala.zip4j.util.InternalZipConstants;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 public class TestUtils {
 
@@ -27,7 +28,7 @@ public class TestUtils {
     try {
       String path = "/" + parentFolder + "/" + fileName;
       String utfDecodedFilePath = URLDecoder.decode(TestUtils.class.getResource(path).getFile(),
-          StandardCharsets.UTF_8.toString());
+          InternalZipConstants.CHARSET_UTF_8.toString());
       return new File(utfDecodedFilePath);
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);

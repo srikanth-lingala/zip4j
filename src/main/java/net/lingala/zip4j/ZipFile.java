@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
+import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF_8;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
@@ -78,7 +79,7 @@ public class ZipFile {
   private boolean runInThread;
   private char[] password;
   private HeaderWriter headerWriter = new HeaderWriter();
-  private Charset charset = Charset.forName("UTF-8");
+  private Charset charset = CHARSET_UTF_8;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
