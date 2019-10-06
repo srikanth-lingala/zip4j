@@ -90,7 +90,7 @@ public class HeaderWriterIT extends AbstractIT {
       verifyLocalFileHeader(readLocalFileHeader, FILE_NAME_PREFIX + "LFH", COMPRESSED_SIZE_ZIP64,
           UNCOMPRESSED_SIZE_ZIP64);
       verifyZip64ExtendedInfo(readLocalFileHeader.getZip64ExtendedInfo(), COMPRESSED_SIZE_ZIP64,
-          UNCOMPRESSED_SIZE_ZIP64, 0, 0);
+          UNCOMPRESSED_SIZE_ZIP64, -1, -1);
     }
 
     verifyEntrySizesIsMaxValueInLFHWhenZip64Format(headersFile);
@@ -413,7 +413,7 @@ public class HeaderWriterIT extends AbstractIT {
       assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(UNCOMPRESSED_SIZE_ZIP64 + 100);
       assertThat(readLocalFileHeader.getCrc()).isEqualTo(546423);
       verifyZip64ExtendedInfo(readLocalFileHeader.getZip64ExtendedInfo(), COMPRESSED_SIZE_ZIP64 + 100,
-          UNCOMPRESSED_SIZE_ZIP64 + 100, 0, 0);
+          UNCOMPRESSED_SIZE_ZIP64 + 100, -1, -1);
     }
 
     verifyEntrySizesIsMaxValueInLFHWhenZip64Format(headersFile);

@@ -42,7 +42,9 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class HeaderWriter {
 
-  private static final short ZIP64_EXTRA_DATA_RECORD_SIZE = 28;
+  private static final short ZIP64_EXTRA_DATA_RECORD_SIZE_FH = 28;
+  private static final short ZIP64_EXTRA_DATA_RECORD_SIZE_LFH = 16;
+  private static final short AES_EXTRA_DATA_RECORD_SIZE = 11;
 
   private RawIO rawIO = new RawIO();
   private byte[] longBuff = new byte[8];
@@ -93,10 +95,10 @@ public class HeaderWriter {
 
       int extraFieldLength = 0;
       if (zipModel.isZip64Format()) {
-        extraFieldLength += 32;
+        extraFieldLength += ZIP64_EXTRA_DATA_RECORD_SIZE_LFH + 4; // 4 for signature + size of record
       }
       if (localFileHeader.getAesExtraDataRecord() != null) {
-        extraFieldLength += 11;
+        extraFieldLength += AES_EXTRA_DATA_RECORD_SIZE;
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, extraFieldLength);
 
@@ -111,7 +113,7 @@ public class HeaderWriter {
       if (writeZip64Header) {
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (int) HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue());
-        rawIO.writeShortLittleEndian(byteArrayOutputStream, 16);
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE_LFH);
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getCompressedSize());
       }
@@ -437,10 +439,10 @@ public class HeaderWriter {
 
       int extraFieldLength = 0;
       if (writeZip64ExtendedInfo) {
-        extraFieldLength += 32;
+        extraFieldLength += ZIP64_EXTRA_DATA_RECORD_SIZE_FH + 4; // 4 for signature + size of record
       }
       if (fileHeader.getAesExtraDataRecord() != null) {
-        extraFieldLength += 11;
+        extraFieldLength += AES_EXTRA_DATA_RECORD_SIZE;
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, extraFieldLength);
 
@@ -475,7 +477,7 @@ public class HeaderWriter {
             (int) HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue());
 
         //size of data
-        rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE);
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE_FH);
         rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getCompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, fileHeader.getOffsetLocalHeader());
