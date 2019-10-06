@@ -298,7 +298,7 @@ public class HeaderWriter {
       //2 - size of zip64 data
       //8 - uncompressed size
       //8 - compressed size
-      int zip64CompressedSizeOffset = 2 + 2 + fileHeader.getFileNameLength() + 2 + 2 + 2;
+      int zip64CompressedSizeOffset = 2 + 2 + fileHeader.getFileNameLength() + 2 + 2;
       if (outputStream.skipBytes(zip64CompressedSizeOffset) != zip64CompressedSizeOffset) {
         throw new ZipException("Unable to skip " + zip64CompressedSizeOffset + " bytes to update LFH");
       }
