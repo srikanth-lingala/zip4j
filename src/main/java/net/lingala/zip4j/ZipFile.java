@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,7 +78,7 @@ public class ZipFile {
   private boolean runInThread;
   private char[] password;
   private HeaderWriter headerWriter = new HeaderWriter();
-  private Charset charset = StandardCharsets.UTF_8;
+  private Charset charset = Charset.forName("UTF-8");
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
