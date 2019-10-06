@@ -111,11 +111,9 @@ public class HeaderWriter {
       if (writeZip64Header) {
         rawIO.writeShortLittleEndian(byteArrayOutputStream,
             (int) HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue());
-        rawIO.writeShortLittleEndian(byteArrayOutputStream, ZIP64_EXTRA_DATA_RECORD_SIZE);
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, 16);
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getUncompressedSize());
         rawIO.writeLongLittleEndian(byteArrayOutputStream, localFileHeader.getCompressedSize());
-        rawIO.writeLongLittleEndian(byteArrayOutputStream, 0); //Offset start of local file header
-        rawIO.writeIntLittleEndian(byteArrayOutputStream, 0); //Disk number start
       }
 
       if (localFileHeader.getAesExtraDataRecord() != null) {

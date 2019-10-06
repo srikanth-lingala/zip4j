@@ -48,6 +48,7 @@ import java.util.List;
 import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
 
 /**
  * Helper class to read header information for the zip file
@@ -411,7 +412,8 @@ public class HeaderReader {
       return;
     }
 
-    Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(fileHeader.getExtraDataRecords(), rawIO);
+    Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(fileHeader.getExtraDataRecords(), rawIO,
+        fileHeader.getUncompressedSize(), fileHeader.getCompressedSize(), fileHeader.getOffsetLocalHeader());
 
     if (zip64ExtendedInfo == null) {
       return;
@@ -445,7 +447,8 @@ public class HeaderReader {
       return;
     }
 
-    Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(localFileHeader.getExtraDataRecords(), rawIO);
+    Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(localFileHeader.getExtraDataRecords(), rawIO,
+        localFileHeader.getUncompressedSize(), localFileHeader.getCompressedSize(), 0);
 
     if (zip64ExtendedInfo == null) {
       return;
@@ -462,7 +465,8 @@ public class HeaderReader {
     }
   }
 
-  private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO)
+  private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO,
+                                                  long uncompressedSize, long compressedSize, long offsetLocalHeader)
       throws ZipException {
 
     for (ExtraDataRecord extraDataRecord : extraDataRecords) {
@@ -480,17 +484,17 @@ public class HeaderReader {
         }
 
         int counter = 0;
-        if (counter < extraDataRecord.getSizeOfData()) {
+        if (counter < extraDataRecord.getSizeOfData() && uncompressedSize == ZIP_64_SIZE_LIMIT) {
           zip64ExtendedInfo.setUncompressedSize(rawIO.readLongLittleEndian(extraData, counter));
           counter += 8;
         }
 
-        if ( counter < extraDataRecord.getSizeOfData()) {
+        if ( counter < extraDataRecord.getSizeOfData() && compressedSize == ZIP_64_SIZE_LIMIT) {
           zip64ExtendedInfo.setCompressedSize(rawIO.readLongLittleEndian(extraData, counter));
           counter += 8;
         }
 
-        if (counter < extraDataRecord.getSizeOfData()) {
+        if (counter < extraDataRecord.getSizeOfData() && offsetLocalHeader == ZIP_64_SIZE_LIMIT) {
           zip64ExtendedInfo.setOffsetLocalHeader(rawIO.readLongLittleEndian(extraData, counter));
           counter += 8;
         }
