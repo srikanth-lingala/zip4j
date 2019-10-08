@@ -1,7 +1,7 @@
 
 [![Build Status](https://travis-ci.org/srikanth-lingala/zip4j.svg?branch=master)](https://travis-ci.org/srikanth-lingala/zip4j)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
-[![Known Vulnerabilities](https://snyk.io/test/github/dwyl/hapi-auth-jwt2/badge.svg?targetFile=package.json)](https://snyk.io/test/github/dwyl/hapi-auth-jwt2?targetFile=package.json)
+[![Known Vulnerabilities](https://snyk.io//test/github/srikanth-lingala/zip4j/badge.svg?targetFile=pom.xml)](https://snyk.io//test/github/srikanth-lingala/zip4j?targetFile=pom.xml)
 
 
 
