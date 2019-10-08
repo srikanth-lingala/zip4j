@@ -20,7 +20,7 @@ import java.util.Random;
 import static net.lingala.zip4j.headers.HeaderUtil.getIndexOfFileHeader;
 import static net.lingala.zip4j.util.FileUtils.copyFile;
 
-public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipFileTaskParameters>  {
+public class RemoveEntryFromZipFileTask extends AbstractModifyFileTask<RemoveEntryFromZipFileTaskParameters>  {
 
   private ZipModel zipModel;
 
@@ -73,17 +73,6 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
     }
   }
 
-  private long getOffsetOfStartOfCentralDirectory(ZipModel zipModel) {
-    long offsetStartCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
-
-    if (zipModel.isZip64Format() && zipModel.getZip64EndOfCentralDirectoryRecord() != null) {
-      offsetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
-          .getOffsetStartCentralDirectoryWRTStartDiskNumber();
-    }
-
-    return offsetStartCentralDir;
-  }
-
   private long getOffsetEndOfCompressedData(int indexOfFileHeader, long offsetStartOfCentralDirectory,
                                             List<FileHeader> fileHeaders) {
     if (indexOfFileHeader == fileHeaders.size() - 1) {
@@ -93,32 +82,11 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
     FileHeader nextFileHeader = fileHeaders.get(indexOfFileHeader + 1);
     long offsetEndOfCompressedFile = nextFileHeader.getOffsetLocalHeader() - 1;
     if (nextFileHeader.getZip64ExtendedInfo() != null
-        && nextFileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
+            && nextFileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
       offsetEndOfCompressedFile = nextFileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() - 1;
     }
 
     return offsetEndOfCompressedFile;
-  }
-
-  private File getTemporaryFile(String zipPathWithName) {
-    Random random = new Random();
-    File tmpFile = new File(zipPathWithName + random.nextInt(10000));
-
-    while (tmpFile.exists()) {
-      tmpFile = new File(zipPathWithName + random.nextInt(10000));
-    }
-
-    return tmpFile;
-  }
-
-  private long getOffsetLocalFileHeader(FileHeader fileHeader) {
-    long offsetLocalFileHeader = fileHeader.getOffsetLocalHeader();
-
-    if (fileHeader.getZip64ExtendedInfo() != null && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
-      offsetLocalFileHeader = fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader();
-    }
-
-    return offsetLocalFileHeader;
   }
 
   private void updateHeaders(ZipModel zipModel, SplitOutputStream splitOutputStream, int indexOfFileHeader, long
@@ -153,24 +121,6 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
         offsetLocalHdr = fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader();
       }
       fileHeader.setOffsetLocalHeader(offsetLocalHdr - (offsetEndOfCompressedFile - offsetLocalFileHeader) - 1);
-    }
-  }
-
-  private void cleanupFile(boolean successFlag, File zipFile, File temporaryZipFile) throws ZipException {
-    if (successFlag) {
-      restoreFileName(zipFile, temporaryZipFile);
-    } else {
-      temporaryZipFile.delete();
-    }
-  }
-
-  private void restoreFileName(File zipFile, File temporaryZipFile) throws ZipException {
-    if (zipFile.delete()) {
-      if (!temporaryZipFile.renameTo(zipFile)) {
-        throw new ZipException("cannot rename modified zip file");
-      }
-    } else {
-      throw new ZipException("cannot delete old zip file");
     }
   }
 

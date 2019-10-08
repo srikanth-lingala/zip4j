@@ -40,6 +40,8 @@ import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
+import net.lingala.zip4j.tasks.RenameFileInZipTask;
+import net.lingala.zip4j.tasks.RenameFileInZipTask.RenameFileInZipTaskParameters;
 import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
@@ -678,6 +680,32 @@ public class ZipFile {
 
     new RemoveEntryFromZipFileTask(progressMonitor, runInThread, zipModel).execute(
             new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+  }
+
+  /**
+   * Rename the file provided in the input file header from the zip file.
+   * If zip file is a split zip file, then this method throws an exception as
+   * zip specification does not allow for updating split zip archives.
+   *
+   * @param fileHeader
+   * @param newFileName
+   * @throws ZipException
+   */
+  public void renameFile(FileHeader fileHeader, String newFileName) throws ZipException {
+    if (fileHeader == null) {
+      throw new ZipException("input file header is null, cannot rename file");
+    }
+
+    if (zipModel == null) {
+      readZipInfo();
+    }
+
+    if (zipModel.isSplitArchive()) {
+      throw new ZipException("Zip file format does not allow updating split/spanned files");
+    }
+
+    new RenameFileInZipTask(progressMonitor, runInThread, zipModel).execute(
+            new RenameFileInZipTask.RenameFileInZipTaskParameters(fileHeader, newFileName, charset));
   }
 
   /**

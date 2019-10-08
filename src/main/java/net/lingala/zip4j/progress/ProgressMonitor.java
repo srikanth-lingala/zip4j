@@ -23,7 +23,7 @@ public class ProgressMonitor {
 
   public enum State { READY, BUSY }
   public enum Result { SUCCESS, WORK_IN_PROGRESS, ERROR, CANCELLED }
-  public enum Task { NONE, ADD_ENTRY, REMOVE_ENTRY, CALCULATE_CRC, EXTRACT_ENTRY, MERGE_ZIP_FILES, SET_COMMENT}
+  public enum Task { NONE, ADD_ENTRY, REMOVE_ENTRY, CALCULATE_CRC, EXTRACT_ENTRY, MERGE_ZIP_FILES, SET_COMMENT, RENAME_FILE}
 
   private State state;
   private long totalWork;
