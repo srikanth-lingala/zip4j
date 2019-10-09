@@ -683,6 +683,38 @@ public class ZipFile {
   }
 
   /**
+   * Rename the file provided in the input parameters.
+   * This method first finds the file header and then renames the file.
+   * If file does not exist, then this method throws an exception.
+   * If zip file is a split zip file, then this method throws an exception as
+   * zip specification does not allow for updating split zip archives.
+   *
+   * @param fileName
+   * @param newFileName
+   * @throws ZipException
+   */
+  public void renameFile(String fileName, String newFileName) throws ZipException {
+    if (!isStringNotNullAndNotEmpty(fileName)) {
+      throw new ZipException("file name is empty or null, cannot rename file");
+    }
+
+    if (zipModel == null) {
+      readZipInfo();
+    }
+
+    if (zipModel.isSplitArchive()) {
+      throw new ZipException("Zip file format does not allow updating split/spanned files");
+    }
+
+    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
+    if (fileHeader == null) {
+      throw new ZipException("could not find file header for file: " + fileName);
+    }
+
+    renameFile(fileHeader, newFileName);
+  }
+
+  /**
    * Rename the file provided in the input file header from the zip file.
    * If zip file is a split zip file, then this method throws an exception as
    * zip specification does not allow for updating split zip archives.
