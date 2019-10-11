@@ -54,6 +54,7 @@ public class ZipException extends IOException {
     WRONG_PASSWORD,
     TASK_CANCELLED_EXCEPTION,
     CHECKSUM_MISMATCH,
+    UNKNOWN_COMPRESSION_METHOD,
     UNKNOWN
   }
 }

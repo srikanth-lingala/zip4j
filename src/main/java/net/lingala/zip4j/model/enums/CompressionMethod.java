@@ -1,5 +1,7 @@
 package net.lingala.zip4j.model.enums;
 
+import net.lingala.zip4j.exception.ZipException;
+
 public enum CompressionMethod {
 
   STORE(0),
@@ -16,13 +18,13 @@ public enum CompressionMethod {
     return code;
   }
 
-  public static CompressionMethod getCompressionMethodFromCode(int code) {
+  public static CompressionMethod getCompressionMethodFromCode(int code) throws ZipException {
     for (CompressionMethod compressionMethod : values()) {
       if (compressionMethod.getCode() == code) {
         return compressionMethod;
       }
     }
 
-    return null;
+    throw new ZipException("Unknown compression method", ZipException.Type.UNKNOWN_COMPRESSION_METHOD);
   }
 }
