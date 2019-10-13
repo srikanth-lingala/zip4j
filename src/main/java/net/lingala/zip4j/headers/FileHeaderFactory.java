@@ -58,7 +58,12 @@ public class FileHeaderFactory {
     //For files added by this library, this attribute will be set after closeEntry is done
     fileHeader.setExternalFileAttributes(new byte[4]);
     fileHeader.setDirectory(isZipEntryDirectory(fileName));
-    fileHeader.setUncompressedSize(zipParameters.getEntrySize());
+
+    if (zipParameters.isWriteExtendedLocalFileHeader() && zipParameters.getEntrySize() == -1) {
+      fileHeader.setUncompressedSize(0);
+    } else {
+      fileHeader.setUncompressedSize(zipParameters.getEntrySize());
+    }
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
       fileHeader.setCrc(zipParameters.getEntryCRC());
