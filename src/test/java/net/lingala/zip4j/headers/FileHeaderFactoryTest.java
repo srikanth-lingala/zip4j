@@ -52,7 +52,7 @@ public class FileHeaderFactoryTest {
     assertThat(fileHeader.getAesExtraDataRecord()).isNull();
     assertThat(fileHeader.getLastModifiedTime()).isNotZero();
     assertThat(fileHeader.getCompressedSize()).isEqualTo(0);
-    assertThat(fileHeader.getUncompressedSize()).isEqualTo(-1);
+    assertThat(fileHeader.getUncompressedSize()).isEqualTo(0);
   }
 
   @Test
@@ -281,7 +281,12 @@ public class FileHeaderFactoryTest {
     verifyLastModifiedFileTime(fileHeader, zipParameters);
     assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
     assertThat(fileHeader.isDirectory()).isEqualTo(false);
-    assertThat(fileHeader.getUncompressedSize()).isEqualTo(zipParameters.getEntrySize());
+
+    if (zipParameters.isWriteExtendedLocalFileHeader()) {
+      assertThat(fileHeader.getUncompressedSize()).isEqualTo(0);
+    } else {
+      assertThat(fileHeader.getUncompressedSize()).isEqualTo(zipParameters.getEntrySize());
+    }
     verifyCrc(fileHeader);
     assertThat(fileHeader.isDataDescriptorExists()).isEqualTo(zipParameters.isWriteExtendedLocalFileHeader());
     assertThat(fileHeader.getAesExtraDataRecord() != null).isEqualTo(aesExtraDataRecordPresent);
