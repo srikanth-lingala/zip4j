@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.regex.Matcher;
 
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
@@ -27,19 +28,18 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     this.zipModel = zipModel;
   }
 
-  protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outPath, String newFileName,
-                             ProgressMonitor progressMonitor) throws IOException {
+  protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outputPath,
+                             String newFileName, ProgressMonitor progressMonitor) throws IOException {
 
-    progressMonitor.setFileName(fileHeader.getFileName());
-
-    if (!outPath.endsWith(FILE_SEPARATOR)) {
-      outPath += FILE_SEPARATOR;
+    if (!outputPath.endsWith(FILE_SEPARATOR)) {
+      outputPath += FILE_SEPARATOR;
     }
 
+    File outputFile = determineOutputFile(fileHeader, outputPath, newFileName);
+    progressMonitor.setFileName(outputFile.getAbsolutePath());
+
     // make sure no file is extracted outside of the target directory (a.k.a zip slip)
-    String fileName = fileHeader.getFileName();
-    String completePath = outPath + fileName;
-    if (!new File(completePath).getCanonicalPath().startsWith(new File(outPath).getCanonicalPath())) {
+    if (!outputFile.getCanonicalPath().startsWith(new File(outputPath).getCanonicalPath())) {
       throw new ZipException("illegal file name that breaks out of the target directory: "
           + fileHeader.getFileName());
     }
@@ -47,24 +47,19 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     verifyNextEntry(zipInputStream, fileHeader);
 
     if (fileHeader.isDirectory()) {
-      File file = new File(completePath);
-      if (!file.exists()) {
-        if (!file.mkdirs()) {
-          throw new ZipException("Could not create directory: " + file);
+      if (!outputFile.exists()) {
+        if (!outputFile.mkdirs()) {
+          throw new ZipException("Could not create directory: " + outputFile);
         }
       }
     } else {
-      checkOutputDirectoryStructure(fileHeader, outPath, newFileName);
-      unzipFile(zipInputStream, fileHeader, outPath, newFileName, progressMonitor);
+      checkOutputDirectoryStructure(outputFile);
+      unzipFile(zipInputStream, fileHeader, outputFile, progressMonitor);
     }
   }
 
-  private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, String outputPath, String newFileName,
+  private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, File outputFile,
                          ProgressMonitor progressMonitor) throws IOException {
-
-    String outputFileName = Zip4jUtil.isStringNotNullAndNotEmpty(newFileName) ? newFileName : fileHeader.getFileName();
-    File outputFile = new File(outputPath + System.getProperty("file.separator") + outputFileName);
-
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
       while ((readLength = inputStream.read(buff)) != -1) {
@@ -95,24 +90,25 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
   }
 
-  private void checkOutputDirectoryStructure(FileHeader fileHeader, String outPath, String newFileName)
-      throws ZipException {
+  private void checkOutputDirectoryStructure(File outputFile) throws ZipException {
+    if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
+      throw new ZipException("Unable to create parent directories: " + outputFile.getParentFile());
+    }
+  }
 
-    String fileName = fileHeader.getFileName();
+  private File determineOutputFile(FileHeader fileHeader, String outputPath, String newFileName) {
+    String outputFileName;
     if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
-      fileName = newFileName;
+      outputFileName = newFileName;
+    } else {
+      outputFileName = getFileNameWithSystemFileSeparators(fileHeader.getFileName()); // replace all slashes with file separator
     }
 
-    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileName)) {
-      // Do nothing
-      return;
-    }
+    return new File(outputPath + FILE_SEPARATOR + outputFileName);
+  }
 
-    String compOutPath = outPath + fileName;
-    File file = new File(compOutPath);
-    if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
-      throw new ZipException("Unable to create parent directories: " + file.getParentFile());
-    }
+  private String getFileNameWithSystemFileSeparators(String fileNameToReplace) {
+    return fileNameToReplace.replaceAll("[/\\\\]", Matcher.quoteReplacement(FILE_SEPARATOR));
   }
 
   @Override
