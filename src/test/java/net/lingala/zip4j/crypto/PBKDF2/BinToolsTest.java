@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BinToolsTest {
 
   @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  public final ExpectedException expectedException = ExpectedException.none();
 
   @Test
   public void bin2hexForValidInputReturnsValidHex() {
@@ -29,13 +29,12 @@ public class BinToolsTest {
 
   @Test
   public void bin2hexForNullInputReturnsEmptyArray() {
-    final String s = null;
-    assertThat(BinTools.hex2bin(s)).isEqualTo(new byte[]{});
+    assertThat(BinTools.hex2bin(null)).isEqualTo(new byte[]{});
   }
 
   @Test
   public void hex2binForInvalidInputOutputIllegalArgumentException() {
-    thrown.expect(IllegalArgumentException.class);
+    expectedException.expect(IllegalArgumentException.class);
     BinTools.hex2bin("foo");
   }
 
@@ -46,7 +45,7 @@ public class BinToolsTest {
 
   @Test
   public void hex2binInvalidInputOutputIllegalArgumentException() {
-    thrown.expect(IllegalArgumentException.class);
+    expectedException.expect(IllegalArgumentException.class);
     BinTools.hex2bin('\u013c');
   }
 }
