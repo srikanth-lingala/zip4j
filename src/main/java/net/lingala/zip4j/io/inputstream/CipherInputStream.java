@@ -64,7 +64,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
   }
 
   protected int readRaw(byte[] b) throws IOException {
-    return zipEntryInputStream.readHeaders(b);
+    return zipEntryInputStream.readRawFully(b);
   }
 
   private void cacheRawData(byte[] b, int len) {

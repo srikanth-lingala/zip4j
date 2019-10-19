@@ -5,6 +5,8 @@ import java.io.InputStream;
 
 class ZipEntryInputStream extends InputStream {
 
+  private static final int MAX_RAW_READ_FULLY_RETRY_ATTEMPTS = 15;
+
   private InputStream inputStream;
   private long numberOfBytesRead = 0;
   private byte[] singleByteArray = new byte[1];
@@ -52,8 +54,38 @@ class ZipEntryInputStream extends InputStream {
     return readLen;
   }
 
-  public int readHeaders(byte[] b) throws  IOException {
-    return inputStream.read(b);
+  public int readRawFully(byte[] b) throws  IOException {
+
+    int readLen = inputStream.read(b);
+
+    if (readLen != b.length) {
+      readLen = readUntilBufferIsFull(b, readLen);
+
+      if (readLen != b.length) {
+        throw new IOException("Cannot read fully into byte buffer");
+      }
+    }
+
+    return readLen;
+  }
+
+  private int readUntilBufferIsFull(byte[] b, int readLength) throws IOException {
+    int remainingLength = b.length - readLength;
+    int loopReadLength = 0;
+    int retryAttempt = 0;
+
+    while (readLength < b.length && loopReadLength != -1 && retryAttempt < MAX_RAW_READ_FULLY_RETRY_ATTEMPTS) {
+      loopReadLength += inputStream.read(b, readLength, remainingLength);
+
+      if (loopReadLength > 0) {
+        readLength += loopReadLength;
+        remainingLength -= loopReadLength;
+      }
+
+      retryAttempt++;
+    }
+
+    return readLength;
   }
 
   @Override
