@@ -46,7 +46,7 @@ public class FileHeaderFactory {
 
     String fileName = validateAndGetFileName(zipParameters.getFileNameInZip());
     fileHeader.setFileName(fileName);
-    fileHeader.setFileNameLength(determineFileNameLength(fileName));
+    fileHeader.setFileNameLength(determineFileNameLength(fileName, charset));
     fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart : 0);
 
     if (zipParameters.getLastModifiedFileTime() > 0) {
@@ -161,7 +161,7 @@ public class FileHeaderFactory {
     return aesExtraDataRecord;
   }
 
-  private int determineFileNameLength(String fileName) {
-    return fileName.getBytes(InternalZipConstants.CHARSET_UTF_8).length;
+  private int determineFileNameLength(String fileName, Charset charset) {
+    return fileName.getBytes(charset).length;
   }
 }
