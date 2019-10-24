@@ -46,7 +46,12 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     String rootFolderPath;
     File folderToAdd = taskParameters.folderToAdd;
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
-      rootFolderPath = folderToAdd.getParentFile().getCanonicalPath();
+      File parentFile = folderToAdd.getCanonicalFile().getParentFile();
+      if (parentFile == null) {
+        rootFolderPath = folderToAdd.getCanonicalPath();
+      } else {
+        rootFolderPath = folderToAdd.getCanonicalFile().getParentFile().getCanonicalPath();
+      }
     } else {
       rootFolderPath = folderToAdd.getCanonicalPath();
     }
