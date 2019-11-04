@@ -1,6 +1,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -15,6 +16,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
@@ -327,6 +329,93 @@ public class ExtractZipFileIT extends AbstractIT {
       assertThat(e.getType()).isEqualTo(ZipException.Type.CHECKSUM_MISMATCH);
       assertThat(e.getMessage()).isEqualTo("Reached end of entry, but crc verification failed for sample_text1.txt");
     }
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithNoEncryptionOnInnerAndOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.NONE, EncryptionMethod.NONE);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithNoEncryptionOnInnerAndZipStandardOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.NONE, EncryptionMethod.ZIP_STANDARD);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithNoEncryptionOnInnerAndAesdOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.NONE, EncryptionMethod.AES);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithZipStandardEncryptionOnInnerAndNoneOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.ZIP_STANDARD, EncryptionMethod.NONE);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWitAesOnInnerAndNoneOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.AES, EncryptionMethod.NONE);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithZipStandardEncryptionOnInnerAndAesOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.ZIP_STANDARD, EncryptionMethod.AES);
+  }
+
+  @Test
+  public void testExtractNestedZipFileWithAesOnInnerAndZipStandardOuter() throws IOException {
+    testExtractNestedZipFileWithEncrpytion(EncryptionMethod.AES, EncryptionMethod.ZIP_STANDARD);
+  }
+
+  private void testExtractNestedZipFileWithEncrpytion(EncryptionMethod innerZipEncryption,
+                                                       EncryptionMethod outerZipEncryption) throws IOException {
+    File innerZipFile = temporaryFolder.newFile("inner.zip");
+    File outerZipFile = temporaryFolder.newFile("outer.zip");
+
+    innerZipFile.delete();
+    outerZipFile.delete();
+
+    createNestedZip(innerZipFile, outerZipFile, innerZipEncryption, outerZipEncryption);
+
+    verifyNestedZipFile(outerZipFile, FILES_TO_ADD.size());
+  }
+
+  private void createNestedZip(File innerSourceZipFile, File outerSourceZipFile, EncryptionMethod innerEncryption,
+                               EncryptionMethod outerEncryption) throws ZipException {
+
+    ZipFile innerZipFile = new ZipFile(innerSourceZipFile, PASSWORD);
+    ZipParameters innerZipParameters = createZipParametersForNestedZip(innerEncryption);
+    innerZipFile.addFiles(FILES_TO_ADD, innerZipParameters);
+
+    ZipFile outerZipFile = new ZipFile(outerSourceZipFile, PASSWORD);
+    ZipParameters outerZipParameters = createZipParametersForNestedZip(outerEncryption);
+    outerZipFile.addFile(innerSourceZipFile, outerZipParameters);
+  }
+
+  private void verifyNestedZipFile(File outerZipFileToVerify, int numberOfFilesInNestedZip) throws IOException {
+    ZipFile zipFile = new ZipFile(outerZipFileToVerify, PASSWORD);
+    FileHeader fileHeader = zipFile.getFileHeader("inner.zip");
+
+    assertThat(fileHeader).isNotNull();
+
+    int actualNumberOfFilesInNestedZip = 0;
+    try(InputStream inputStream = zipFile.getInputStream(fileHeader)) {
+      try(ZipInputStream zipInputStream = new ZipInputStream(inputStream, PASSWORD)) {
+        while (zipInputStream.getNextEntry() != null) {
+          actualNumberOfFilesInNestedZip++;
+        }
+      }
+    }
+
+    assertThat(actualNumberOfFilesInNestedZip).isEqualTo(numberOfFilesInNestedZip);
+  }
+
+  private ZipParameters createZipParametersForNestedZip(EncryptionMethod encryptionMethod) {
+    ZipParameters zipParameters = new ZipParameters();
+    if (encryptionMethod != null && !encryptionMethod.equals(EncryptionMethod.NONE)) {
+      zipParameters.setEncryptFiles(true);
+      zipParameters.setEncryptionMethod(encryptionMethod);
+    }
+    return zipParameters;
   }
 
   private void verifyNumberOfFilesInOutputFolder(File outputFolder, int numberOfExpectedFiles) {

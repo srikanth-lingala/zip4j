@@ -846,6 +846,8 @@ public class ZipFile {
       HeaderReader headerReader = new HeaderReader();
       zipModel = headerReader.readAllHeaders(randomAccessFile, charset);
       zipModel.setZipFile(zipFile);
+    } catch (ZipException e) {
+      throw e;
     } catch (IOException e) {
       throw new ZipException(e);
     }

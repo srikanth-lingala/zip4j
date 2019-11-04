@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import static net.lingala.zip4j.util.InternalZipConstants.AES_AUTH_LENGTH;
+import static net.lingala.zip4j.util.Zip4jUtil.readFully;
 
 class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
 
@@ -142,7 +143,7 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
 
   protected byte[] readStoredMac(InputStream inputStream) throws IOException {
     byte[] storedMac = new byte[AES_AUTH_LENGTH];
-    int readLen = inputStream.read(storedMac);
+    int readLen = readFully(inputStream, storedMac);
 
     if (readLen != AES_AUTH_LENGTH) {
       throw new ZipException("Invalid AES Mac bytes. Could not read sufficient data");

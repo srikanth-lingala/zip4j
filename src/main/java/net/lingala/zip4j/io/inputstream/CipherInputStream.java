@@ -8,6 +8,8 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static net.lingala.zip4j.util.Zip4jUtil.readFully;
+
 abstract class CipherInputStream<T extends Decrypter> extends InputStream {
 
   private ZipEntryInputStream zipEntryInputStream;
@@ -44,7 +46,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    int readLen = zipEntryInputStream.read(b, off, len);
+    int readLen = readFully(zipEntryInputStream, b, off, len);
 
     if (readLen > 0) {
       cacheRawData(b, readLen);

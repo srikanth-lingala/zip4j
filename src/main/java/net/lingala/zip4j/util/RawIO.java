@@ -150,7 +150,7 @@ public class RawIO {
   }
 
   private void readFully(InputStream inputStream, byte[] buff, int readLen) throws IOException {
-    int actualReadLength = inputStream.read(buff, 0, readLen);
+    int actualReadLength = Zip4jUtil.readFully(inputStream, buff, 0, readLen);
     if (actualReadLength != readLen) {
       throw new ZipException("Could not fill buffer");
     }

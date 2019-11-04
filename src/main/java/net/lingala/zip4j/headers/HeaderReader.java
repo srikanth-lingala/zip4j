@@ -49,6 +49,7 @@ import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
+import static net.lingala.zip4j.util.Zip4jUtil.readFully;
 
 /**
  * Helper class to read header information for the zip file
@@ -64,6 +65,8 @@ public class HeaderReader {
 
     try {
       zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
+    } catch (ZipException e){
+      throw e;
     } catch (IOException e) {
       throw new ZipException("Zip headers not found. Probably not a zip file or a corrupted zip file", e);
     }
@@ -302,7 +305,7 @@ public class HeaderReader {
     }
 
     byte[] extraFieldBuf = new byte[extraFieldLength];
-    inputStream.read(extraFieldBuf);
+    readFully(inputStream, extraFieldBuf);
 
     try {
       return parseExtraDataRecords(extraFieldBuf, extraFieldLength);
@@ -540,7 +543,7 @@ public class HeaderReader {
     localFileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(inputStream));
 
     byte[] generalPurposeFlags = new byte[2];
-    if (inputStream.read(generalPurposeFlags) != 2) {
+    if (readFully(inputStream, generalPurposeFlags) != 2) {
       throw new ZipException("Could not read enough bytes for generalPurposeFlags");
     }
     localFileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
@@ -552,7 +555,7 @@ public class HeaderReader {
         rawIO.readShortLittleEndian(inputStream)));
     localFileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(inputStream));
 
-    inputStream.read(intBuff);
+    readFully(inputStream, intBuff);
     localFileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
     localFileHeader.setCrcRawData(intBuff.clone());
 
@@ -566,7 +569,7 @@ public class HeaderReader {
 
     if (fileNameLength > 0) {
       byte[] fileNameBuf = new byte[fileNameLength];
-      inputStream.read(fileNameBuf);
+      readFully(inputStream, fileNameBuf);
       // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
 //				String fileName = new String(fileNameBuf, "Cp850");
 //				String fileName = Zip4jUtil.getCp850EncodedString(fileNameBuf);
@@ -612,7 +615,7 @@ public class HeaderReader {
     DataDescriptor dataDescriptor = new DataDescriptor();
 
     byte[] intBuff = new byte[4];
-    inputStream.read(intBuff);
+    readFully(inputStream, intBuff);
     long sigOrCrc = rawIO.readLongLittleEndian(intBuff, 0);
 
     //According to zip specification, presence of extra data record header signature is optional.
@@ -620,7 +623,7 @@ public class HeaderReader {
     //If signature not present, assign the read 4 bytes for crc
     if (sigOrCrc == HeaderSignature.EXTRA_DATA_RECORD.getValue()) {
       dataDescriptor.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
-      inputStream.read(intBuff);
+      readFully(inputStream, intBuff);
       dataDescriptor.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
     } else {
       dataDescriptor.setCrc(sigOrCrc);

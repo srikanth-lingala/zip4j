@@ -21,9 +21,13 @@ import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 
 public class Zip4jUtil {
+
+  private static final int MAX_RAW_READ_FULLY_RETRY_ATTEMPTS = 15;
 
   public static boolean isStringNotNullAndNotEmpty(String str) {
     return str != null && str.trim().length() > 0;
@@ -93,6 +97,79 @@ public class Zip4jUtil {
     }
 
     return localFileHeader.getAesExtraDataRecord().getCompressionMethod();
+  }
+
+  public static int readFully(InputStream inputStream, byte[] bufferToReadInto) throws IOException {
+
+    int readLen = inputStream.read(bufferToReadInto);
+
+    if (readLen != bufferToReadInto.length) {
+      readLen = readUntilBufferIsFull(inputStream, bufferToReadInto, readLen);
+
+      if (readLen != bufferToReadInto.length) {
+        throw new IOException("Cannot read fully into byte buffer");
+      }
+    }
+
+    return readLen;
+  }
+
+  public static int readFully(InputStream inputStream, byte[] b, int offset, int length) throws IOException {
+    int numberOfBytesRead = 0;
+
+    if (offset < 0) {
+      throw new IllegalArgumentException("Negative offset");
+    }
+
+    if (length < 0) {
+      throw new IllegalArgumentException("Negative length");
+    }
+
+    if (length == 0) {
+      return 0;
+    }
+
+    if (offset + length > b.length) {
+      throw new IllegalArgumentException("Length greater than buffer size");
+    }
+
+    while (numberOfBytesRead != length) {
+      int currentReadLength = inputStream.read(b, offset + numberOfBytesRead, length - numberOfBytesRead);
+      if (currentReadLength == -1) {
+        if (numberOfBytesRead == 0) {
+          return -1;
+        }
+        return numberOfBytesRead;
+      }
+
+      numberOfBytesRead += currentReadLength;
+    }
+
+    return numberOfBytesRead;
+  }
+
+  private static int readUntilBufferIsFull(InputStream inputStream, byte[] bufferToReadInto, int readLength)
+      throws IOException {
+
+    int remainingLength = bufferToReadInto.length - readLength;
+    int loopReadLength = 0;
+    int retryAttempt = 1; // first attempt is already done before this method is called
+
+    while (readLength < bufferToReadInto.length
+        && loopReadLength != -1
+        && retryAttempt < MAX_RAW_READ_FULLY_RETRY_ATTEMPTS) {
+
+      loopReadLength = inputStream.read(bufferToReadInto, readLength, remainingLength);
+
+      if (loopReadLength > 0) {
+        readLength += loopReadLength;
+        remainingLength -= loopReadLength;
+      }
+
+      retryAttempt++;
+    }
+
+    return readLength;
   }
 
 }

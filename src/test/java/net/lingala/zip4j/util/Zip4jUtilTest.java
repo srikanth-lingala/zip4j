@@ -4,11 +4,14 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.testutils.ControlledReadInputStream;
+import net.lingala.zip4j.testutils.RandomInputStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,5 +156,135 @@ public class Zip4jUtilTest {
     localFileHeader.setAesExtraDataRecord(aesExtraDataRecord);
 
     assertThat(Zip4jUtil.getCompressionMethod(localFileHeader)).isEqualTo(CompressionMethod.STORE);
+  }
+
+  @Test
+  public void testReadFullyReadsCompleteBuffer() throws IOException {
+    byte[] b = new byte[3423];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(1000);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b)).isEqualTo(3423);
+  }
+
+  @Test
+  public void testReadFullyReadsCompleteBufferInOneShot() throws IOException {
+    byte[] b = new byte[4096];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(4097);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b)).isEqualTo(4096);
+  }
+
+  @Test
+  public void testReadFullyThrowsExceptionWhenCannotFillBuffer() throws IOException {
+    byte[] b = new byte[4097];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(500);
+
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Cannot read fully into byte buffer");
+
+    Zip4jUtil.readFully(controlledReadInputStream, b);
+  }
+
+  @Test
+  public void testReadFullyOnEmptyStreamThrowsException() throws IOException {
+    byte[] b = new byte[4096];
+    RandomInputStream randomInputStream = new RandomInputStream(0);
+    ControlledReadInputStream controlledReadInputStream = new ControlledReadInputStream(randomInputStream, 100);
+
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Cannot read fully into byte buffer");
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b)).isEqualTo(-1);
+  }
+
+  @Test
+  public void testReadFullyThrowsExceptionWhenRetryLimitExceeds() throws IOException {
+    byte[] b = new byte[151];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(10);
+
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Cannot read fully into byte buffer");
+
+    Zip4jUtil.readFully(controlledReadInputStream, b);
+  }
+
+  @Test
+  public void testReadFullyWithLengthReadsCompleteLength() throws IOException {
+    byte[] b = new byte[1000];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(100);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b, 0, 900)).isEqualTo(900);
+  }
+
+  @Test
+  public void testReadFullyWithLengthReadsMaximumAvailable() throws IOException {
+    byte[] b = new byte[1000];
+    RandomInputStream randomInputStream = new RandomInputStream(150);
+    ControlledReadInputStream controlledReadInputStream = new ControlledReadInputStream(randomInputStream, 700);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b, 0, 900)).isEqualTo(150);
+  }
+
+  @Test
+  public void testReadFullyWithLengthReadsCompletelyIntoBuffer() throws IOException {
+    byte[] b = new byte[1000];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(10);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b, 0, 1000)).isEqualTo(1000);
+  }
+
+  @Test
+  public void testReadFullyWithNegativeLengthThrowsException() throws IOException {
+    byte[] b = new byte[1000];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(10);
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Negative length");
+
+    Zip4jUtil.readFully(controlledReadInputStream, b, 0, -5);
+  }
+
+  @Test
+  public void testReadFullyWithNegativeOffsetThrowsException() throws IOException {
+    byte[] b = new byte[10];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(10);
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Negative offset");
+
+    Zip4jUtil.readFully(controlledReadInputStream, b, -4, 10);
+  }
+
+  @Test
+  public void testReadFullyWithLengthZeroReturnsZero() throws IOException {
+    byte[] b = new byte[1000];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(100);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b, 0, 0)).isZero();
+  }
+
+  @Test
+  public void testReadFullyThrowsExceptionWhenOffsetPlusLengthGreaterThanBufferSize() throws IOException {
+    byte[] b = new byte[10];
+    ControlledReadInputStream controlledReadInputStream = initialiseControlledInputStream(10);
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Length greater than buffer size");
+
+    Zip4jUtil.readFully(controlledReadInputStream, b, 5, 10);
+  }
+
+  @Test
+  public void testReadFullyWithLengthOnAnEmptyStreamReturnsEOF() throws IOException {
+    byte[] b = new byte[1000];
+    RandomInputStream randomInputStream = new RandomInputStream(-1);
+    ControlledReadInputStream controlledReadInputStream = new ControlledReadInputStream(randomInputStream, 100);
+
+    assertThat(Zip4jUtil.readFully(controlledReadInputStream, b, 0, 100)).isEqualTo(-1);
+  }
+
+  private ControlledReadInputStream initialiseControlledInputStream(int maxLengthToReadAtOnce) {
+    RandomInputStream randomInputStream = new RandomInputStream(4096);
+    return new ControlledReadInputStream(randomInputStream, maxLengthToReadAtOnce);
   }
 }
