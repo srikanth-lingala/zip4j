@@ -10,9 +10,9 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.Zip4jUtil;
-import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -102,7 +102,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
       //If an entry already exists, we have to remove that entry first and then add content again.
       //In this case, add corresponding work
-      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
+      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
+          zipParameters.getRootFolderNameInZip());
       FileHeader fileHeader = getFileHeader(getZipModel(), relativeFileName);
       if (fileHeader != null) {
         totalWork += (getZipModel().getZipFile().length() - fileHeader.getCompressedSize());
@@ -164,7 +165,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
-      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath());
+      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
+          zipParameters.getRootFolderNameInZip());
       clonedZipParameters.setFileNameInZip(relativeFileName);
     }
 
@@ -196,7 +198,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     }
 
     for (File file : files) {
-      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getDefaultFolderPath());
+      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
+          zipParameters.getRootFolderNameInZip());
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
       if (fileHeader != null) {

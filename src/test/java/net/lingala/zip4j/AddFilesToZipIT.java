@@ -541,6 +541,36 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFolderWithRootFolderNameInZipAndWithoutRootFolder() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setIncludeRootFolder(false);
+    zipParameters.setRootFolderNameInZip("root_folder_name");
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipContainsPath(fileHeaders, "root_folder_name/");
+    verifyAllFilesInZipDoesNotContainPath(fileHeaders, "root_folder_name/test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
+  }
+
+  @Test
+  public void testAddFolderWithRootFolderNameInZipAndWithRootFolder() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setIncludeRootFolder(true);
+    zipParameters.setRootFolderNameInZip("root_folder_name");
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+
+    List<FileHeader> fileHeaders = getFileHeaders(generatedZipFile);
+    verifyAllFilesInZipContainsPath(fileHeaders, "root_folder_name/");
+    verifyAllFilesInZipContainsPath(fileHeaders, "root_folder_name/test-files/");
+    verifyFoldersInZip(fileHeaders, generatedZipFile, PASSWORD);
+  }
+
+  @Test
   public void testAddFolderWithProgressMonitor() throws IOException, InterruptedException {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     ProgressMonitor progressMonitor = zipFile.getProgressMonitor();

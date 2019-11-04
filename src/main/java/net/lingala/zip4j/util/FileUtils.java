@@ -181,7 +181,8 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderPath) throws ZipException {
+  public static String getRelativeFileName(String file, String rootFolderPath, String rootFolderNameInZip)
+      throws ZipException {
 
     String fileName;
     try {
@@ -221,6 +222,15 @@ public class FileUtils {
       }
     } catch (IOException e) {
       throw new ZipException(e);
+    }
+
+    if (Zip4jUtil.isStringNotNullAndNotEmpty(rootFolderNameInZip)) {
+      if (!rootFolderNameInZip.endsWith("\\") && !rootFolderNameInZip.endsWith("/")) {
+        rootFolderNameInZip = rootFolderNameInZip + InternalZipConstants.FILE_SEPARATOR;
+      }
+
+      rootFolderNameInZip = rootFolderNameInZip.replaceAll("\\\\", "/");
+      fileName = rootFolderNameInZip + fileName;
     }
 
     return fileName;
