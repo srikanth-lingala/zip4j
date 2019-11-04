@@ -104,7 +104,7 @@ public class HeaderReader {
         != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= 3000);
 
     if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-      throw new ZipException("zip headers not found. probably not a zip file");
+      throw new ZipException("Zip headers not found. Probably not a zip file");
     }
 
     endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
