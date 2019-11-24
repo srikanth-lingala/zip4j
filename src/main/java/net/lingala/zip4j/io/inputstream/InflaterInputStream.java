@@ -65,7 +65,7 @@ public class InflaterInputStream extends DecompressedInputStream {
   private void fill() throws IOException {
     len = super.read(buff, 0, buff.length);
     if (len == -1) {
-      throw new EOFException("Unexpected end of ZLIB input stream");
+      throw new EOFException("Unexpected end of input stream");
     }
     inflater.setInput(buff, 0, len);
   }
