@@ -93,7 +93,7 @@ public class HeaderWriter {
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
 
       int extraFieldLength = 0;
-      if (zipModel.isZip64Format()) {
+      if (writeZip64Header) {
         extraFieldLength += ZIP64_EXTRA_DATA_RECORD_SIZE_LFH + 4; // 4 for signature + size of record
       }
       if (localFileHeader.getAesExtraDataRecord() != null) {
@@ -335,7 +335,6 @@ public class HeaderWriter {
 
     if (outputStream instanceof CountingOutputStream) {
       if (((CountingOutputStream) outputStream).checkBuffSizeAndStartNextSplitFile(buff.length)) {
-        //TODO check if this is correct
         finalizeZipFile(zipModel, outputStream, charset);
         return;
       }
