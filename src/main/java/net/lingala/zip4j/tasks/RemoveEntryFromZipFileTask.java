@@ -127,7 +127,7 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
     updateEndOfCentralDirectoryRecord(zipModel, splitOutputStream);
     zipModel.getCentralDirectory().getFileHeaders().remove(indexOfFileHeader);
     updateFileHeadersWithLocalHeaderOffsets(zipModel.getCentralDirectory().getFileHeaders(), offsetEndOfCompressedFile,
-        offsetLocalFileHeader, indexOfFileHeader);
+        offsetLocalFileHeader);
 
     HeaderWriter headerWriter = new HeaderWriter();
     headerWriter.finalizeZipFile(zipModel, splitOutputStream, charset);
@@ -145,14 +145,18 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
   }
 
   private void updateFileHeadersWithLocalHeaderOffsets(List<FileHeader> fileHeaders, long offsetEndOfCompressedFile,
-                                                       long offsetLocalFileHeader, int indexOfFileHeader) {
-    for (int i = indexOfFileHeader; i < fileHeaders.size(); i ++) {
+                                                       long offsetLocalFileHeader) {
+    for (int i = 0; i < fileHeaders.size(); i ++) {
       FileHeader fileHeader = fileHeaders.get(i);
       long offsetLocalHdr = fileHeader.getOffsetLocalHeader();
+
       if (fileHeader.getZip64ExtendedInfo() != null && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
         offsetLocalHdr = fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader();
       }
-      fileHeader.setOffsetLocalHeader(offsetLocalHdr - (offsetEndOfCompressedFile - offsetLocalFileHeader) - 1);
+
+      if (offsetLocalHdr > offsetLocalFileHeader) {
+        fileHeader.setOffsetLocalHeader(offsetLocalHdr - (offsetEndOfCompressedFile - offsetLocalFileHeader) - 1);
+      }
     }
   }
 
