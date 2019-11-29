@@ -202,7 +202,7 @@ public class HeaderWriter {
         writeZip64EndOfCentralDirectoryLocator(zipModel, byteArrayOutputStream, rawIO);
       }
 
-      writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO);
+      writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO, charset);
       writeZipHeaderBytes(zipModel, outputStream, byteArrayOutputStream.toByteArray(), charset);
     }
   }
@@ -236,7 +236,7 @@ public class HeaderWriter {
         writeZip64EndOfCentralDirectoryLocator(zipModel, byteArrayOutputStream, rawIO);
       }
 
-      writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO);
+      writeEndOfCentralDirectoryRecord(zipModel, sizeOfCentralDir, offsetCentralDir, byteArrayOutputStream, rawIO, charset);
       writeZipHeaderBytes(zipModel, outputStream, byteArrayOutputStream.toByteArray(), charset);
     }
   }
@@ -558,7 +558,7 @@ public class HeaderWriter {
   }
 
   private void writeEndOfCentralDirectoryRecord(ZipModel zipModel, int sizeOfCentralDir, long offsetCentralDir,
-                                                ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO)
+                                                ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO, Charset charset)
       throws IOException {
 
     byte[] longByte = new byte[8];
@@ -596,7 +596,7 @@ public class HeaderWriter {
 
     String comment = zipModel.getEndOfCentralDirectoryRecord().getComment();
     if (isStringNotNullAndNotEmpty(comment)) {
-      byte[] commentBytes = comment.getBytes(InternalZipConstants.CHARSET_UTF_8);
+      byte[] commentBytes = comment.getBytes(charset);
       rawIO.writeShortLittleEndian(byteArrayOutputStream, commentBytes.length);
       byteArrayOutputStream.write(commentBytes);
     } else {

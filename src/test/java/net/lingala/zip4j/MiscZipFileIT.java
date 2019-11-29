@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -245,6 +246,30 @@ public class MiscZipFileIT extends AbstractIT {
 
     zipFile = new ZipFile(generatedZipFile);
     assertThat(zipFile.getComment()).isEqualTo("SOME_COMMENT");
+  }
+
+  @Test
+  public void testSetCommentWithChineseCharacters() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setCharset(Charset.forName("GBK"));
+    zipFile.addFiles(FILES_TO_ADD);
+
+    zipFile.setComment("测试中文");
+
+    zipFile = new ZipFile(generatedZipFile);
+    zipFile.setCharset(Charset.forName("GBK"));
+    assertThat(zipFile.getComment()).isEqualTo("测试中文");
+  }
+
+  @Test
+  public void testSetCommentWithGermanCharacters() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFiles(FILES_TO_ADD);
+
+    zipFile.setComment("ÄÜÖÖÜSDSDS");
+
+    zipFile = new ZipFile(generatedZipFile);
+    assertThat(zipFile.getComment()).isEqualTo("ÄÜÖÖÜSDSDS");
   }
 
   @Test

@@ -33,7 +33,6 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
@@ -64,7 +63,7 @@ public class HeaderReader {
     zipModel = new ZipModel();
 
     try {
-      zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO));
+      zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO, charset));
     } catch (ZipException e){
       throw e;
     } catch (IOException e) {
@@ -89,7 +88,7 @@ public class HeaderReader {
     return zipModel;
   }
 
-  private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO)
+  private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset)
       throws IOException {
     long pos = zip4jRaf.length() - ENDHDR;
 
@@ -123,7 +122,7 @@ public class HeaderReader {
     if (commentLength > 0) {
       byte[] commentBuf = new byte[commentLength];
       zip4jRaf.readFully(commentBuf);
-      endOfCentralDirectoryRecord.setComment(new String(commentBuf, InternalZipConstants.CHARSET_UTF_8));
+      endOfCentralDirectoryRecord.setComment(new String(commentBuf, charset));
     } else {
       endOfCentralDirectoryRecord.setComment(null);
     }
