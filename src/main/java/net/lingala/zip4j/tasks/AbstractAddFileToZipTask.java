@@ -103,7 +103,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       //If an entry already exists, we have to remove that entry first and then add content again.
       //In this case, add corresponding work
       String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
-          zipParameters.getRootFolderNameInZip());
+          zipParameters.getRootFolderNameInZip(), zipParameters.getUseInputFolderPathInZip());
       FileHeader fileHeader = getFileHeader(getZipModel(), relativeFileName);
       if (fileHeader != null) {
         totalWork += (getZipModel().getZipFile().length() - fileHeader.getCompressedSize());
@@ -166,7 +166,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
       String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
-          zipParameters.getRootFolderNameInZip());
+          zipParameters.getRootFolderNameInZip(), zipParameters.getUseInputFolderPathInZip());
       clonedZipParameters.setFileNameInZip(relativeFileName);
     }
 
@@ -199,7 +199,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     for (File file : files) {
       String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters.getDefaultFolderPath(),
-          zipParameters.getRootFolderNameInZip());
+          zipParameters.getRootFolderNameInZip(), zipParameters.getUseInputFolderPathInZip());
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
       if (fileHeader != null) {

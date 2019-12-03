@@ -41,6 +41,7 @@ public class ZipParameters {
   private boolean writeExtendedLocalFileHeader = true;
   private boolean overrideExistingFilesInZip = true;
   private String rootFolderNameInZip;
+  private boolean useInputFolderPathInZip = false;
 
   public ZipParameters() {
   }
@@ -63,6 +64,7 @@ public class ZipParameters {
     this.writeExtendedLocalFileHeader = zipParameters.isWriteExtendedLocalFileHeader();
     this.overrideExistingFilesInZip = zipParameters.isOverrideExistingFilesInZip();
     this.rootFolderNameInZip = zipParameters.getRootFolderNameInZip();
+    this.useInputFolderPathInZip = zipParameters.getUseInputFolderPathInZip();
   }
 
   public CompressionMethod getCompressionMethod() {
@@ -207,5 +209,13 @@ public class ZipParameters {
 
   public void setRootFolderNameInZip(String rootFolderNameInZip) {
     this.rootFolderNameInZip = rootFolderNameInZip;
+  }
+
+  public boolean getUseInputFolderPathInZip() {
+    return useInputFolderPathInZip;
+  }
+
+  public void setUseInputFolderPathInZip(boolean useInputFolderPathInZip) {
+    this.useInputFolderPathInZip = useInputFolderPathInZip;
   }
 }

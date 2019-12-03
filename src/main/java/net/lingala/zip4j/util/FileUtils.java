@@ -181,7 +181,7 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderPath, String rootFolderNameInZip)
+  public static String getRelativeFileName(String file, String rootFolderPath, String rootFolderNameInZip, boolean useInputPathInZip)
       throws ZipException {
 
     String fileName;
@@ -214,10 +214,13 @@ public class FileUtils {
         fileName = tmpFileName;
       } else {
         File relFile = new File(fileCanonicalPath);
+        fileName = useInputPathInZip ? fileCanonicalPath : relFile.getName();
         if (relFile.isDirectory()) {
-          fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
-        } else {
-          fileName = relFile.getName();
+          fileName += ZIP_FILE_SEPARATOR;
+        }
+        if ((useInputPathInZip) &&
+            (fileName.startsWith("\\") || fileName.startsWith("/"))) {
+          fileName = fileName.substring(1);
         }
       }
     } catch (IOException e) {
