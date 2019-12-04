@@ -4,6 +4,7 @@ import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +25,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     this.localFileHeader = localFileHeader;
 
     if (getCompressionMethod(localFileHeader) == CompressionMethod.DEFLATE) {
-      lastReadRawDataCache = new byte[512];
+      lastReadRawDataCache = new byte[InternalZipConstants.BUFF_SIZE];
     }
   }
 

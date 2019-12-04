@@ -70,7 +70,7 @@ public class ZipInputStream extends InputStream {
       charset = InternalZipConstants.CHARSET_UTF_8;
     }
 
-    this.inputStream = new PushbackInputStream(inputStream, 512);
+    this.inputStream = new PushbackInputStream(inputStream, InternalZipConstants.BUFF_SIZE);
     this.password = password;
     this.charset = charset;
   }

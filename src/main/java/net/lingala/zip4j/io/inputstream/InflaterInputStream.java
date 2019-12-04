@@ -1,5 +1,7 @@
 package net.lingala.zip4j.io.inputstream;
 
+import net.lingala.zip4j.util.InternalZipConstants;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.PushbackInputStream;
@@ -16,7 +18,7 @@ public class InflaterInputStream extends DecompressedInputStream {
   public InflaterInputStream(CipherInputStream cipherInputStream) {
     super(cipherInputStream);
     this.inflater = new Inflater(true);
-    buff = new byte[512];
+    buff = new byte[InternalZipConstants.BUFF_SIZE];
   }
 
   @Override

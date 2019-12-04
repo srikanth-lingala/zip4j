@@ -280,7 +280,7 @@ public class ZipFile {
 
     assertFilesExist(filesToAdd);
 
-    checkZipModel();
+    readZipInfo();
 
     if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
@@ -350,7 +350,7 @@ public class ZipFile {
    */
   private void addFolder(File folderToAdd, ZipParameters zipParameters, boolean checkSplitArchive) throws ZipException {
 
-    checkZipModel();
+    readZipInfo();
 
     if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
@@ -389,7 +389,7 @@ public class ZipFile {
 
     this.setRunInThread(false);
 
-    checkZipModel();
+    readZipInfo();
 
     if (zipModel == null) {
       throw new ZipException("internal error: zip model is null");
@@ -696,7 +696,7 @@ public class ZipFile {
       throw new ZipException("output Zip File already exists");
     }
 
-    checkZipModel();
+    readZipInfo();
 
     if (this.zipModel == null) {
       throw new ZipException("zip model is null, corrupt zip file?");
@@ -746,7 +746,7 @@ public class ZipFile {
       throw new ZipException("zip file does not exist, cannot read comment");
     }
 
-    checkZipModel();
+    readZipInfo();
 
     if (zipModel == null) {
       throw new ZipException("zip model is null, cannot read comment");
@@ -773,7 +773,7 @@ public class ZipFile {
       throw new ZipException("FileHeader is null, cannot get InputStream");
     }
 
-    checkZipModel();
+    readZipInfo();
 
     if (zipModel == null) {
       throw new ZipException("zip model is null, cannot get inputstream");
@@ -813,7 +813,7 @@ public class ZipFile {
    * @throws ZipException
    */
   public List<File> getSplitZipFiles() throws ZipException {
-    checkZipModel();
+    readZipInfo();
     return FileUtils.getSplitZipFiles(zipModel);
   }
 
@@ -827,12 +827,16 @@ public class ZipFile {
 
   /**
    * Reads the zip header information for this zip file. If the zip file
-   * does not exist, then this method throws an exception.<br><br>
+   * does not exist, it creates an empty zip model.<br><br>
    * <b>Note:</b> This method does not read local file header information
    *
    * @throws ZipException
    */
   private void readZipInfo() throws ZipException {
+    if (zipModel != null) {
+      return;
+    }
+
     if (!zipFile.exists()) {
       createNewZipModel();
       return;
@@ -850,17 +854,6 @@ public class ZipFile {
       throw e;
     } catch (IOException e) {
       throw new ZipException(e);
-    }
-  }
-
-  /**
-   * Loads the zip model if zip model is null and if zip file exists.
-   *
-   * @throws ZipException
-   */
-  private void checkZipModel() throws ZipException {
-    if (zipModel == null) {
-      readZipInfo();
     }
   }
 
