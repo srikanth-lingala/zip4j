@@ -76,6 +76,10 @@ public class HeaderReader {
       throw new ZipException("Zip headers not found. Probably not a zip file or a corrupted zip file", e);
     }
 
+    if (zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory() == 0) {
+      return zipModel;
+    }
+
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory
     zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndOfCentralDirectoryLocator(zip4jRaf, rawIO));
 
