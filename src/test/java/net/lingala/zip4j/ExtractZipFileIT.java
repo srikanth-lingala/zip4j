@@ -366,6 +366,16 @@ public class ExtractZipFileIT extends AbstractIT {
     testExtractNestedZipFileWithEncrpytion(EncryptionMethod.AES, EncryptionMethod.ZIP_STANDARD);
   }
 
+  @Test
+  public void testExtractZipFileLessThanMinimumExpectedZipFileSizeThrowsException() throws IOException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Zip file size less than minimum expected zip file size. " +
+        "Probably not a zip file or a corrupted zip file");
+
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("invalid_zip_file_size_less_than_22kb.zip"));
+    zipFile.extractAll(temporaryFolder.toString());
+  }
+
   private void testExtractNestedZipFileWithEncrpytion(EncryptionMethod innerZipEncryption,
                                                        EncryptionMethod outerZipEncryption) throws IOException {
     File innerZipFile = temporaryFolder.newFile("inner.zip");
