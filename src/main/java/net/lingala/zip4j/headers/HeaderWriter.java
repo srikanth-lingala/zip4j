@@ -20,6 +20,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
@@ -435,13 +436,7 @@ public class HeaderWriter {
         System.arraycopy(longBuff, 0, offsetLocalHeaderBytes, 0, 4);
       }
 
-      int extraFieldLength = 0;
-      if (writeZip64ExtendedInfo) {
-        extraFieldLength += ZIP64_EXTRA_DATA_RECORD_SIZE_FH + 4; // 4 for signature + size of record
-      }
-      if (fileHeader.getAesExtraDataRecord() != null) {
-        extraFieldLength += AES_EXTRA_DATA_RECORD_SIZE;
-      }
+      int extraFieldLength = calculateExtraDataRecordsSize(fileHeader, writeZip64ExtendedInfo);
       rawIO.writeShortLittleEndian(byteArrayOutputStream, extraFieldLength);
 
       String fileComment = fileHeader.getFileComment();
@@ -496,11 +491,55 @@ public class HeaderWriter {
         rawIO.writeShortLittleEndian(byteArrayOutputStream, aesExtraDataRecord.getCompressionMethod().getCode());
       }
 
+      writeRemainingExtraDataRecordsIfPresent(fileHeader, byteArrayOutputStream);
+
       if (fileCommentBytes.length > 0) {
         byteArrayOutputStream.write(fileCommentBytes);
       }
     } catch (Exception e) {
       throw new ZipException(e);
+    }
+  }
+
+  private int calculateExtraDataRecordsSize(FileHeader fileHeader, boolean writeZip64ExtendedInfo) throws IOException {
+    int extraFieldLength = 0;
+
+    if (writeZip64ExtendedInfo) {
+      extraFieldLength += ZIP64_EXTRA_DATA_RECORD_SIZE_FH + 4; // 4 for signature + size of record
+    }
+
+    if (fileHeader.getAesExtraDataRecord() != null) {
+      extraFieldLength += AES_EXTRA_DATA_RECORD_SIZE;
+    }
+
+    if (fileHeader.getExtraDataRecords() != null) {
+      for (ExtraDataRecord extraDataRecord : fileHeader.getExtraDataRecords()) {
+        if (extraDataRecord.getHeader() == HeaderSignature.AES_EXTRA_DATA_RECORD.getValue()
+            || extraDataRecord.getHeader() == HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue()) {
+          continue;
+        }
+
+        extraFieldLength += 4 + extraDataRecord.getSizeOfData(); // 4  = 2 for header + 2 for size of data
+      }
+    }
+
+    return extraFieldLength;
+  }
+
+  private void writeRemainingExtraDataRecordsIfPresent(FileHeader fileHeader, OutputStream outputStream) throws IOException {
+    if (fileHeader.getExtraDataRecords() == null || fileHeader.getExtraDataRecords().size() == 0) {
+      return;
+    }
+
+    for (ExtraDataRecord extraDataRecord : fileHeader.getExtraDataRecords()) {
+      if (extraDataRecord.getHeader() == HeaderSignature.AES_EXTRA_DATA_RECORD.getValue()
+            || extraDataRecord.getHeader() == HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE.getValue()) {
+        continue;
+      }
+
+      rawIO.writeShortLittleEndian(outputStream, (int) extraDataRecord.getHeader());
+      rawIO.writeShortLittleEndian(outputStream, extraDataRecord.getSizeOfData());
+      outputStream.write(extraDataRecord.getData());
     }
   }
 
