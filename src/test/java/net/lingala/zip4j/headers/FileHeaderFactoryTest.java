@@ -271,6 +271,7 @@ public class FileHeaderFactoryTest {
     fileHeader.setCompressedSize(23523L);
     fileHeader.setGeneralPurposeFlag(new byte[] {2, 28});
     fileHeader.setDataDescriptorExists(true);
+    fileHeader.setExtraFieldLength(190);
     return fileHeader;
   }
 
@@ -300,6 +301,7 @@ public class FileHeaderFactoryTest {
     verifyCrc(fileHeader);
     assertThat(fileHeader.isDataDescriptorExists()).isEqualTo(zipParameters.isWriteExtendedLocalFileHeader());
     assertThat(fileHeader.getAesExtraDataRecord() != null).isEqualTo(aesExtraDataRecordPresent);
+    assertThat(fileHeader.getExtraFieldLength()).isEqualTo(aesExtraDataRecordPresent ? InternalZipConstants.AES_EXTRA_DATA_RECORD_SIZE : 0);
   }
 
   private void verifyLocalFileHeader(LocalFileHeader localFileHeader, long lastModifiedFileTime) {
@@ -317,6 +319,7 @@ public class FileHeaderFactoryTest {
     assertThat(localFileHeader.getCompressedSize()).isEqualTo(23523L);
     assertThat(localFileHeader.getGeneralPurposeFlag()).containsExactly(2, 28);
     assertThat(localFileHeader.isDataDescriptorExists()).isTrue();
+    assertThat(localFileHeader.getExtraFieldLength()).isEqualTo(190);
   }
 
   private void verifyCompressionMethod(FileHeader fileHeader, ZipParameters zipParameters) {

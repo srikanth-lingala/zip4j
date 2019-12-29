@@ -31,6 +31,7 @@ public class FileHeaderFactory {
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
       fileHeader.setCompressionMethod(CompressionMethod.AES_INTERNAL_ONLY);
       fileHeader.setAesExtraDataRecord(generateAESExtraDataRecord(zipParameters));
+      fileHeader.setExtraFieldLength(fileHeader.getExtraFieldLength() + InternalZipConstants.AES_EXTRA_DATA_RECORD_SIZE);
     } else {
       fileHeader.setCompressionMethod(zipParameters.getCompressionMethod());
     }
@@ -91,6 +92,7 @@ public class FileHeaderFactory {
     localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
     localFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
     localFileHeader.setDataDescriptorExists(fileHeader.isDataDescriptorExists());
+    localFileHeader.setExtraFieldLength(fileHeader.getExtraFieldLength());
     return localFileHeader;
   }
 

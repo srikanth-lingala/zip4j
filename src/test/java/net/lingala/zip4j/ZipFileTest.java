@@ -447,6 +447,76 @@ public class ZipFileTest {
   }
 
   @Test
+  public void testRenameFileWithFileHeaderThrowsExceptionWhenHeaderIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("File header is null");
+
+    zipFile.renameFile((FileHeader) null, "somename");
+  }
+
+  @Test
+  public void testRenameFileWithFileHeaderThrowsExceptionWhenNewFileNameIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("File header is null");
+
+    FileHeader fileHeader = new FileHeader();
+    fileHeader.setFileName("somename");
+
+    zipFile.renameFile(fileHeader, null);
+  }
+
+  @Test
+  public void testRenameFileWithFileHeaderThrowsExceptionWhenNewFileNameIsEmpty() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("File header is null");
+
+    FileHeader fileHeader = new FileHeader();
+    fileHeader.setFileName("somename");
+
+    zipFile.renameFile(fileHeader, "");
+  }
+
+  @Test
+  public void testRenameFileWithFileNameThrowsExceptionWhenFileNameToBeChangedIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("file name to be changed is null or empty");
+
+    zipFile.renameFile((String) null, "somename");
+  }
+
+  @Test
+  public void testRenameFileWithFileNameThrowsExceptionWhenFileNameToBeChangedIsEmpty() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("file name to be changed is null or empty");
+
+    zipFile.renameFile("", "somename");
+  }
+
+  @Test
+  public void testRenameFileWithFileNameThrowsExceptionWhenNewFileNameIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("newFileName is null or empty");
+
+    zipFile.renameFile("Somename", null);
+  }
+
+  @Test
+  public void testRenameFileWithFileNameThrowsExceptionWhenNewFileNameIsEmpty() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("newFileName is null or empty");
+
+    zipFile.renameFile("Somename", "   ");
+  }
+
+  @Test
+  public void testRenameFileWithMapThrowsExceptionWhenMapIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("fileNamesMap is null");
+
+    zipFile.renameFiles(null);
+  }
+
+  @Test
   public void testMergeSplitFilesWhenOutputFileIsNullThrowsException() throws ZipException {
     expectedException.expectMessage("outputZipFile is null, cannot merge split files");
     expectedException.expect(ZipException.class);

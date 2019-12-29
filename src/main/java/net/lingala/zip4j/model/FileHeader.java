@@ -87,4 +87,9 @@ public class FileHeader extends AbstractFileHeader {
   public void setFileComment(String fileComment) {
     this.fileComment = fileComment;
   }
+
+  @Override
+  public String toString() {
+    return getFileName();
+  }
 }

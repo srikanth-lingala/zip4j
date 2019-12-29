@@ -42,9 +42,12 @@ import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
+import net.lingala.zip4j.tasks.RenameFileTask;
+import net.lingala.zip4j.tasks.RenameFileTask.RenameFileTaskParameters;
 import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
+import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
@@ -54,6 +57,7 @@ import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -686,6 +690,52 @@ public class ZipFile {
 
     new RemoveEntryFromZipFileTask(zipModel, buildAsyncParameters()).execute(
             new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+  }
+
+  /**
+   * Renames the current entry
+   * @param fileHeader
+   * @param newFileName
+   * @throws ZipException
+   */
+  public void renameFile(FileHeader fileHeader, String newFileName) throws ZipException {
+    if (fileHeader == null) {
+      throw new ZipException("File header is null");
+    }
+
+    renameFile(fileHeader.getFileName(), newFileName);
+  }
+
+  public void renameFile(String fileNameToRename, String newFileName) throws ZipException {
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileNameToRename)) {
+      throw new ZipException("file name to be changed is null or empty");
+    }
+
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
+      throw new ZipException("newFileName is null or empty");
+    }
+
+    renameFiles(Collections.singletonMap(fileNameToRename, newFileName));
+  }
+
+  public void renameFiles(Map<String, String> fileNamesMap) throws ZipException {
+    if (fileNamesMap == null) {
+      throw new ZipException("fileNamesMap is null");
+    }
+
+    if (fileNamesMap.size() == 0) {
+      return;
+    }
+
+    readZipInfo();
+
+    if (zipModel.isSplitArchive()) {
+      throw new ZipException("Zip file format does not allow updating split/spanned files");
+    }
+
+    AsyncZipTask.AsyncTaskParameters asyncTaskParameters = buildAsyncParameters();
+    new RenameFileTask(zipModel, headerWriter, new RawIO(), charset, asyncTaskParameters).execute(
+        new RenameFileTaskParameters(fileNamesMap));
   }
 
   /**
