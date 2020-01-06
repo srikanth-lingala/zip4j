@@ -110,17 +110,18 @@ public class FileHeaderFactory {
       firstByte = setBit(firstByte, 0);
     }
 
-    if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
-      if (zipParameters.getCompressionLevel() == CompressionLevel.NORMAL) {
+    if (CompressionMethod.DEFLATE.equals(zipParameters.getCompressionMethod())) {
+      if (CompressionLevel.NORMAL.equals(zipParameters.getCompressionLevel())) {
         firstByte = unsetBit(firstByte, 1);
         firstByte = unsetBit(firstByte, 2);
-      } else if (zipParameters.getCompressionLevel() == CompressionLevel.MAXIMUM) {
+      } else if (CompressionLevel.MAXIMUM.equals(zipParameters.getCompressionLevel())) {
         firstByte = setBit(firstByte, 1);
         firstByte = unsetBit(firstByte, 2);
-      } else if (zipParameters.getCompressionLevel() == CompressionLevel.FAST) {
+      } else if (CompressionLevel.FAST.equals(zipParameters.getCompressionLevel())) {
         firstByte = unsetBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
-      } else if (zipParameters.getCompressionLevel() == CompressionLevel.FASTEST) {
+      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())
+          || CompressionLevel.ULTRA.equals(zipParameters.getCompressionLevel())) {
         firstByte = setBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
       }

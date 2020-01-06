@@ -189,6 +189,16 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
+  public void testGenerateFileHeaderWithCompressionLeveUltra() throws ZipException {
+    ZipParameters zipParameters = generateZipParameters();
+    zipParameters.setCompressionLevel(CompressionLevel.ULTRA);
+
+    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8);
+
+    verifyCompressionLevelGridForDeflate(CompressionLevel.ULTRA, fileHeader.getGeneralPurposeFlag()[0]);
+  }
+
+  @Test
   public void testGenerateFileHeaderWithCompressionLevelMaximum() throws ZipException {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.MAXIMUM);
@@ -343,18 +353,21 @@ public class FileHeaderFactoryTest {
 
   private void verifyCompressionLevelGridForDeflate(CompressionLevel compressionLevel,
                                                     byte firstByteOfGeneralPurposeBytes) {
-    if (compressionLevel == CompressionLevel.NORMAL) {
+    if (CompressionLevel.NORMAL.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isFalse();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isFalse();
-    } else if (compressionLevel == CompressionLevel.MAXIMUM) {
+    } else if (CompressionLevel.MAXIMUM.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isTrue();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isFalse();
-    } else if (compressionLevel == CompressionLevel.FAST) {
+    } else if (CompressionLevel.FAST.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isFalse();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
-    } else if (compressionLevel == CompressionLevel.FASTEST) {
+    } else if (CompressionLevel.FASTEST.equals(compressionLevel)
+        || CompressionLevel.ULTRA.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isTrue();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
+    } else {
+      throw new RuntimeException("Invalid compression level");
     }
   }
 

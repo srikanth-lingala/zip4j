@@ -307,7 +307,7 @@ public class ExtractZipFileIT extends AbstractIT {
 
   @Test
   public void testExtractZipFileWithChineseCharsetGBK() throws IOException {
-    String expactedFileName = "fff - 副本.txt";
+    String expectedFileName = "fff - 副本.txt";
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
 
     zipFile.setCharset(CHARSET_GBK);
@@ -316,7 +316,7 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(zipFile.getFileHeaders()).hasSize(2);
     Set<String> filenameSet = new HashSet<>();
     Files.walk(outputFolder.toPath()).forEach(file -> filenameSet.add(file.getFileName().toString()));
-    assertThat(filenameSet.contains(expactedFileName)).isTrue();
+    assertThat(filenameSet.contains(expectedFileName)).isTrue();
   }
 
   @Test
