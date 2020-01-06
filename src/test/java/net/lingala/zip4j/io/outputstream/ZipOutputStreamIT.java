@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,6 +121,52 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testAddCommentToEntryWithUtf8Charset() throws IOException {
+    testAddCommentToEntryWithCharset(StandardCharsets.UTF_8, "COMMENT_");
+  }
+
+  @Test
+  public void testAddCommentToEntryWithNullCharset() throws IOException {
+    testAddCommentToEntryWithCharset(null, "COMMENT_ÜÖ_");
+  }
+
+  @Test
+  public void testAddCommentToEntryWithGBKCharset() throws IOException {
+    testAddCommentToEntryWithCharset(Charset.forName("GBK"), "fff - 副本");
+  }
+
+  @Test
+  public void testAddCommentToZipOutputStreamWithUtf8Charset() throws IOException {
+    testAddCommentToZipOutputStreamWithCharset(StandardCharsets.UTF_8, "SOME_COMMENT");
+  }
+
+  @Test
+  public void testAddCommentToZipOutputStreamWithNullCharsetUsesUtf8() throws IOException {
+    testAddCommentToZipOutputStreamWithCharset(null, "SOME_COMMENT_WITH_NO_CHARSET");
+  }
+
+  @Test
+  public void testAddCommentToZipOutputStreamWithGBKCharset() throws IOException {
+    testAddCommentToZipOutputStreamWithCharset(Charset.forName("GBK"), "fff - 副本");
+  }
+
+  @Test
+  public void testAddCommentToZipOutputStreamAfterClosingThrowsException() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Stream is closed");
+
+    ZipParameters zipParameters = new ZipParameters();
+    ZipOutputStream zos = initializeZipOutputStream(false, InternalZipConstants.CHARSET_UTF_8);
+    for (File fileToAdd : FILES_TO_ADD) {
+      zipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zos.putNextEntry(zipParameters);
+    }
+    zos.close();
+    zos.setComment("SOME_COMMENT");
+  }
+
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion)
@@ -170,6 +217,65 @@ public class ZipOutputStreamIT extends AbstractIT {
     verifyEntries();
   }
 
+  private void testAddCommentToEntryWithCharset(Charset charset, String fileCommentPrefix) throws IOException {
+    ZipParameters zipParameters = new ZipParameters();
+    byte[] buff = new byte[4096];
+    int readLen;
+
+    List<File> filesToAdd = FILES_TO_ADD;
+    try(ZipOutputStream zos = initializeZipOutputStream(false, charset)) {
+      for (int i = 0; i < filesToAdd.size(); i++) {
+        File fileToAdd = filesToAdd.get(i);
+        zipParameters.setFileNameInZip(fileToAdd.getName());
+
+        if (i == 0) {
+          zipParameters.setFileComment(fileCommentPrefix + i);
+        } else {
+          zipParameters.setFileComment(null);
+        }
+
+        zos.putNextEntry(zipParameters);
+
+        try(InputStream inputStream = new FileInputStream(fileToAdd)) {
+          while ((readLen = inputStream.read(buff)) != -1) {
+            zos.write(buff, 0, readLen);
+          }
+        }
+        zos.closeEntry();
+      }
+    }
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, filesToAdd.size(), true, charset);
+    verifyEntries();
+    verifyFileEntryComment(fileCommentPrefix, charset);
+  }
+
+  private void testAddCommentToZipOutputStreamWithCharset(Charset charset, String comment) throws IOException {
+    ZipParameters zipParameters = new ZipParameters();
+    byte[] buff = new byte[4096];
+    int readLen;
+
+    List<File> filesToAdd = FILES_TO_ADD;
+    try(ZipOutputStream zos = initializeZipOutputStream(false, charset)) {
+      for (int i = 0; i < filesToAdd.size(); i++) {
+        File fileToAdd = filesToAdd.get(i);
+        zipParameters.setFileNameInZip(fileToAdd.getName());
+
+        zos.putNextEntry(zipParameters);
+
+        try(InputStream inputStream = new FileInputStream(fileToAdd)) {
+          while ((readLen = inputStream.read(buff)) != -1) {
+            zos.write(buff, 0, readLen);
+          }
+        }
+        zos.closeEntry();
+      }
+      zos.setComment(comment);
+    }
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, filesToAdd.size(), true, charset);
+    verifyEntries();
+    verifyZipComment(comment, charset);
+  }
+
   private void verifyEntries() throws ZipException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     for (FileHeader fileHeader : zipFile.getFileHeaders()) {
@@ -206,5 +312,33 @@ public class ZipOutputStreamIT extends AbstractIT {
     zipParameters.setAesKeyStrength(aesKeyStrength);
     zipParameters.setEncryptFiles(encrypt);
     return zipParameters;
+  }
+
+  private void verifyFileEntryComment(String commentPrefix, Charset charset) throws IOException {
+    ZipFile zipFile = initializeZipFileWithCharset(charset);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    for (int i = 0; i < fileHeaders.size(); i++) {
+      FileHeader fileHeader = fileHeaders.get(i);
+      if (i == 0) {
+        assertThat(fileHeader.getFileComment()).isEqualTo(commentPrefix + i);
+      } else {
+        assertThat(fileHeader.getFileComment()).isNull();
+      }
+    }
+  }
+
+  private void verifyZipComment(String expectedComment, Charset charset) throws IOException {
+    ZipFile zipFile = initializeZipFileWithCharset(charset);
+    assertThat(zipFile.getComment()).isEqualTo(expectedComment);
+  }
+
+  private ZipFile initializeZipFileWithCharset(Charset charset) {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    if (charset != null) {
+      zipFile.setCharset(charset);
+    }
+
+    return zipFile;
   }
 }

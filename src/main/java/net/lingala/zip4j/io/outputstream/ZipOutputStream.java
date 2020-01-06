@@ -33,6 +33,7 @@ public class ZipOutputStream extends OutputStream {
   private RawIO rawIO = new RawIO();
   private long uncompressedSizeForThisEntry = 0;
   private Charset charset;
+  private boolean streamClosed;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
     this(outputStream, null, InternalZipConstants.CHARSET_UTF_8);
@@ -59,6 +60,7 @@ public class ZipOutputStream extends OutputStream {
     this.password = password;
     this.charset = charset;
     this.zipModel = initializeZipModel(zipModel, countingOutputStream);
+    this.streamClosed = false;
     writeSplitZipHeaderIfApplicable();
   }
 
@@ -81,6 +83,7 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public void write(byte[] b, int off, int len) throws IOException {
+    ensureStreamOpen();
     crc32.update(b, off, len);
     compressedOutputStream.write(b, off, len);
     uncompressedSizeForThisEntry += len;
@@ -116,6 +119,18 @@ public class ZipOutputStream extends OutputStream {
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
     headerWriter.finalizeZipFile(zipModel, countingOutputStream, charset);
     countingOutputStream.close();
+    this.streamClosed = true;
+  }
+
+  public void setComment(String comment) throws IOException {
+    ensureStreamOpen();
+    zipModel.getEndOfCentralDirectoryRecord().setComment(comment);
+  }
+
+  private void ensureStreamOpen() throws IOException {
+    if (streamClosed) {
+      throw new IOException("Stream is closed");
+    }
   }
 
   private ZipModel initializeZipModel(ZipModel zipModel, CountingOutputStream countingOutputStream) {

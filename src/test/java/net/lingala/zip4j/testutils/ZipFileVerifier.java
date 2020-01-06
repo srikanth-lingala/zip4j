@@ -39,7 +39,11 @@ public class ZipFileVerifier {
     assertThat(zipFileToExtract).exists();
 
     ZipFile zipFile = new ZipFile(zipFileToExtract, password);
-    zipFile.setCharset(charset);
+
+    if (charset != null) {
+      zipFile.setCharset(charset);
+    }
+
     zipFile.extractAll(outputFolder.getPath());
     assertThat(zipFile.getFileHeaders().size()).as("Number of file headers").isEqualTo(expectedNumberOfEntries);
 

@@ -71,6 +71,7 @@ public class FileHeaderFactory {
 
     fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters, charset));
     fileHeader.setDataDescriptorExists(zipParameters.isWriteExtendedLocalFileHeader());
+    fileHeader.setFileComment(zipParameters.getFileComment());
     return fileHeader;
   }
 

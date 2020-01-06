@@ -19,6 +19,8 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -251,6 +253,38 @@ public class CreateZipFileIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
   }
 
+  @Test
+  public void testAddFileWithFileEntryCommentAndUtf8Charset() throws IOException {
+    testCreateZipFileWithFileEntryComment("FILE_COMMET_", StandardCharsets.UTF_8);
+  }
+
+  @Test
+  public void testAddFileWithFileEntryCommentAndNullCharsetUsesUtf8() throws IOException {
+    testCreateZipFileWithFileEntryComment("FILE_COMMET_", null);
+  }
+
+  @Test
+  public void testAddFileWithFileEntryCommentAndGBKCharset() throws IOException {
+    testCreateZipFileWithFileEntryComment("测试中文_", Charset.forName("GBK"));
+  }
+
+  private void testCreateZipFileWithFileEntryComment(String fileCommentPrefix, Charset charset) throws IOException {
+    ZipParameters zipParameters = new ZipParameters();
+    ZipFile zipFile = initializeZipFileWithCharset(charset);
+
+    for (int i = 0; i < FILES_TO_ADD.size(); i++) {
+      if (i == 0) {
+        zipParameters.setFileComment(fileCommentPrefix + i);
+      } else {
+        zipParameters.setFileComment(null);
+      }
+      zipFile.addFile(FILES_TO_ADD.get(i), zipParameters);
+    }
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, FILES_TO_ADD.size());
+    verifyFileEntryComment(fileCommentPrefix, charset);
+  }
+
   private void verifySplitZip(File zipFile, int numberOfExpectedSplitFiles, long splitLength) throws ZipException {
     assertNumberOfSplitFile(zipFile, numberOfExpectedSplitFiles);
     assertSplitFileSizes(zipFile, numberOfExpectedSplitFiles, splitLength);
@@ -307,5 +341,28 @@ public class CreateZipFileIT extends AbstractIT {
   private File[] getAllSplitZipFilesInFolder(File folder, String fileNameWithoutExtension) {
     FilenameFilter filenameFilter = (dir, name) -> name.contains(fileNameWithoutExtension + ".");
     return folder.listFiles(filenameFilter);
+  }
+
+  private void verifyFileEntryComment(String commentPrefix, Charset charset) throws IOException {
+    ZipFile zipFile = initializeZipFileWithCharset(charset);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    for (int i = 0; i < fileHeaders.size(); i++) {
+      FileHeader fileHeader = fileHeaders.get(i);
+      if (i == 0) {
+        assertThat(fileHeader.getFileComment()).isEqualTo(commentPrefix + i);
+      } else {
+        assertThat(fileHeader.getFileComment()).isNull();
+      }
+    }
+  }
+
+  private ZipFile initializeZipFileWithCharset(Charset charset) {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    if (charset != null) {
+      zipFile.setCharset(charset);
+    }
+
+    return zipFile;
   }
 }
