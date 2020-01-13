@@ -4,6 +4,7 @@ import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
@@ -53,6 +54,14 @@ public class InflaterInputStream extends DecompressedInputStream {
     } catch (DataFormatException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public void endOfEntryReached(InputStream inputStream) throws IOException {
+    if (inflater != null) {
+      inflater.end();
+    }
+    super.endOfEntryReached(inputStream);
   }
 
   @Override
