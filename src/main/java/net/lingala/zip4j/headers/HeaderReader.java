@@ -478,8 +478,7 @@ public class HeaderReader {
   }
 
   private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO,
-                                                  long uncompressedSize, long compressedSize, long offsetLocalHeader)
-      throws ZipException {
+                                                  long uncompressedSize, long compressedSize, long offsetLocalHeader) {
 
     for (ExtraDataRecord extraDataRecord : extraDataRecords) {
       if (extraDataRecord == null) {
@@ -492,7 +491,7 @@ public class HeaderReader {
         byte[] extraData = extraDataRecord.getData();
 
         if (extraDataRecord.getSizeOfData() <= 0) {
-          throw new ZipException("No data present for Zip64Extended info");
+          return null;
         }
 
         int counter = 0;
