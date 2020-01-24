@@ -436,6 +436,21 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testZipSlipFixWithFileNameStartingWithParentDirectoryThrowsException() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("../somename.pdf");
+    zipFile.addFile(FILES_TO_ADD.get(0), zipParameters);
+
+    expectedException.expectMessage("illegal file name that breaks out of the target directory");
+    expectedException.expect(ZipException.class);
+
+    // Important here is that the name of the file in zip ("somename.pdf") should start with the
+    // name of the directory being extracted to ("some"). "somename.pdf" starts with "some".
+    zipFile.extractAll(outputFolder.getPath() + File.separator + "some");
+  }
+
+  @Test
   public void testUnzipFileZipSlipWithNotNormalizedTarget() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD);
