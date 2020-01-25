@@ -382,6 +382,13 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
     assertThat(outputFolder.listFiles()).isEmpty();
   }
+  
+  @Test
+  public void testExtractZipFileCRCError() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("website_template.zip"));
+    zipFile.extractAll(outputFolder.getPath());
+    assertThat(outputFolder.listFiles()).isEmpty();
+  }
 
   private void testExtractNestedZipFileWithEncrpytion(EncryptionMethod innerZipEncryption,
                                                        EncryptionMethod outerZipEncryption) throws IOException {
