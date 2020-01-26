@@ -61,7 +61,7 @@ once again, and makes me support Zip4j as much as I can.
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.1</version>
 </dependency>
 ~~~~
 
