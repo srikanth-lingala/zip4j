@@ -295,12 +295,7 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
-    long compressedSize = localFileHeader.getCompressedSize();
-    if (localFileHeader.getZip64ExtendedInfo() != null) {
-      compressedSize = localFileHeader.getZip64ExtendedInfo().getCompressedSize();
-    }
-
-    return compressedSize - getEncryptionHeaderSize(localFileHeader);
+    return localFileHeader.getCompressedSize() - getEncryptionHeaderSize(localFileHeader);
   }
 
   private int getEncryptionHeaderSize(LocalFileHeader localFileHeader) {

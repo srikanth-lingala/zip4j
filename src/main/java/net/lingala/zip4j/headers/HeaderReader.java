@@ -47,6 +47,7 @@ import java.util.List;
 import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
 import static net.lingala.zip4j.util.Zip4jUtil.readFully;
 
@@ -510,7 +511,7 @@ public class HeaderReader {
           counter += 8;
         }
 
-        if (counter < extraDataRecord.getSizeOfData()) {
+        if (counter < extraDataRecord.getSizeOfData() && offsetLocalHeader == ZIP_64_NUMBER_OF_ENTRIES_LIMIT) {
           zip64ExtendedInfo.setDiskNumberStart(rawIO.readIntLittleEndian(extraData, counter));
         }
 
