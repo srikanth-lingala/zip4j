@@ -37,6 +37,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExtension;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
@@ -48,6 +49,7 @@ public class HeaderWriter {
 
   private RawIO rawIO = new RawIO();
   private byte[] longBuff = new byte[8];
+  private byte[] intBuff = new byte[4];
 
   public void writeLocalFileHeader(ZipModel zipModel, LocalFileHeader localFileHeader, OutputStream outputStream,
                                    Charset charset) throws IOException {
@@ -389,11 +391,7 @@ public class HeaderWriter {
 
     try {
       final byte[] emptyShortByte = {0, 0};
-      boolean writeZip64ExtendedInfo = false;
-
-      if (isZip64Entry(fileHeader)) {
-        writeZip64ExtendedInfo = true;
-      }
+      boolean writeZip64ExtendedInfo = isZip64Entry(fileHeader);
 
       rawIO.writeIntLittleEndian(byteArrayOutputStream, (int) fileHeader.getSignature().getValue());
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getVersionMadeBy());
@@ -446,10 +444,13 @@ public class HeaderWriter {
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileCommentBytes.length);
 
-      //Skip disk number start for now
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getDiskNumberStart());
+      if (writeZip64ExtendedInfo) {
+        rawIO.writeIntLittleEndian(intBuff, 0, ZIP_64_NUMBER_OF_ENTRIES_LIMIT);
+        byteArrayOutputStream.write(intBuff, 0, 2);
+      } else {
+        rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getDiskNumberStart());
+      }
 
-      //Skip internal file attributes for now
       byteArrayOutputStream.write(emptyShortByte);
 
       //External file attributes
@@ -660,6 +661,7 @@ public class HeaderWriter {
   private boolean isZip64Entry(FileHeader fileHeader) {
     return fileHeader.getCompressedSize() >= ZIP_64_SIZE_LIMIT
         || fileHeader.getUncompressedSize() >= ZIP_64_SIZE_LIMIT
-        || fileHeader.getOffsetLocalHeader() >= ZIP_64_SIZE_LIMIT;
+        || fileHeader.getOffsetLocalHeader() >= ZIP_64_SIZE_LIMIT
+        || fileHeader.getDiskNumberStart() >= ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
   }
 }

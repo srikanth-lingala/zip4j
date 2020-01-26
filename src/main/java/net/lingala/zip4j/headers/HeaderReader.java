@@ -426,7 +426,8 @@ public class HeaderReader {
     }
 
     Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(fileHeader.getExtraDataRecords(), rawIO,
-        fileHeader.getUncompressedSize(), fileHeader.getCompressedSize(), fileHeader.getOffsetLocalHeader());
+        fileHeader.getUncompressedSize(), fileHeader.getCompressedSize(), fileHeader.getOffsetLocalHeader(),
+        fileHeader.getDiskNumberStart());
 
     if (zip64ExtendedInfo == null) {
       return;
@@ -461,7 +462,7 @@ public class HeaderReader {
     }
 
     Zip64ExtendedInfo zip64ExtendedInfo = readZip64ExtendedInfo(localFileHeader.getExtraDataRecords(), rawIO,
-        localFileHeader.getUncompressedSize(), localFileHeader.getCompressedSize(), 0);
+        localFileHeader.getUncompressedSize(), localFileHeader.getCompressedSize(), 0, 0);
 
     if (zip64ExtendedInfo == null) {
       return;
@@ -479,7 +480,8 @@ public class HeaderReader {
   }
 
   private Zip64ExtendedInfo readZip64ExtendedInfo(List<ExtraDataRecord> extraDataRecords, RawIO rawIO,
-                                                  long uncompressedSize, long compressedSize, long offsetLocalHeader) {
+                                                  long uncompressedSize, long compressedSize, long offsetLocalHeader,
+                                                  int diskNumberStart) {
 
     for (ExtraDataRecord extraDataRecord : extraDataRecords) {
       if (extraDataRecord == null) {
@@ -501,7 +503,7 @@ public class HeaderReader {
           counter += 8;
         }
 
-        if ( counter < extraDataRecord.getSizeOfData() && compressedSize == ZIP_64_SIZE_LIMIT) {
+        if (counter < extraDataRecord.getSizeOfData() && compressedSize == ZIP_64_SIZE_LIMIT) {
           zip64ExtendedInfo.setCompressedSize(rawIO.readLongLittleEndian(extraData, counter));
           counter += 8;
         }
@@ -511,7 +513,7 @@ public class HeaderReader {
           counter += 8;
         }
 
-        if (counter < extraDataRecord.getSizeOfData() && offsetLocalHeader == ZIP_64_NUMBER_OF_ENTRIES_LIMIT) {
+        if (counter < extraDataRecord.getSizeOfData() && diskNumberStart == ZIP_64_NUMBER_OF_ENTRIES_LIMIT) {
           zip64ExtendedInfo.setDiskNumberStart(rawIO.readIntLittleEndian(extraData, counter));
         }
 
