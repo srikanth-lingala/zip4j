@@ -101,7 +101,8 @@ public class HeaderReader {
 
   private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset)
       throws IOException {
-    long pos = zip4jRaf.length() - ENDHDR;
+    long zipFileLengthWithoutEndHeader = zip4jRaf.length() - ENDHDR;
+    long pos = zipFileLengthWithoutEndHeader;
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
 
@@ -111,7 +112,7 @@ public class HeaderReader {
       zip4jRaf.seek(pos--);
       counter++;
     } while (((headerSignature = rawIO.readIntLittleEndian(zip4jRaf))
-        != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= 3000);
+        != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= zipFileLengthWithoutEndHeader);
 
     if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
       throw new ZipException("Zip headers not found. Probably not a zip file");
