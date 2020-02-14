@@ -2,6 +2,7 @@ package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.File;
@@ -181,14 +182,13 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String file, String rootFolderPath, String rootFolderNameInZip)
-      throws ZipException {
+  public static String getRelativeFileName(String fileToAdd, ZipParameters zipParameters) throws ZipException {
 
     String fileName;
     try {
-      String fileCanonicalPath = new File(file).getCanonicalPath();
-      if (isStringNotNullAndNotEmpty(rootFolderPath)) {
-        File rootFolderFile = new File(rootFolderPath);
+      String fileCanonicalPath = new File(fileToAdd).getCanonicalPath();
+      if (isStringNotNullAndNotEmpty(zipParameters.getDefaultFolderPath())) {
+        File rootFolderFile = new File(zipParameters.getDefaultFolderPath());
         String rootFolderFileRef = rootFolderFile.getCanonicalPath();
 
         if (!rootFolderFileRef.endsWith(FILE_SEPARATOR)) {
@@ -208,32 +208,39 @@ public class FileUtils {
         } else {
           String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
           bkFileName = bkFileName.replaceAll("\\\\", "/");
-          tmpFileName = bkFileName + tmpFile.getName();
+          tmpFileName = bkFileName + getNameOfFileInZip(tmpFile, zipParameters.getFileNameInZip());
         }
 
         fileName = tmpFileName;
       } else {
         File relFile = new File(fileCanonicalPath);
+        fileName = getNameOfFileInZip(relFile, zipParameters.getFileNameInZip());
         if (relFile.isDirectory()) {
-          fileName = relFile.getName() + ZIP_FILE_SEPARATOR;
-        } else {
-          fileName = relFile.getName();
+          fileName += ZIP_FILE_SEPARATOR;
         }
       }
     } catch (IOException e) {
       throw new ZipException(e);
     }
 
+    String rootFolderNameInZip = zipParameters.getRootFolderNameInZip();
     if (Zip4jUtil.isStringNotNullAndNotEmpty(rootFolderNameInZip)) {
       if (!rootFolderNameInZip.endsWith("\\") && !rootFolderNameInZip.endsWith("/")) {
         rootFolderNameInZip = rootFolderNameInZip + InternalZipConstants.FILE_SEPARATOR;
       }
 
-      rootFolderNameInZip = rootFolderNameInZip.replaceAll("\\\\", "/");
+      rootFolderNameInZip = rootFolderNameInZip.replaceAll("\\\\", ZIP_FILE_SEPARATOR);
       fileName = rootFolderNameInZip + fileName;
     }
 
     return fileName;
+  }
+
+  private static String getNameOfFileInZip(File fileToAdd, String fileNameInZip) {
+    if (isStringNotNullAndNotEmpty(fileNameInZip)) {
+      return fileNameInZip;
+    }
+    return fileToAdd.getName();
   }
 
   public static boolean isZipEntryDirectory(String fileNameInZip) {

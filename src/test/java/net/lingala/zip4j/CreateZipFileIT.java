@@ -268,6 +268,22 @@ public class CreateZipFileIT extends AbstractIT {
     testCreateZipFileWithFileEntryComment("测试中文_", Charset.forName("GBK"));
   }
 
+  @Test
+  public void testAddingSameFileMultipleTimesResultsInOnlyOneFileInZip() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("renamed-file.pdf");
+
+    zipFile.addFile(getTestFileFromResources("sample.pdf"), zipParameters);
+    zipFile.addFile(getTestFileFromResources("sample.pdf"), zipParameters);
+    zipFile.addFile(getTestFileFromResources("sample.pdf"), zipParameters);
+
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo("renamed-file.pdf");
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
+  }
+
   private void testCreateZipFileWithFileEntryComment(String fileCommentPrefix, Charset charset) throws IOException {
     ZipParameters zipParameters = new ZipParameters();
     ZipFile zipFile = initializeZipFileWithCharset(charset);

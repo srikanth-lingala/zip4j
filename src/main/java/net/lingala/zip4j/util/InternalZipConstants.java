@@ -16,6 +16,7 @@
 
 package net.lingala.zip4j.util;
 
+import java.io.File;
 import java.nio.charset.Charset;
 
 public final class InternalZipConstants {
@@ -48,7 +49,7 @@ public final class InternalZipConstants {
 
   public static final String ZIP_STANDARD_CHARSET = "Cp437";
 
-  public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+  public static final String FILE_SEPARATOR = File.separator;
 
   public static final String ZIP_FILE_SEPARATOR = "/";
 
