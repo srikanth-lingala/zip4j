@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.DataFormatException;
 
-import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
 
 public class ZipInputStream extends InputStream {
@@ -49,7 +48,6 @@ public class ZipInputStream extends InputStream {
   private LocalFileHeader localFileHeader;
   private CRC32 crc32 = new CRC32();
   private byte[] endOfEntryBuffer;
-  private boolean extraDataRecordReadForThisEntry = false;
   private boolean canSkipExtendedLocalFileHeader = false;
   private Charset charset;
 
@@ -102,11 +100,7 @@ public class ZipInputStream extends InputStream {
       canSkipExtendedLocalFileHeader = false;
     }
 
-    if (!isZipEntryDirectory(localFileHeader.getFileName())) {
-      this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
-    }
-
-    this.extraDataRecordReadForThisEntry = false;
+    this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
     return localFileHeader;
   }
 
@@ -140,14 +134,6 @@ public class ZipInputStream extends InputStream {
     if (localFileHeader == null) {
       // localfileheader can be null when end of compressed data is reached.  If null check is missing, read method will
       // throw a NPE when end of compressed data is reached and read is called again.
-      return -1;
-    }
-
-    if (localFileHeader.isDirectory()) {
-      if (!extraDataRecordReadForThisEntry) {
-        readExtendedLocalFileHeaderIfPresent();
-        extraDataRecordReadForThisEntry = true;
-      }
       return -1;
     }
 
