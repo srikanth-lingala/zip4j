@@ -73,7 +73,7 @@ public class ZipFileVerifier {
     }
   }
 
-  private static void verifyFileCrc(File sourceFile, File extractedFile) throws IOException {
+  public static void verifyFileCrc(File sourceFile, File extractedFile) throws IOException {
     ProgressMonitor progressMonitor = new ProgressMonitor();
     long sourceFileCrc = CrcUtil.computeFileCrc(sourceFile, progressMonitor);
     long extractedFileCrc = CrcUtil.computeFileCrc(extractedFile, progressMonitor);

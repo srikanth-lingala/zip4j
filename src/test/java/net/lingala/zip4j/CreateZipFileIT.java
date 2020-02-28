@@ -21,12 +21,16 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Contains Integration tests for create operations of ZipFile
@@ -284,6 +288,144 @@ public class CreateZipFileIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
   }
 
+  @Test
+  public void testAddSymlinkWithLinkOnly() throws IOException {
+    File targetFile = getTestFileFromResources("sample.pdf");
+    File symlink = createSymlink(targetFile, temporaryFolder.getRoot());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+
+    zipFile.addFile(symlink, zipParameters);
+
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(symlink.getName());
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
+
+    verifyGeneratedSymlink(symlink, targetFile);
+  }
+
+  @Test
+  public void testAddSymlinkWithLinkedFileOnly() throws IOException {
+    File targetFile = getTestFileFromResources("sample.pdf");
+    File symlink = createSymlink(targetFile, temporaryFolder.getRoot());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY);
+
+    zipFile.addFile(symlink, zipParameters);
+
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(targetFile.getName());
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+  }
+
+  @Test
+  public void testAddSymlinkWithLinkAndLinkedFile() throws IOException {
+    File targetFile = getTestFileFromResources("sample.pdf");
+    File symlink = createSymlink(targetFile, temporaryFolder.getRoot());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE);
+
+    zipFile.addFile(symlink, zipParameters);
+
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    assertThat(fileHeaders).hasSize(2);
+    assertThat(fileHeaders.get(0).getFileName()).isEqualTo(symlink.getName());
+    assertThat(fileHeaders.get(1).getFileName()).isEqualTo(targetFile.getName());
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 2, false);
+
+    verifyGeneratedSymlink(symlink, targetFile);
+    File generatedTargetFile = Paths.get(outputFolder.getAbsolutePath(), targetFile.getName()).toFile();
+    ZipFileVerifier.verifyFileCrc(targetFile, generatedTargetFile);
+  }
+
+  @Test
+  public void testAddSymlinksInAFolderWithLinkOnly() throws IOException {
+    File testFolder = createTestFolderWithSymlinks();
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+
+    zipFile.addFolder(testFolder, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 6, false);
+    verifyFileNamesInZip(zipFile,
+        "test-folder/",
+        "test-folder/symlink.link",
+        "test-folder/sub-folder1/",
+        "test-folder/sub-folder1/symlink.link",
+        "test-folder/sub-folder2/",
+        "test-folder/sub-folder2/symlink.link");
+  }
+
+  @Test
+  public void testAddSymlinksInAFolderWithLinkedFilesOnly() throws IOException {
+    File testFolder = createTestFolderWithSymlinks();
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY);
+
+    zipFile.addFolder(testFolder, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 6, false);
+    verifyFileNamesInZip(zipFile,
+        "test-folder/",
+        "test-folder/sample.pdf",
+        "test-folder/sub-folder1/",
+        "test-folder/sub-folder1/file_PDF_1MB.pdf",
+        "test-folder/sub-folder2/",
+        "test-folder/sub-folder2/sample_text_large.txt");
+  }
+
+  @Test
+  public void testAddSymlinksInAFolderWithLinkAndLinkedFilesOnly() throws IOException {
+    File testFolder = createTestFolderWithSymlinks();
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE);
+
+    zipFile.addFolder(testFolder, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 9, false);
+    verifyFileNamesInZip(zipFile,
+        "test-folder/",
+        "test-folder/symlink.link",
+        "test-folder/sample.pdf",
+        "test-folder/sub-folder1/",
+        "test-folder/sub-folder1/symlink.link",
+        "test-folder/sub-folder1/file_PDF_1MB.pdf",
+        "test-folder/sub-folder2/",
+        "test-folder/sub-folder2/sample_text_large.txt",
+        "test-folder/sub-folder2/symlink.link");
+  }
+
+  @Test
+  public void testAddSymlinksInAFolderWithLinkAndLinkedFilesOnlyWithoutRootFolder() throws IOException {
+    File testFolder = createTestFolderWithSymlinks();
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setIncludeRootFolder(false);
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE);
+
+    zipFile.addFolder(testFolder, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 8, false);
+    verifyFileNamesInZip(zipFile,
+        "symlink.link",
+        "sample.pdf",
+        "sub-folder1/",
+        "sub-folder1/symlink.link",
+        "sub-folder1/file_PDF_1MB.pdf",
+        "sub-folder2/",
+        "sub-folder2/sample_text_large.txt",
+        "sub-folder2/symlink.link");
+  }
+
   private void testCreateZipFileWithFileEntryComment(String fileCommentPrefix, Charset charset) throws IOException {
     ZipParameters zipParameters = new ZipParameters();
     ZipFile zipFile = initializeZipFileWithCharset(charset);
@@ -381,4 +523,49 @@ public class CreateZipFileIT extends AbstractIT {
 
     return zipFile;
   }
+
+  private void verifyGeneratedSymlink(File actualSymlink, File targetFile) throws IOException {
+    File extractedSymlink = Paths.get(outputFolder.getAbsolutePath(), actualSymlink.getName()).toFile();
+    assertThat(Files.isSymbolicLink(extractedSymlink.toPath())).isTrue();
+    assertThat(actualSymlink.length()).isEqualTo(extractedSymlink.length());
+    File generatedTarget = Files.readSymbolicLink(extractedSymlink.toPath()).toFile();
+    assertThat(generatedTarget).isEqualTo(targetFile);
+  }
+
+  private File createSymlink(File targetFile, File rootFolder) throws IOException {
+    Path link = Paths.get(rootFolder.getAbsolutePath(), "symlink.link");
+    Files.createSymbolicLink(link, targetFile.toPath());
+    return link.toFile();
+  }
+
+  private File createTestFolderWithSymlinks() throws IOException {
+    Path testFolder = temporaryFolder.newFolder("test-folder").toPath();
+    Path subFolder1 = Files.createDirectory(Paths.get(testFolder.toString(), "sub-folder1"));
+    Path subFolder2 = Files.createDirectory(Paths.get(testFolder.toString(), "sub-folder2"));
+
+    createSymlink(getTestFileFromResources("sample.pdf"), testFolder.toFile());
+    createSymlink(getTestFileFromResources("file_PDF_1MB.pdf"), subFolder1.toFile());
+    createSymlink(getTestFileFromResources("sample_text_large.txt"), subFolder2.toFile());
+
+    return testFolder.toFile();
+  }
+
+  private void verifyFileNamesInZip(ZipFile zipFile, String... fileNames) throws ZipException {
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+
+    for (String fileName : fileNames) {
+      boolean entryFound = false;
+      for (FileHeader fileHeader : fileHeaders) {
+        if (fileHeader.getFileName().equals(fileName)) {
+          entryFound = true;
+          break;
+        }
+      }
+
+      if (!entryFound) {
+        fail("Could not find entry: " + fileName + " in zip");
+      }
+    }
+  }
+
 }

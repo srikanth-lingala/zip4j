@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
+import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.UnzipUtil;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -13,6 +14,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
@@ -53,10 +57,22 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
           throw new ZipException("Could not create directory: " + outputFile);
         }
       }
+    } else if (isSymbolicLink(fileHeader)) {
+      createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
     } else {
       checkOutputDirectoryStructure(outputFile);
       unzipFile(zipInputStream, fileHeader, outputFile, progressMonitor);
     }
+  }
+
+  private boolean isSymbolicLink(FileHeader fileHeader) {
+    byte[] externalFileAttributes = fileHeader.getExternalFileAttributes();
+
+    if (externalFileAttributes == null || externalFileAttributes.length < 4) {
+      return false;
+    }
+
+    return BitUtils.isBitSet(externalFileAttributes[3], 5);
   }
 
   private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, File outputFile,
@@ -76,6 +92,32 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+  }
+
+  private void createSymLink(ZipInputStream zipInputStream, FileHeader fileHeader, File outputFile,
+                             ProgressMonitor progressMonitor) throws IOException {
+    String symLinkPath = new String(readCompleteEntry(zipInputStream, fileHeader, progressMonitor));
+    Path linkTarget = Paths.get(symLinkPath);
+
+    if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
+      throw new ZipException("Could not create parent directories");
+    }
+
+    Files.createSymbolicLink(outputFile.toPath(), linkTarget);
+    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+  }
+
+  private byte[] readCompleteEntry(ZipInputStream zipInputStream, FileHeader fileHeader,
+                                   ProgressMonitor progressMonitor) throws IOException {
+    byte[] b = new byte[(int) fileHeader.getUncompressedSize()];
+    int readLength = zipInputStream.read(b);
+
+    if (readLength != b.length) {
+      throw new ZipException("Could not read complete entry");
+    }
+
+    progressMonitor.updateWorkCompleted(b.length);
+    return b;
   }
 
   private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws IOException {

@@ -24,6 +24,8 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 public class ZipParameters {
 
+  public enum SymbolicLinkAction {INCLUDE_LINK_ONLY, INCLUDE_LINKED_FILE_ONLY, INCLUDE_LINK_AND_LINKED_FILE};
+
   private CompressionMethod compressionMethod = CompressionMethod.DEFLATE;
   private CompressionLevel compressionLevel = CompressionLevel.NORMAL;
   private boolean encryptFiles = false;
@@ -42,6 +44,7 @@ public class ZipParameters {
   private boolean overrideExistingFilesInZip = true;
   private String rootFolderNameInZip;
   private String fileComment;
+  private SymbolicLinkAction symbolicLinkAction = SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY;
 
   public ZipParameters() {
   }
@@ -65,6 +68,7 @@ public class ZipParameters {
     this.overrideExistingFilesInZip = zipParameters.isOverrideExistingFilesInZip();
     this.rootFolderNameInZip = zipParameters.getRootFolderNameInZip();
     this.fileComment = zipParameters.getFileComment();
+    this.symbolicLinkAction = zipParameters.getSymbolicLinkAction();
   }
 
   public CompressionMethod getCompressionMethod() {
@@ -217,5 +221,13 @@ public class ZipParameters {
 
   public void setFileComment(String fileComment) {
     this.fileComment = fileComment;
+  }
+
+  public SymbolicLinkAction getSymbolicLinkAction() {
+    return symbolicLinkAction;
+  }
+
+  public void setSymbolicLinkAction(SymbolicLinkAction symbolicLinkAction) {
+    this.symbolicLinkAction = symbolicLinkAction;
   }
 }

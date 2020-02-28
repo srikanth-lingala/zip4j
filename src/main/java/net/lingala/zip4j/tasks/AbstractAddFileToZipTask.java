@@ -11,7 +11,9 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
+import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.FileUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
@@ -19,10 +21,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.lingala.zip4j.headers.HeaderUtil.getFileHeader;
+import static net.lingala.zip4j.model.ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE;
+import static net.lingala.zip4j.model.ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY;
 import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
 import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
@@ -40,6 +45,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipModel zipModel;
   private char[] password;
   private HeaderWriter headerWriter;
+  private byte[] readBuff = new byte[BUFF_SIZE];
+  private int readLen = -1;
 
   AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
                            char[] password, HeaderWriter headerWriter) {
@@ -56,34 +63,75 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
          ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, charset)) {
-      byte[] readBuff = new byte[BUFF_SIZE];
-      int readLen = -1;
+
 
       for (File fileToAdd : updatedFilesToAdd) {
         verifyIfTaskIsCancelled();
         ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd, progressMonitor);
         progressMonitor.setFileName(fileToAdd.getAbsolutePath());
 
-        zipOutputStream.putNextEntry(clonedZipParameters);
-        if (fileToAdd.isDirectory()) {
-          zipOutputStream.closeEntry();
-          continue;
-        }
+        if (Files.isSymbolicLink(fileToAdd.toPath())) {
+          if (addSymlink(clonedZipParameters)) {
+            addSymlinkToZip(fileToAdd, zipOutputStream, clonedZipParameters, splitOutputStream);
 
-        try (InputStream inputStream = new FileInputStream(fileToAdd)) {
-          while ((readLen = inputStream.read(readBuff)) != -1) {
-            zipOutputStream.write(readBuff, 0, readLen);
-            progressMonitor.updateWorkCompleted(readLen);
-            verifyIfTaskIsCancelled();
+            if (INCLUDE_LINK_ONLY.equals(clonedZipParameters.getSymbolicLinkAction())) {
+              continue;
+            }
           }
         }
 
-        FileHeader fileHeader = zipOutputStream.closeEntry();
-        fileHeader.setExternalFileAttributes(FileUtils.getFileAttributes(fileToAdd));
-
-        updateLocalFileHeader(fileHeader, splitOutputStream);
+        addFileToZip(fileToAdd, zipOutputStream, clonedZipParameters, splitOutputStream, progressMonitor);
       }
     }
+  }
+
+  private void addSymlinkToZip(File fileToAdd, ZipOutputStream zipOutputStream, ZipParameters zipParameters,
+                               SplitOutputStream splitOutputStream) throws IOException {
+
+    ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
+    clonedZipParameters.setFileNameInZip(replaceFileNameInZip(zipParameters.getFileNameInZip(), fileToAdd.getName()));
+    clonedZipParameters.setEncryptFiles(false);
+    clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+
+    zipOutputStream.putNextEntry(clonedZipParameters);
+
+    String symLinkTarget = fileToAdd.toPath().toRealPath().toString();
+    zipOutputStream.write(symLinkTarget.getBytes());
+
+    closeEntry(zipOutputStream, splitOutputStream, fileToAdd, true);
+  }
+
+  private void addFileToZip(File fileToAdd, ZipOutputStream zipOutputStream, ZipParameters zipParameters,
+                            SplitOutputStream splitOutputStream, ProgressMonitor progressMonitor) throws IOException {
+
+    zipOutputStream.putNextEntry(zipParameters);
+
+    if (!fileToAdd.isDirectory()) {
+      try (InputStream inputStream = new FileInputStream(fileToAdd)) {
+        while ((readLen = inputStream.read(readBuff)) != -1) {
+          zipOutputStream.write(readBuff, 0, readLen);
+          progressMonitor.updateWorkCompleted(readLen);
+          verifyIfTaskIsCancelled();
+        }
+      }
+    }
+
+    closeEntry(zipOutputStream, splitOutputStream, fileToAdd, false);
+  }
+
+  private void closeEntry(ZipOutputStream zipOutputStream, SplitOutputStream splitOutputStream, File fileToAdd,
+                          boolean isSymlink) throws IOException {
+    FileHeader fileHeader = zipOutputStream.closeEntry();
+    byte[] fileAttributes = FileUtils.getFileAttributes(fileToAdd);
+
+    if (!isSymlink) {
+      // Unset the symlink byte if the entry being added is a symlink, but the original file is being added
+      fileAttributes[3] = BitUtils.unsetBit(fileAttributes[3], 5);
+    }
+
+    fileHeader.setExternalFileAttributes(fileAttributes);
+
+    updateLocalFileHeader(fileHeader, splitOutputStream);
   }
 
   long calculateWorkForFiles(List<File> filesToAdd, ZipParameters zipParameters) throws ZipException {
@@ -102,7 +150,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
       //If an entry already exists, we have to remove that entry first and then add content again.
       //In this case, add corresponding work
-      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters);
+      String relativeFileName = getRelativeFileName(fileToAdd, zipParameters);
       FileHeader fileHeader = getFileHeader(getZipModel(), relativeFileName);
       if (fileHeader != null) {
         totalWork += (getZipModel().getZipFile().length() - fileHeader.getCompressedSize());
@@ -164,7 +212,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
-      String relativeFileName = getRelativeFileName(fileToAdd.getAbsolutePath(), zipParameters);
+      String relativeFileName = getRelativeFileName(fileToAdd, zipParameters);
       clonedZipParameters.setFileNameInZip(relativeFileName);
     }
 
@@ -196,7 +244,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     }
 
     for (File file : files) {
-      String fileName = getRelativeFileName(file.getAbsolutePath(), zipParameters);
+      String fileName = getRelativeFileName(file, zipParameters);
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
       if (fileHeader != null) {
@@ -218,6 +266,20 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
         zipModel);
     removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+  }
+
+  private String replaceFileNameInZip(String fileInZipWithPath, String newFileName) {
+    if (fileInZipWithPath.contains(InternalZipConstants.ZIP_FILE_SEPARATOR)) {
+      return fileInZipWithPath.substring(0, fileInZipWithPath.lastIndexOf(InternalZipConstants.ZIP_FILE_SEPARATOR) + 1) + newFileName;
+    }
+
+    return newFileName;
+  }
+
+
+  private boolean addSymlink(ZipParameters zipParameters) {
+    return INCLUDE_LINK_ONLY.equals(zipParameters.getSymbolicLinkAction()) ||
+        INCLUDE_LINK_AND_LINKED_FILE.equals(zipParameters.getSymbolicLinkAction());
   }
 
   @Override

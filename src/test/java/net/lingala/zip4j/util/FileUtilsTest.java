@@ -250,7 +250,7 @@ public class FileUtilsTest {
 
   @Test
   public void testGetRelativeFileNameWhenRootFoldersAreNull() throws ZipException {
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", new ZipParameters())).isEqualTo("somefile.txt");
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), new ZipParameters())).isEqualTo("somefile.txt");
   }
 
   @Test
@@ -258,7 +258,7 @@ public class FileUtilsTest {
     String expectetdFileName = "rootfolder" + FILE_SEPARATOR + "somefile.txt";
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setRootFolderNameInZip("rootfolder");
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", zipParameters)).isEqualTo(expectetdFileName);
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), zipParameters)).isEqualTo(expectetdFileName);
   }
 
   @Test
@@ -266,7 +266,7 @@ public class FileUtilsTest {
     String expectetdFileName = "rootfolder" + FILE_SEPARATOR + "somefile.txt";
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setRootFolderNameInZip("rootfolder" + File.separator);
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", zipParameters)).isEqualTo(expectetdFileName);
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), zipParameters)).isEqualTo(expectetdFileName);
   }
 
   @Test
@@ -274,14 +274,14 @@ public class FileUtilsTest {
     String expectedRootFolder = "rootfolder" + FILE_SEPARATOR + "somefile.txt";
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setRootFolderNameInZip("rootfolder\\");
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", zipParameters)).isEqualTo(expectedRootFolder);
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), zipParameters)).isEqualTo(expectedRootFolder);
   }
 
   @Test
   public void testGetRelativeFileWithDifferentFileNameInZip() throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip("anotherName.txt");
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", zipParameters)).isEqualTo("anotherName.txt");
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), zipParameters)).isEqualTo("anotherName.txt");
   }
 
   @Test
@@ -290,7 +290,7 @@ public class FileUtilsTest {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setFileNameInZip("anotherName.txt");
     zipParameters.setRootFolderNameInZip("rootfolder");
-    assertThat(FileUtils.getRelativeFileName("somefile.txt", zipParameters)).isEqualTo(expectedRootFolder);
+    assertThat(FileUtils.getRelativeFileName(new File("somefile.txt"), zipParameters)).isEqualTo(expectedRootFolder);
   }
 
   @Test
@@ -300,8 +300,9 @@ public class FileUtilsTest {
     zipParameters.setFileNameInZip("anotherName.txt");
     zipParameters.setDefaultFolderPath("defaultFolderPath");
     zipParameters.setRootFolderNameInZip("rootfolder");
-    assertThat(FileUtils.getRelativeFileName("defaultFolderPath" + FILE_SEPARATOR + "anotherFolder" + FILE_SEPARATOR
-            + "somefile.txt", zipParameters)).isEqualTo(expectedRootFolder);
+    File fileToTest = new File("defaultFolderPath" + FILE_SEPARATOR + "anotherFolder" + FILE_SEPARATOR
+        + "somefile.txt");
+    assertThat(FileUtils.getRelativeFileName(fileToTest, zipParameters)).isEqualTo(expectedRootFolder);
   }
 
   @Test

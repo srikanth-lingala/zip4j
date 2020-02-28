@@ -182,11 +182,11 @@ public class FileUtils {
     return splitZipFiles;
   }
 
-  public static String getRelativeFileName(String fileToAdd, ZipParameters zipParameters) throws ZipException {
+  public static String getRelativeFileName(File fileToAdd, ZipParameters zipParameters) throws ZipException {
 
     String fileName;
     try {
-      String fileCanonicalPath = new File(fileToAdd).getCanonicalPath();
+      String fileCanonicalPath = fileToAdd.getCanonicalPath();
       if (isStringNotNullAndNotEmpty(zipParameters.getDefaultFolderPath())) {
         File rootFolderFile = new File(zipParameters.getDefaultFolderPath());
         String rootFolderFileRef = rootFolderFile.getCanonicalPath();
@@ -195,7 +195,15 @@ public class FileUtils {
           rootFolderFileRef += FILE_SEPARATOR;
         }
 
-        String tmpFileName = fileCanonicalPath.substring(rootFolderFileRef.length());
+        String tmpFileName;
+
+        if (Files.isSymbolicLink(fileToAdd.toPath())) {
+          String rootPath = new File(fileToAdd.getParentFile().getCanonicalFile().getPath() + File.separator + fileToAdd.getCanonicalFile().getName()).getPath();
+          tmpFileName = rootPath.substring(rootFolderFileRef.length());
+        } else {
+           tmpFileName = fileCanonicalPath.substring(rootFolderFileRef.length());
+        }
+
         if (tmpFileName.startsWith(System.getProperty("file.separator"))) {
           tmpFileName = tmpFileName.substring(1);
         }
@@ -236,11 +244,18 @@ public class FileUtils {
     return fileName;
   }
 
-  private static String getNameOfFileInZip(File fileToAdd, String fileNameInZip) {
+  private static String getNameOfFileInZip(File fileToAdd, String fileNameInZip) throws IOException {
     if (isStringNotNullAndNotEmpty(fileNameInZip)) {
       return fileNameInZip;
     }
-    return fileToAdd.getName();
+
+    Path path = fileToAdd.toPath();
+
+    if (Files.isSymbolicLink(path)) {
+      return path.toRealPath().getFileName().toString();
+    }
+
+    return path.getFileName().toString();
   }
 
   public static boolean isZipEntryDirectory(String fileNameInZip) {
@@ -373,6 +388,7 @@ public class FileUtils {
 
       fileAttributes[3] = setBitIfApplicable(Files.isRegularFile(file), fileAttributes[3], 7);
       fileAttributes[3] = setBitIfApplicable(Files.isDirectory(file), fileAttributes[3], 6);
+      fileAttributes[3] = setBitIfApplicable(Files.isSymbolicLink(file), fileAttributes[3], 5);
       fileAttributes[3] = setBitIfApplicable(posixFilePermissions.contains(OWNER_READ), fileAttributes[3], 0);
       fileAttributes[2] = setBitIfApplicable(posixFilePermissions.contains(OWNER_WRITE), fileAttributes[2], 7);
       fileAttributes[2] = setBitIfApplicable(posixFilePermissions.contains(OWNER_EXECUTE), fileAttributes[2], 6);
