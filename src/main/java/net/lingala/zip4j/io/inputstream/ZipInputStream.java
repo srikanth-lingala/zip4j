@@ -113,7 +113,7 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
-    return b[0];
+    return b[0] & 0xff;
   }
 
   @Override
