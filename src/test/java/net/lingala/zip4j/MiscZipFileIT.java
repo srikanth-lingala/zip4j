@@ -495,6 +495,21 @@ public class MiscZipFileIT extends AbstractIT {
     assertThat(zip4jThread.get(0).isDaemon()).isFalse();
   }
 
+  @Test
+  public void testGetExecutorServiceIsNullWhenNotInThreadMode() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"));
+    assertThat(zipFile.getExecutorService()).isNull();
+  }
+
+  @Test
+  public void testGetExecutorServiceIsNotNullWhenInThreadMode() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setRunInThread(true);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"));
+    assertThat(zipFile.getExecutorService()).isNotNull();
+  }
+
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {
     File outputFile = temporaryFolder.newFile();
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {

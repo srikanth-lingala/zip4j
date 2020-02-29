@@ -54,6 +54,8 @@ import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
@@ -85,6 +87,7 @@ public class ZipFile {
   private HeaderWriter headerWriter = new HeaderWriter();
   private Charset charset = CHARSET_UTF_8;
   private ThreadFactory threadFactory;
+  private ExecutorService executorService;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -885,7 +888,14 @@ public class ZipFile {
   }
 
   private AsyncZipTask.AsyncTaskParameters buildAsyncParameters() {
-    return new AsyncZipTask.AsyncTaskParameters(threadFactory, runInThread, progressMonitor);
+    if (runInThread) {
+      if (threadFactory == null) {
+        threadFactory = Executors.defaultThreadFactory();
+      }
+      executorService = Executors.newSingleThreadExecutor(threadFactory);
+    }
+
+    return new AsyncZipTask.AsyncTaskParameters(executorService, runInThread, progressMonitor);
   }
 
   public ProgressMonitor getProgressMonitor() {
@@ -915,12 +925,12 @@ public class ZipFile {
     this.charset = charset;
   }
 
-  public ThreadFactory getThreadFactory() {
-    return threadFactory;
-  }
-
   public void setThreadFactory(ThreadFactory threadFactory) {
     this.threadFactory = threadFactory;
+  }
+
+  public ExecutorService getExecutorService() {
+    return executorService;
   }
 
   @Override

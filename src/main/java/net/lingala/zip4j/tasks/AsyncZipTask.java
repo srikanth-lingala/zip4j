@@ -4,19 +4,18 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ExecutorService;
 
 public abstract class AsyncZipTask<T> {
 
   private ProgressMonitor progressMonitor;
   private boolean runInThread;
-  private ThreadFactory threadFactory;
+  private ExecutorService executorService;
 
   public AsyncZipTask(AsyncTaskParameters asyncTaskParameters) {
     this.progressMonitor = asyncTaskParameters.progressMonitor;
     this.runInThread = asyncTaskParameters.runInThread;
-    this.threadFactory = asyncTaskParameters.threadFactory;
+    this.executorService = asyncTaskParameters.executorService;
   }
 
   public void execute(T taskParameters) throws ZipException {
@@ -28,11 +27,7 @@ public abstract class AsyncZipTask<T> {
       long totalWorkToBeDone = calculateTotalWork(taskParameters);
       progressMonitor.setTotalWork(totalWorkToBeDone);
 
-      if (threadFactory == null) {
-        threadFactory = Executors.defaultThreadFactory();
-      }
-
-      Executors.newSingleThreadExecutor(threadFactory).execute(() -> {
+      executorService.execute(() -> {
         try {
           performTaskWithErrorHandling(taskParameters, progressMonitor);
         } catch (ZipException e) {
@@ -76,10 +71,10 @@ public abstract class AsyncZipTask<T> {
   public static class AsyncTaskParameters {
     private ProgressMonitor progressMonitor;
     private boolean runInThread;
-    private ThreadFactory threadFactory;
+    private ExecutorService executorService;
 
-    public AsyncTaskParameters(ThreadFactory threadFactory, boolean runInThread, ProgressMonitor progressMonitor) {
-      this.threadFactory = threadFactory;
+    public AsyncTaskParameters(ExecutorService executorService, boolean runInThread, ProgressMonitor progressMonitor) {
+      this.executorService = executorService;
       this.runInThread = runInThread;
       this.progressMonitor = progressMonitor;
     }
