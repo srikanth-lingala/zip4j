@@ -388,7 +388,7 @@ public class ExtractZipFileIT extends AbstractIT {
   
   @Test
   public void testExtractZipFileCRCError() throws IOException {
-    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("website_template.zip"));
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("archive_with_invalid_zip64_headers.zip"));
     zipFile.extractAll(outputFolder.getPath());
     assertThat(outputFolder.listFiles()).contains(
             new File(outputFolder, "index.html"),
