@@ -5,15 +5,18 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 public abstract class AsyncZipTask<T> {
 
   private ProgressMonitor progressMonitor;
   private boolean runInThread;
+  private ThreadFactory threadFactory;
 
-  public AsyncZipTask(ProgressMonitor progressMonitor, boolean runInThread) {
-    this.progressMonitor = progressMonitor;
-    this.runInThread = runInThread;
+  public AsyncZipTask(AsyncTaskParameters asyncTaskParameters) {
+    this.progressMonitor = asyncTaskParameters.progressMonitor;
+    this.runInThread = asyncTaskParameters.runInThread;
+    this.threadFactory = asyncTaskParameters.threadFactory;
   }
 
   public void execute(T taskParameters) throws ZipException {
@@ -25,7 +28,11 @@ public abstract class AsyncZipTask<T> {
       long totalWorkToBeDone = calculateTotalWork(taskParameters);
       progressMonitor.setTotalWork(totalWorkToBeDone);
 
-      Executors.newSingleThreadExecutor().execute(() -> {
+      if (threadFactory == null) {
+        threadFactory = Executors.defaultThreadFactory();
+      }
+
+      Executors.newSingleThreadExecutor(threadFactory).execute(() -> {
         try {
           performTaskWithErrorHandling(taskParameters, progressMonitor);
         } catch (ZipException e) {
@@ -65,4 +72,16 @@ public abstract class AsyncZipTask<T> {
   protected abstract long calculateTotalWork(T taskParameters) throws ZipException;
 
   protected abstract ProgressMonitor.Task getTask();
+
+  public static class AsyncTaskParameters {
+    private ProgressMonitor progressMonitor;
+    private boolean runInThread;
+    private ThreadFactory threadFactory;
+
+    public AsyncTaskParameters(ThreadFactory threadFactory, boolean runInThread, ProgressMonitor progressMonitor) {
+      this.threadFactory = threadFactory;
+      this.runInThread = runInThread;
+      this.progressMonitor = progressMonitor;
+    }
+  }
 }

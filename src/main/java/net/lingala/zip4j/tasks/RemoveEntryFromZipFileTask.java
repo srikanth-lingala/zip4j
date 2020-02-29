@@ -24,8 +24,8 @@ public class RemoveEntryFromZipFileTask extends AsyncZipTask<RemoveEntryFromZipF
 
   private ZipModel zipModel;
 
-  public RemoveEntryFromZipFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
-    super(progressMonitor, runInThread);
+  public RemoveEntryFromZipFileTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
+    super(asyncTaskParameters);
     this.zipModel = zipModel;
   }
 

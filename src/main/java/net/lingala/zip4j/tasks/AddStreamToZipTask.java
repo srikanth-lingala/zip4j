@@ -22,9 +22,8 @@ import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 
 public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipTaskParameters> {
 
-  public AddStreamToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                            HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+  public AddStreamToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter, AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, password, headerWriter, asyncTaskParameters);
   }
 
   @Override
@@ -84,8 +83,8 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileNameInZip);
     if (fileHeader  != null) {
-      RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
-          zipModel);
+      AsyncTaskParameters asyncTaskParameters = new AsyncTaskParameters(null, false, progressMonitor);
+      RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(zipModel, asyncTaskParameters);
       removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
     }
   }

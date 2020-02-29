@@ -48,9 +48,9 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private byte[] readBuff = new byte[BUFF_SIZE];
   private int readLen = -1;
 
-  AbstractAddFileToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel,
-                           char[] password, HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread);
+  AbstractAddFileToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter,
+                           AsyncTaskParameters asyncTaskParameters) {
+    super(asyncTaskParameters);
     this.zipModel = zipModel;
     this.password = password;
     this.headerWriter = headerWriter;
@@ -263,8 +263,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   }
 
   private void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor, Charset charset) throws ZipException {
-    RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(progressMonitor, false,
-        zipModel);
+    AsyncTaskParameters asyncTaskParameters = new AsyncTaskParameters(null, false, progressMonitor);
+    RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(zipModel, asyncTaskParameters);
     removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
   }
 

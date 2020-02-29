@@ -14,9 +14,8 @@ import java.util.List;
 
 public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTaskParameters> {
 
-  public AddFilesToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                           HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+  public AddFilesToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter, AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, password, headerWriter, asyncTaskParameters);
   }
 
   @Override

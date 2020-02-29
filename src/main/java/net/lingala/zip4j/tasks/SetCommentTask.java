@@ -15,8 +15,8 @@ public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
 
   private ZipModel zipModel;
 
-  public SetCommentTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
-    super(progressMonitor, runInThread);
+  public SetCommentTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
+    super(asyncTaskParameters);
     this.zipModel = zipModel;
   }
 

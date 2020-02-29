@@ -16,8 +16,8 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   private char[] password;
   private SplitInputStream splitInputStream;
 
-  public ExtractAllFilesTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password) {
-    super(progressMonitor, runInThread, zipModel);
+  public ExtractAllFilesTask(ZipModel zipModel, char[] password, AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, asyncTaskParameters);
     this.password = password;
   }
 

@@ -29,8 +29,8 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
   private ZipModel zipModel;
   private RawIO rawIO = new RawIO();
 
-  public MergeSplitZipFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
-    super(progressMonitor, runInThread);
+  public MergeSplitZipFileTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
+    super(asyncTaskParameters);
     this.zipModel = zipModel;
   }
 

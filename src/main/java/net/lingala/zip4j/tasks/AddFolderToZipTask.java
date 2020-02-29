@@ -16,9 +16,8 @@ import static net.lingala.zip4j.util.FileUtils.getFilesInDirectoryRecursive;
 
 public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipTaskParameters> {
 
-  public AddFolderToZipTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel, char[] password,
-                            HeaderWriter headerWriter) {
-    super(progressMonitor, runInThread, zipModel, password, headerWriter);
+  public AddFolderToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter, AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, password, headerWriter, asyncTaskParameters);
   }
 
   @Override

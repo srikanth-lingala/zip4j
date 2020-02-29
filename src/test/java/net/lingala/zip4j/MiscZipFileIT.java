@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -472,6 +473,26 @@ public class MiscZipFileIT extends AbstractIT {
       assertThat(new File(outputFolder.getCanonicalPath() + "sample_text1.txt")).doesNotExist();
       assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
     }
+  }
+
+  @Test
+  public void testCustomThreadFactory() throws IOException {
+    String threadName = "CustomThreadFactoryTest";
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setThreadFactory(r -> {
+      Thread t = new Thread(threadName);
+      t.setDaemon(false);
+      return t;
+    });
+    zipFile.setRunInThread(true);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
+
+    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    List<Thread> zip4jThread = threadSet.stream().filter(e -> e.getName().equals(threadName)).collect(Collectors.toList());
+    assertThat(zip4jThread).hasSize(1);
+    assertThat(zip4jThread.get(0).getName()).isEqualTo(threadName);
+    assertThat(zip4jThread.get(0).isDaemon()).isFalse();
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {

@@ -27,8 +27,8 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   private ZipModel zipModel;
   private byte[] buff = new byte[BUFF_SIZE];
 
-  public AbstractExtractFileTask(ProgressMonitor progressMonitor, boolean runInThread, ZipModel zipModel) {
-    super(progressMonitor, runInThread);
+  public AbstractExtractFileTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
+    super(asyncTaskParameters);
     this.zipModel = zipModel;
   }
 
