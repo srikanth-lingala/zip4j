@@ -142,6 +142,24 @@ public class FileUtilsTest {
   }
 
   @Test
+  public void testGetFileNameWithoutExtensionWithoutExtensionReturnsSameName() throws ZipException {
+    String fileNameWithoutExtension = FileUtils.getFileNameWithoutExtension("somename");
+    assertThat(fileNameWithoutExtension).isEqualTo("somename");
+  }
+
+  @Test
+  public void testGetFileNameWithoutExtensionReturnsJustTheName() throws ZipException {
+    String fileNameWithoutExtension = FileUtils.getFileNameWithoutExtension("somename.pdf");
+    assertThat(fileNameWithoutExtension).isEqualTo("somename");
+  }
+
+  @Test
+  public void testGetFileNameWithoutExtensionWithTwoExtensions() throws ZipException {
+    String fileNameWithoutExtension = FileUtils.getFileNameWithoutExtension("somename.pdf.001");
+    assertThat(fileNameWithoutExtension).isEqualTo("somename.pdf");
+  }
+
+  @Test
   public void testGetZipFileNameWithoutExtensionThrowsExceptionWhenNull() throws ZipException {
     expectedException.expectMessage("zip file name is empty or null, cannot determine zip file name");
     expectedException.expect(ZipException.class);
@@ -318,6 +336,51 @@ public class FileUtilsTest {
   @Test
   public void testIsZipEntryDirectoryWhichIsNotDirectoryReturnsFalse() {
     assertThat(FileUtils.isZipEntryDirectory("somename")).isFalse();
+  }
+
+  @Test
+  public void testIsNumberedSplitFileForInvalidReturnsFalse() {
+    assertThat(FileUtils.isNumberedSplitFile(new File("somename.xyz"))).isFalse();
+  }
+
+  @Test
+  public void testIsNumberedSplitFileForValidSpltiFileReturnsTrue() {
+    assertThat(FileUtils.isNumberedSplitFile(new File("somename.xyz.001"))).isFalse();
+  }
+
+  @Test
+  public void testGetFileExtensionWithoutExtensionReturnsEmptyString() {
+    assertThat(FileUtils.getFileExtension(new File("somename"))).isEqualTo("");
+  }
+
+  @Test
+  public void testGetFileExtensionReturnsExtension() {
+    assertThat(FileUtils.getFileExtension(new File("somename.pdf"))).isEqualTo("pdf");
+  }
+
+  @Test
+  public void testGetFileExtensionWithDoubleExtensionReturnsLastExtension() {
+    assertThat(FileUtils.getFileExtension(new File("somename.pdf.001"))).isEqualTo("001");
+  }
+
+  @Test
+  public void testGetNextNumberedSplitFileCounterAsExtensionSingleDigit() {
+    assertThat(FileUtils.getNextNumberedSplitFileCounterAsExtension(8)).isEqualTo(".009");
+  }
+
+  @Test
+  public void testGetNextNumberedSplitFileCounterAsExtensionSkipsToDoubleDigit() {
+    assertThat(FileUtils.getNextNumberedSplitFileCounterAsExtension(9)).isEqualTo(".010");
+  }
+
+  @Test
+  public void testGetNextNumberedSplitFileCounterAsExtensionDoubleDigit() {
+    assertThat(FileUtils.getNextNumberedSplitFileCounterAsExtension(99)).isEqualTo(".100");
+  }
+
+  @Test
+  public void testGetNextNumberedSplitFileCounterAsExtensionThreeDigit() {
+    assertThat(FileUtils.getNextNumberedSplitFileCounterAsExtension(100)).isEqualTo(".101");
   }
 
   private File mockZipFileAsExists(String path, String zipFileNameWithoutExtension) {

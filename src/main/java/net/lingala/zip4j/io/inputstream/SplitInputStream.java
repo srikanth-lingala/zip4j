@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
-public class SplitInputStream extends InputStream {
+public abstract class SplitInputStream extends InputStream {
 
-  private RandomAccessFile randomAccessFile;
-  private File zipFile;
-  private int lastSplitZipFileNumber;
+  protected RandomAccessFile randomAccessFile;
+  protected File zipFile;
+
   private boolean isSplitZipArchive;
   private int currentSplitFileCounter = 0;
   private byte[] singleByteArray = new byte[1];
@@ -22,7 +22,7 @@ public class SplitInputStream extends InputStream {
     this.randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());
     this.zipFile = zipFile;
     this.isSplitZipArchive = isSplitZipArchive;
-    this.lastSplitZipFileNumber = lastSplitZipFileNumber;
+
 
     if (isSplitZipArchive) {
       currentSplitFileCounter = lastSplitZipFileNumber;
@@ -70,8 +70,8 @@ public class SplitInputStream extends InputStream {
     randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
   }
 
-  private void openRandomAccessFileForIndex(int zipFileIndex) throws IOException {
-    File nextSplitFile = getNextSplitFileName(zipFileIndex);
+  protected void openRandomAccessFileForIndex(int zipFileIndex) throws IOException {
+    File nextSplitFile = getNextSplitFile(zipFileIndex);
     if (!nextSplitFile.exists()) {
       throw new FileNotFoundException("zip split file does not exist: " + nextSplitFile);
     }
@@ -79,20 +79,7 @@ public class SplitInputStream extends InputStream {
     randomAccessFile = new RandomAccessFile(nextSplitFile, RandomAccessFileMode.READ.getValue());
   }
 
-  private File getNextSplitFileName(int zipFileIndex) throws IOException {
-    if (zipFileIndex == lastSplitZipFileNumber) {
-      return zipFile;
-    }
-
-    String currZipFileNameWithPath = zipFile.getCanonicalPath();
-    String extensionSubString = ".z0";
-    if (zipFileIndex >= 9) {
-      extensionSubString = ".z";
-    }
-
-    return new File(currZipFileNameWithPath.substring(0,
-        currZipFileNameWithPath.lastIndexOf(".")) + extensionSubString + (zipFileIndex + 1));
-  }
+  protected abstract File getNextSplitFile(int zipFileIndex) throws IOException;
 
   @Override
   public void close() throws IOException {

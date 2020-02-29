@@ -17,6 +17,7 @@
 package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.CentralDirectory;
 import net.lingala.zip4j.model.DataDescriptor;
@@ -109,7 +110,7 @@ public class HeaderReader {
     int counter = 0;
     int headerSignature;
     do {
-      zip4jRaf.seek(pos--);
+      seekInCurrentPart(zip4jRaf, pos--);
       counter++;
     } while (((headerSignature = rawIO.readIntLittleEndian(zip4jRaf))
         != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= zipFileLengthWithoutEndHeader);
@@ -528,7 +529,7 @@ public class HeaderReader {
     long pos = zip4jRaf.length() - ENDHDR;
 
     do {
-      zip4jRaf.seek(pos--);
+      seekInCurrentPart(zip4jRaf, pos--);
     } while (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
 
     // Now the file pointer is at the end of signature of Central Dir Rec
@@ -539,7 +540,7 @@ public class HeaderReader {
     // 4 -> number of the disk with the start of the zip64 end of central directory
     // 4 -> zip64 end of central dir locator signature
     // Refer to Appnote for more information
-    zip4jRaf.seek(zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
+    seekInCurrentPart(zip4jRaf, zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
   }
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream, Charset charset) throws IOException {
@@ -729,5 +730,13 @@ public class HeaderReader {
     }
 
     return zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
+  }
+
+  private void seekInCurrentPart(RandomAccessFile randomAccessFile, long pos) throws IOException {
+    if (randomAccessFile instanceof NumberedSplitRandomAccessFile) {
+      ((NumberedSplitRandomAccessFile) randomAccessFile).seekInCurrentPart(pos);
+    } else {
+      randomAccessFile.seek(pos);
+    }
   }
 }

@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
+import net.lingala.zip4j.util.UnzipUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -39,8 +40,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   }
 
   protected ZipInputStream createZipInputStream(FileHeader fileHeader, Charset charset) throws IOException {
-    splitInputStream = new SplitInputStream(getZipModel().getZipFile(),
-        getZipModel().isSplitArchive(), getZipModel().getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+    splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
     splitInputStream.prepareExtractionForFileHeader(fileHeader);
     return new ZipInputStream(splitInputStream, password, charset);
   }

@@ -25,22 +25,22 @@ public class FileUtilsIT extends AbstractIT {
   private ProgressMonitor progressMonitor = new ProgressMonitor();
 
   @Test
-  public void testCopyFileThrowsExceptionWhenStartsIsLessThanZero() throws IOException, ZipException {
+  public void testCopyFileThrowsExceptionWhenStartsIsLessThanZero() throws IOException {
     testInvalidOffsetsScenario(-1, 100);
   }
 
   @Test
-  public void testCopyFileThrowsExceptionWhenEndIsLessThanZero() throws IOException, ZipException {
+  public void testCopyFileThrowsExceptionWhenEndIsLessThanZero() throws IOException {
     testInvalidOffsetsScenario(0, -1);
   }
 
   @Test
-  public void testCopyFileThrowsExceptionWhenStartIsGreaterThanEnd() throws IOException, ZipException {
+  public void testCopyFileThrowsExceptionWhenStartIsGreaterThanEnd() throws IOException {
     testInvalidOffsetsScenario(300, 100);
   }
 
   @Test
-  public void testCopyFilesWhenStartIsSameAsEndDoesNothing() throws IOException, ZipException {
+  public void testCopyFilesWhenStartIsSameAsEndDoesNothing() throws IOException {
     File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
@@ -53,7 +53,7 @@ public class FileUtilsIT extends AbstractIT {
   }
 
   @Test
-  public void testCopyFilesCopiesCompleteFile() throws IOException, ZipException {
+  public void testCopyFilesCopiesCompleteFile() throws IOException {
     File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
@@ -65,7 +65,7 @@ public class FileUtilsIT extends AbstractIT {
   }
 
   @Test
-  public void testCopyFilesCopiesPartOfFile() throws IOException, ZipException {
+  public void testCopyFilesCopiesPartOfFile() throws IOException {
     File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
@@ -76,7 +76,27 @@ public class FileUtilsIT extends AbstractIT {
     assertThat(outputFile.length()).isEqualTo(300);
   }
 
-  private void testInvalidOffsetsScenario(int start, int offset) throws IOException, ZipException {
+  @Test
+  public void testGetAllSortedNumberedSplitFilesReturnsEmptyForNoFiles() throws IOException {
+    File file = temporaryFolder.newFile("somename");
+    assertThat(FileUtils.getAllSortedNumberedSplitFiles(file)).isEmpty();
+  }
+
+  @Test
+  public void testGetAllSortedNumberedSplitFilesReturnsSortedList() throws IOException {
+    File file001 = temporaryFolder.newFile("somename.zip.001");
+    File file003 = temporaryFolder.newFile("somename.zip.003");
+    File file002 = temporaryFolder.newFile("somename.zip.002");
+    File file006 = temporaryFolder.newFile("somename.zip.006");
+    File file005 = temporaryFolder.newFile("somename.zip.005");
+    File file004 = temporaryFolder.newFile("somename.zip.004");
+
+    File[] sortedList = FileUtils.getAllSortedNumberedSplitFiles(file001);
+
+    assertThat(sortedList).containsExactly(file001, file002, file003, file004, file005, file006);
+  }
+
+  private void testInvalidOffsetsScenario(int start, int offset) throws IOException {
     expectedException.expectMessage("invalid offsets");
     expectedException.expect(ZipException.class);
 

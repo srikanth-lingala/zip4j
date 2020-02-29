@@ -1,8 +1,10 @@
 package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.NumberedSplitInputStream;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.io.inputstream.ZipStandardSplitInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 
@@ -21,8 +23,7 @@ public class UnzipUtil {
 
     SplitInputStream splitInputStream = null;
     try {
-      splitInputStream = new SplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
-          zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+      splitInputStream = createSplitInputStream(zipModel);
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
 
       ZipInputStream zipInputStream = new ZipInputStream(splitInputStream, password);
@@ -48,6 +49,18 @@ public class UnzipUtil {
     } catch (NoSuchMethodError e) {
       setFileLastModifiedTimeWithoutNio(file, fileHeader.getLastModifiedTime());
     }
+  }
+
+  public static SplitInputStream createSplitInputStream(ZipModel zipModel) throws IOException {
+    File zipFile = zipModel.getZipFile();
+
+    if (zipFile.getName().endsWith(InternalZipConstants.SEVEN_ZIP_SPLIT_FILE_EXTENSION_PATTERN)) {
+      return new NumberedSplitInputStream(zipModel.getZipFile(), true,
+          zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
+    }
+
+    return new ZipStandardSplitInputStream(zipModel.getZipFile(), zipModel.isSplitArchive(),
+        zipModel.getEndOfCentralDirectoryRecord().getNumberOfThisDisk());
   }
 
 }

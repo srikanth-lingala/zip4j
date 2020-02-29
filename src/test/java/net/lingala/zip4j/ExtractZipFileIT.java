@@ -18,11 +18,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
+import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -141,20 +144,20 @@ public class ExtractZipFileIT extends AbstractIT {
 
     File[] outputFiles = outputFolder.listFiles();
     assertThat(outputFiles).hasSize(1);
-    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_text_large.txt"), outputFiles[0]);
+    ZipFileVerifier.verifyFileContent(getTestFileFromResources("sample_text_large.txt"), outputFiles[0]);
   }
 
   @Test
   public void testExtractFileWithFileHeaderWithAes128AndInDirectory() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+    zipFile.addFolder(getTestFileFromResources(""), zipParameters);
 
     FileHeader fileHeader = zipFile.getFileHeader("test-files/öüäöäö/asöäööl");
     zipFile.extractFile(fileHeader, outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "asöäööl");
-    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
+    ZipFileVerifier.verifyFileContent(getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
   }
 
   @Test
@@ -168,7 +171,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractFile(fileHeader, outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
-    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_text_large.txt"), outputFile);
+    ZipFileVerifier.verifyFileContent(getTestFileFromResources("sample_text_large.txt"), outputFile);
   }
 
   @Test
@@ -186,25 +189,25 @@ public class ExtractZipFileIT extends AbstractIT {
   public void testExtractFileWithFileNameWithZipStandardEncryption() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+    zipFile.addFolder(getTestFileFromResources(""), zipParameters);
 
     zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath());
 
     File outputFile = getFileWithNameFrom(outputFolder, "favicon.ico");
-    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
+    ZipFileVerifier.verifyFileContent(getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
   }
 
   @Test
   public void testExtractFileWithFileNameWithZipStandardEncryptionAndNewFileName() throws IOException {
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+    zipFile.addFolder(getTestFileFromResources(""), zipParameters);
 
     String newFileName = "newFileName";
     zipFile.extractFile("test-files/sample_directory/favicon.ico", outputFolder.getPath(), newFileName);
 
     File outputFile = getFileWithNameFrom(outputFolder, newFileName);
-    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
+    ZipFileVerifier.verifyFileContent(getTestFileFromResources("sample_directory/favicon.ico"), outputFile);
   }
 
   @Test
@@ -259,7 +262,7 @@ public class ExtractZipFileIT extends AbstractIT {
   @Test
   public void testExtractFilesForAZipMadeWithZip4jv1AndStoreCompressionWithAES() throws IOException {
     File zipArchiveToTest = getTestArchiveFromResources("store_compression_made_with_v1.3.3.zip");
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(zipArchiveToTest, "aaaaaaaa".toCharArray(), outputFolder, 5,
+    verifyZipFileByExtractingAllFiles(zipArchiveToTest, "aaaaaaaa".toCharArray(), outputFolder, 5,
         false);
   }
 
@@ -383,6 +386,22 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(outputFolder.listFiles()).isEmpty();
   }
 
+  @Test
+  public void testExtractZipFileOf7ZipFormatSplitWithoutEncryption() throws IOException {
+    List<File> filesToAddToZip = new ArrayList<>(FILES_TO_ADD);
+    filesToAddToZip.add(getTestFileFromResources("file_PDF_1MB.pdf"));
+    File firstSplitFile = createZipFileAndSplit(filesToAddToZip, 102400, false, null);
+    verifyZipFileByExtractingAllFiles(firstSplitFile, outputFolder, 4);
+  }
+
+  @Test
+  public void testExtractZipFileOf7ZipFormatSplitWithAESEncryption() throws IOException {
+    List<File> filesToAddToZip = new ArrayList<>(FILES_TO_ADD);
+    filesToAddToZip.add(getTestFileFromResources("file_PDF_1MB.pdf"));
+    File firstSplitFile = createZipFileAndSplit(filesToAddToZip, 102000, true, EncryptionMethod.AES);
+    verifyZipFileByExtractingAllFiles(firstSplitFile, PASSWORD, outputFolder, 4);
+  }
+
   private void testExtractNestedZipFileWithEncrpytion(EncryptionMethod innerZipEncryption,
                                                        EncryptionMethod outerZipEncryption) throws IOException {
     File innerZipFile = temporaryFolder.newFile("inner.zip");
@@ -444,6 +463,16 @@ public class ExtractZipFileIT extends AbstractIT {
     Optional<File> file = filesInFolder.stream().filter(e -> e.getName().equals(fileName)).findFirst();
     assertThat(file).isPresent();
     return file.get();
+  }
+
+  private File createZipFileAndSplit(List<File> filesToAddToZip, long splitLength, boolean encrypt, EncryptionMethod encryptionMethod) throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(encrypt);
+    zipParameters.setEncryptionMethod(encryptionMethod);
+    zipFile.addFiles(filesToAddToZip, zipParameters);
+
+    return TestUtils.splitFileWith7ZipFormat(zipFile.getFile(), temporaryFolder.getRoot(), splitLength);
   }
 
 }

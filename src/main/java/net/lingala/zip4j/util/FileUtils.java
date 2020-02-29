@@ -17,6 +17,7 @@ import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -120,6 +121,16 @@ public class FileUtils {
 
     return result;
   }
+
+  public static String getFileNameWithoutExtension(String fileName) {
+    int pos = fileName.lastIndexOf(".");
+    if (pos == -1) {
+      return fileName;
+    }
+
+    return fileName.substring(0, pos);
+  }
+
 
   public static String getZipFileNameWithoutExtension(String zipFile) throws ZipException {
     if (!isStringNotNullAndNotEmpty(zipFile)) {
@@ -315,6 +326,53 @@ public class FileUtils {
       if (!file.exists()) {
         throw new ZipException("File does not exist: " + file);
       }
+    }
+  }
+
+  public static boolean isNumberedSplitFile(File file) {
+    return file.getName().endsWith(InternalZipConstants.SEVEN_ZIP_SPLIT_FILE_EXTENSION_PATTERN);
+  }
+
+  public static String getFileExtension(File file) {
+    String fileName = file.getName();
+
+    if (!fileName.contains(".")) {
+      return "";
+    }
+
+    return fileName.substring(fileName.lastIndexOf(".") + 1);
+  }
+
+  /**
+   * A helper method to retrieve all split files which are of the format split by 7-zip, i.e, .zip.001, .zip.002, etc.
+   * This method also sorts all the files by their split part
+   * @param firstNumberedFile - first split file
+   * @return sorted list of split files. Returns an empty list if no files of that pattern are found in the current directory
+   */
+  public static File[] getAllSortedNumberedSplitFiles(File firstNumberedFile) {
+    String zipFileNameWithoutExtension = FileUtils.getFileNameWithoutExtension(firstNumberedFile.getName());
+    File[] allSplitFiles = firstNumberedFile.getParentFile().listFiles((dir, name) -> name.startsWith(zipFileNameWithoutExtension + "."));
+
+    if(allSplitFiles == null) {
+      return new File[0];
+    }
+
+    Arrays.sort(allSplitFiles);
+
+    return allSplitFiles;
+  }
+
+  public static String getNextNumberedSplitFileCounterAsExtension(int index) {
+    return "." + getExtensionZerosPrefix(index) + (index + 1);
+  }
+
+  private static String getExtensionZerosPrefix(int index) {
+    if (index < 9) {
+      return "00";
+    } else if (index < 99) {
+      return "0";
+    } else {
+      return "";
     }
   }
 

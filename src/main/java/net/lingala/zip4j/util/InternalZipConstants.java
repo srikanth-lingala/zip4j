@@ -56,4 +56,6 @@ public final class InternalZipConstants {
   public static final int MAX_ALLOWED_ZIP_COMMENT_LENGTH = 0xFFFF;
 
   public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
+
+  public static final String SEVEN_ZIP_SPLIT_FILE_EXTENSION_PATTERN = ".zip.001";
 }

@@ -3,6 +3,9 @@ package net.lingala.zip4j.util;
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.NumberedSplitInputStream;
+import net.lingala.zip4j.io.inputstream.SplitInputStream;
+import net.lingala.zip4j.io.inputstream.ZipStandardSplitInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.testutils.TestUtils;
@@ -97,6 +100,28 @@ public class UnzipUtilIT extends AbstractIT {
 
     verifyStatic(FileUtils.class);
     FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
+  }
+
+  @Test
+  public void testCreateSplitInputStreamForNumberedSplitZipReturnsInstance() throws IOException {
+    String zipFileName = "somename.zip.001";
+    File zipFile = temporaryFolder.newFile(zipFileName);
+    ZipModel zipModel = createZipModel();
+    zipModel.setZipFile(zipFile);
+
+    SplitInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
+
+    assertThat(splitInputStream).isInstanceOf(NumberedSplitInputStream.class);
+  }
+
+  @Test
+  public void testCreateSplitInputStreamForNonNumberedSplitZipReturnsInstance() throws IOException {
+    temporaryFolder.newFile(generatedZipFile.getName());
+    ZipModel zipModel = createZipModel();
+
+    SplitInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
+
+    assertThat(splitInputStream).isInstanceOf(ZipStandardSplitInputStream.class);
   }
 
   private ZipFile createZipFile() throws ZipException {

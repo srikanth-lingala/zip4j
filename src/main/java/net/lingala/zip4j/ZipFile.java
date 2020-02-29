@@ -20,6 +20,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
+import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -54,6 +55,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
+import static net.lingala.zip4j.util.FileUtils.isNumberedSplitFile;
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF_8;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
@@ -846,7 +848,7 @@ public class ZipFile {
       throw new ZipException("no read access for the input zip file");
     }
 
-    try (RandomAccessFile randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue())) {
+    try (RandomAccessFile randomAccessFile = initializeRandomAccessFileForHeaderReading()) {
       HeaderReader headerReader = new HeaderReader();
       zipModel = headerReader.readAllHeaders(randomAccessFile, charset);
       zipModel.setZipFile(zipFile);
@@ -865,6 +867,18 @@ public class ZipFile {
   private void createNewZipModel() {
     zipModel = new ZipModel();
     zipModel.setZipFile(zipFile);
+  }
+
+  private RandomAccessFile initializeRandomAccessFileForHeaderReading() throws IOException {
+    if (isNumberedSplitFile(zipFile)) {
+      File[] allSplitFiles = FileUtils.getAllSortedNumberedSplitFiles(zipFile);
+      NumberedSplitRandomAccessFile numberedSplitRandomAccessFile =  new NumberedSplitRandomAccessFile(zipFile,
+          RandomAccessFileMode.READ.getValue(), allSplitFiles);
+      numberedSplitRandomAccessFile.openLastSplitFileForReading();
+      return numberedSplitRandomAccessFile;
+    }
+
+    return new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());
   }
 
   public ProgressMonitor getProgressMonitor() {
