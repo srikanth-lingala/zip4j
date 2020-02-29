@@ -385,6 +385,15 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
     assertThat(outputFolder.listFiles()).isEmpty();
   }
+  
+  @Test
+  public void testExtractZipFileCRCError() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("website_template.zip"));
+    zipFile.extractAll(outputFolder.getPath());
+    assertThat(outputFolder.listFiles()).contains(
+            new File(outputFolder, "index.html"),
+            new File(outputFolder, "images"));
+  }
 
   @Test
   public void testExtractZipFileOf7ZipFormatSplitWithoutEncryption() throws IOException {
