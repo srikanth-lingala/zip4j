@@ -266,6 +266,67 @@ if (fileHeader == null) {
 zipFile.removeFile(fileHeader);
 ~~~~
 
+### Rename entries in the zip file
+
+There are three ways to rename an entry in a zip file with zip4j. One way is to pass in a file header and the new file 
+name:
+
+~~~~
+ZipFile zipFile = new ZipFile("sample.zip");
+FileHeader fileHeader = zipFile.getFileHeader("entry-to-be-changed.pdf");
+zipFile.renameFile(fileHeader, "new-file-name.pdf");
+~~~~
+
+Second way is to pass in just the file name to be changed (instead of the file header), and the new file name. 
+
+~~~~
+new ZipFile("filename.zip").renameFile("entry-to-be-changed.pdf", "new-file-name.pdf");
+~~~~
+
+It is also possible to change multiple file names at once. In this case you have to use a map, with the key of the entry 
+in the map being the entry to be changed, and the value of the map being the new file name:
+
+~~~~
+Map<String, String> fileNamesMap = new HashMap<>();
+fileNamesMap.put("firstFile.txt", "newFileFirst.txt");
+fileNamesMap.put("secondFile.pdf", "newSecondFile.pdf");
+fileNamesMap.put("some-folder/thirdFile.bin", "some-folder/newThirdFile.bin");
+new ZipFile("filename.zip").renameFile("entry-to-be-changed.pdf", "new-file-name.pdf");
+~~~~
+
+To modify an entry name which is inside a folder, the new file name should contain the complete parent path as well.
+For example, if an entry by the name `some-entry.pdf` is in the folder `some-folder/some-sub-folder/`, to modify this 
+entry name to `some-new-entry.pdf`:
+
+~~~~
+new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "some-folder/some-sub-folder/new-entry.pdf");
+~~~~
+
+if the parent path path is missing, then the file will be put at the root of the zip file. In the below example, after
+the file is renamed, `some-new-entry.pdf` will exist at the root of the zip file instead of at `some-folder/some-sub-folder/`:
+
+~~~~
+new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "some-new-entry.pdf");
+~~~~
+
+This also gives the flexibility to "move" the entry to a different folder. The below example will move the 
+`some-entry.pdf` from `some-folder/some-sub-folder/` to `folder-to-be-moved-to/sub-folder/` and the file will also be 
+renamed to `new-entry.pdf`. To just move the file, use the same file name instead of a new file name.
+
+~~~~
+new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "folder-to-be-moved-to/sub-folder/new-entry.pdf");
+~~~~
+
+If the entry being modified is a directory, all entries that are part of that directory will be renamed so that all of 
+them have the new folder name as parent. In zip format, all entry names under a directory will contain the full name as their file name.
+For example if there is an entry by the name `filename.txt` inside a directory `directoryName`, the file name for the entry 
+will be `directoryName/filename.txt`. And if the name of the directory has now been changed to `newDirectoryName`, the
+entry under it will also be changed to `newDirectoryName/filename.txt`, so the when the zip file is extracted, 
+`filename.txt` will be under `newDirectoryName`.
+
+Zip file format does not allow modifying split zip files, and zip4j will throw an exception if an attempt is made to 
+rename files in a split zip file.
+
 ### Merging split zip files into a single zip
 
 This is the reverse of creating a split zip file, that is, this feature will merge a zip file which is split across 

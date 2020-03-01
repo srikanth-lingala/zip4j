@@ -693,10 +693,17 @@ public class ZipFile {
   }
 
   /**
-   * Renames the current entry
-   * @param fileHeader
-   * @param newFileName
-   * @throws ZipException
+   * Renames file name of the entry represented by file header. If the file name in the input file header does not
+   * match any entry in the zip file, the zip file will not be modified.
+   *
+   * If the file header is a folder in the zip file, all sub-files and sub-folders in the zip file will also be renamed.
+   *
+   * Zip file format does not allow modifying a split zip file. Therefore if the zip file being dealt with is a split
+   * zip file, this method throws an exception
+   *
+   * @param fileHeader file header to be changed
+   * @param newFileName the file name that has to be changed to
+   * @throws ZipException if fileHeader is null or newFileName is null or empty or if the zip file is a split file
    */
   public void renameFile(FileHeader fileHeader, String newFileName) throws ZipException {
     if (fileHeader == null) {
@@ -706,6 +713,22 @@ public class ZipFile {
     renameFile(fileHeader.getFileName(), newFileName);
   }
 
+  /**
+   * Renames file name of the entry represented by input fileNameToRename. If there is no entry in the zip file matching
+   * the file name as in fileNameToRename, the zip file will not be modified.
+   *
+   * If the entry with fileNameToRename is a folder in the zip file, all sub-files and sub-folders in the zip file will
+   * also be renamed. For a folder, the fileNameToRename has to end with zip file separator "/". For example, if a
+   * folder name "some-folder-name" has to be modified to "new-folder-name", then value of fileNameToRename should be
+   * "some-folder-name/". If newFileName does not end with a separator, zip4j will add a separator.
+   *
+   * Zip file format does not allow modifying a split zip file. Therefore if the zip file being dealt with is a split
+   * zip file, this method throws an exception
+   *
+   * @param fileNameToRename file name in the zip that has to be renamed
+   * @param newFileName the file name that has to be changed to
+   * @throws ZipException if fileNameToRename is empty or newFileName is empty or if the zip file is a split file
+   */
   public void renameFile(String fileNameToRename, String newFileName) throws ZipException {
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(fileNameToRename)) {
       throw new ZipException("file name to be changed is null or empty");
@@ -718,6 +741,19 @@ public class ZipFile {
     renameFiles(Collections.singletonMap(fileNameToRename, newFileName));
   }
 
+  /**
+   * Renames all the entries in the zip file that match the keys in the map to their corresponding values in the map. If
+   * there are no entries matching any of the keys from the map, the zip file is not modified.
+   *
+   * If any of the entry in the map represents a folder, all files and folders will be renamed so that their parent
+   * represents the renamed folder.
+   *
+   * Zip file format does not allow modifying a split zip file. Therefore if the zip file being dealt with is a split
+   * zip file, this method throws an exception
+   *
+   * @param fileNamesMap map of file names that have to be changed with values in the map being the name to be changed to
+   * @throws ZipException if map is null or if the zip file is a split file
+   */
   public void renameFiles(Map<String, String> fileNamesMap) throws ZipException {
     if (fileNamesMap == null) {
       throw new ZipException("fileNamesMap is null");

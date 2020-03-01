@@ -39,9 +39,12 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
 
   @Override
   protected void executeTask(RenameFileTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
-    File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
     Map<String, String> fileNamesMap = filterNonExistingEntriesAndAddSeparatorIfNeeded(taskParameters.fileNamesMap);
+    if (fileNamesMap.size() == 0) {
+      return;
+    }
 
+    File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
     try(RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
         OutputStream outputStream = new FileOutputStream(temporaryFile)) {
 

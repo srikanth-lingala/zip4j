@@ -9,7 +9,9 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.InternalZipConstants;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +27,21 @@ import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RenameFilesInZipIT extends AbstractIT {
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+
+  @Test
+  public void testRenameSplitZipFileThrowsException() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.createSplitZipFile(Collections.singletonList(getTestFileFromResources("file_PDF_1MB.pdf")),
+        new ZipParameters(), true, InternalZipConstants.MIN_SPLIT_LENGTH);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Zip file format does not allow updating split/spanned files");
+
+    zipFile.renameFile("file_PDF_1MB.pdf", "some_name.pdf");
+  }
 
   @Test
   public void testRenameWithFileHeaderRenamesSuccessfully() throws IOException {
