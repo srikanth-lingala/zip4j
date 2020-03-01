@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.file.Files;
 
 public class TestUtils {
 
@@ -70,6 +71,10 @@ public class TestUtils {
     }
 
     return getFileNameFor7ZipSplitIndex(fileToSplit, outputFolder, 0);
+  }
+
+  public static void copyFile(File sourceFile, File destinationFile) throws IOException {
+    Files.copy(sourceFile.toPath(), destinationFile.toPath());
   }
 
   private static OutputStream startNext7ZipSplitStream(File sourceFile, File outputFolder, int index) throws IOException {

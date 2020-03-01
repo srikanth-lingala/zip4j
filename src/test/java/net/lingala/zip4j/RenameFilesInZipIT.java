@@ -186,10 +186,19 @@ public class RenameFilesInZipIT extends AbstractIT {
 
   @Test
   public void testRenameWithMapProgressMonitor() throws IOException, InterruptedException {
-    ZipFile zipFile = createZipFileWithFolder(CompressionMethod.DEFLATE, true, EncryptionMethod.AES);
+    for (int i = 0; i < 100; i++) {
+      File destinationFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), i + ".pdf").toFile();
+      TestUtils.copyFile(getTestFileFromResources("file_PDF_1MB.pdf"), destinationFile);
+    }
+
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ZipParameters zipParameters = buildZipParameters(CompressionMethod.DEFLATE, true, EncryptionMethod.AES);
+    zipParameters.setIncludeRootFolder(false);
+    zipFile.addFolder(temporaryFolder.getRoot(), zipParameters);
+
     Map<String, String> fileNamesMap = new HashMap<>();
-    fileNamesMap.put("test-files/가나다.abc", "test-files/üßööß.abc");
-    fileNamesMap.put("test-files/öüäöäö/", "test-files/가나다/");
+    fileNamesMap.put("1.pdf", "1_new.pdf");
+    fileNamesMap.put("25.pdf", "25_new.pdf");
 
     zipFile.setRunInThread(true);
     ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
@@ -198,7 +207,7 @@ public class RenameFilesInZipIT extends AbstractIT {
 
     boolean percentBetweenZeroAndHundred = false;
     boolean fileNameSet = true;
-    while (ProgressMonitor.State.BUSY.equals(progressMonitor.getState())) {
+    while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
       int percentDone = progressMonitor.getPercentDone();
       String fileName = progressMonitor.getFileName();
 
@@ -209,6 +218,8 @@ public class RenameFilesInZipIT extends AbstractIT {
       if (fileName != null) {
         fileNameSet = true;
       }
+
+      Thread.sleep(10);
     }
 
     assertThat(progressMonitor.getResult()).isEqualTo(ProgressMonitor.Result.SUCCESS);
@@ -217,7 +228,7 @@ public class RenameFilesInZipIT extends AbstractIT {
     assertThat(percentBetweenZeroAndHundred).isTrue();
     assertThat(fileNameSet).isTrue();
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13, false);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 100, false);
     verifyFileNamesChanged(zipFile, fileNamesMap, false);
   }
 
