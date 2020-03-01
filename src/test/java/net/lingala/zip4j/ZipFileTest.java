@@ -457,7 +457,7 @@ public class ZipFileTest {
   @Test
   public void testRenameFileWithFileHeaderThrowsExceptionWhenNewFileNameIsNull() throws ZipException {
     expectedException.expect(ZipException.class);
-    expectedException.expectMessage("File header is null");
+    expectedException.expectMessage("newFileName is null or empty");
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setFileName("somename");
@@ -468,7 +468,7 @@ public class ZipFileTest {
   @Test
   public void testRenameFileWithFileHeaderThrowsExceptionWhenNewFileNameIsEmpty() throws ZipException {
     expectedException.expect(ZipException.class);
-    expectedException.expectMessage("File header is null");
+    expectedException.expectMessage("newFileName is null or empty");
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setFileName("somename");
