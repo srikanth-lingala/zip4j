@@ -447,6 +447,14 @@ public class ZipFileTest {
   }
 
   @Test
+  public void testRemoveFilesWithListThrowsExceptionWhenListIsNull() throws ZipException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("fileNames list is null");
+
+    zipFile.removeFiles(null);
+  }
+
+  @Test
   public void testRenameFileWithFileHeaderThrowsExceptionWhenHeaderIsNull() throws ZipException {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("File header is null");

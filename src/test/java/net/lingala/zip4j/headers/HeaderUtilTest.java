@@ -265,6 +265,15 @@ public class HeaderUtilTest {
     assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(englishString);
   }
 
+  @Test
+  public void testGetLocalFileHeaderSize() {
+    FileHeader fileHeader = new FileHeader();
+    fileHeader.setFileNameLength(10);
+    fileHeader.setExtraFieldLength(20);
+
+    assertThat(HeaderUtil.getLocalFileHeaderSize(fileHeader)).isEqualTo(60);
+  }
+
   private List<FileHeader> generateFileHeaderWithFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntriesToAdd; i++) {

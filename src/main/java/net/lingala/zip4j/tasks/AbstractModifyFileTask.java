@@ -1,6 +1,7 @@
 package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.List;
 import java.util.Random;
 
 abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
@@ -29,32 +31,37 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
     return tmpFile;
   }
 
-  long getOffsetLocalFileHeader(FileHeader fileHeader) {
-    long offsetLocalFileHeader = fileHeader.getOffsetLocalHeader();
+  void updateOffsetsForAllSubsequentFileHeaders(ZipModel zipModel, FileHeader fileHeaderModified, long offsetToAdd) throws ZipException {
+    int indexOfFileHeader = HeaderUtil.getIndexOfFileHeader(zipModel, fileHeaderModified);
 
-    if (fileHeader.getZip64ExtendedInfo() != null && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
-      offsetLocalFileHeader = fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader();
+    if (indexOfFileHeader == -1) {
+      throw new ZipException("Could not locate modified file header in zipModel");
     }
 
-    return offsetLocalFileHeader;
-  }
+    List<FileHeader> allFileHeaders = zipModel.getCentralDirectory().getFileHeaders();
 
-  long getOffsetOfStartOfCentralDirectory(ZipModel zipModel) {
-    long offsetStartCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
+    for (int i = indexOfFileHeader + 1; i < allFileHeaders.size(); i++) {
+      FileHeader fileHeaderToUpdate = allFileHeaders.get(i);
+      fileHeaderToUpdate.setOffsetLocalHeader(fileHeaderToUpdate.getOffsetLocalHeader() + offsetToAdd);
 
-    if (zipModel.isZip64Format() && zipModel.getZip64EndOfCentralDirectoryRecord() != null) {
-      offsetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
-          .getOffsetStartCentralDirectoryWRTStartDiskNumber();
+      if (zipModel.isZip64Format()
+          && fileHeaderToUpdate.getZip64ExtendedInfo() != null
+          && fileHeaderToUpdate.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
+
+        fileHeaderToUpdate.getZip64ExtendedInfo().setOffsetLocalHeader(
+            fileHeaderModified.getZip64ExtendedInfo().getOffsetLocalHeader() + offsetToAdd
+        );
+      }
     }
-
-    return offsetStartCentralDir;
   }
 
   void cleanupFile(boolean successFlag, File zipFile, File temporaryZipFile) throws ZipException {
     if (successFlag) {
       restoreFileName(zipFile, temporaryZipFile);
     } else {
-      temporaryZipFile.delete();
+      if (!temporaryZipFile.delete()) {
+        throw new ZipException("Could not delete temporary file");
+      }
     }
   }
 

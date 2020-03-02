@@ -244,6 +244,9 @@ the zip, then you can use `zipFile.getFileHeader("root_folder/entry_name_in_zip.
 new ZipFile("filename.zip").removeFile("fileNameInZipToRemove");
 ~~~~
 
+If `fileNameInZipToRemove` represents a folder. All the files and folders under this folder will be removed as well
+(this is valid since v2.5.0 of zip4j. All prior versions remove just the single entry even if it is a folder). 
+
 Please note that the file name is relative the root folder in zip. That is, if the file you want to remove exists in a 
 folder called "folder1", which in-turn exists in a folder called "root-folder", removing this file from zip can be done 
 as below:
@@ -265,6 +268,20 @@ if (fileHeader == null) {
 
 zipFile.removeFile(fileHeader);
 ~~~~
+
+Since v2.5.0 of zip4j, it is possible to remove multiple files and folders from a zip file. You can now pass in a list
+as shown in the code below:
+
+~~~~
+ZipFile zipFile = new ZipFile("someZip.zip");
+List<String> filesToRemove = Arrays.asList("file1.txt", "file2.txt", "some-folder/", "some-new-folder-1/somefile.pdf");
+
+zipFile.removeFiles(filesToRemove);
+~~~~
+
+The above code will remove `file1.txt`, `file2.txt`, all files and folders under `some-folder` (including `some-folder`)
+and just the entry `somefile.pdf` in folder `some-new-folder-1`. All other files and folders are kept intact in the zip
+file.
 
 ### Rename entries in the zip file
 

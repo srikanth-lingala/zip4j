@@ -40,10 +40,10 @@ import net.lingala.zip4j.tasks.ExtractFileTask;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
-import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask;
-import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
-import net.lingala.zip4j.tasks.RenameFileTask;
-import net.lingala.zip4j.tasks.RenameFileTask.RenameFileTaskParameters;
+import net.lingala.zip4j.tasks.RemoveFilesFromZipTask;
+import net.lingala.zip4j.tasks.RemoveFilesFromZipTask.RemoveFilesFromZipTaskParameters;
+import net.lingala.zip4j.tasks.RenameFilesTask;
+import net.lingala.zip4j.tasks.RenameFilesTask.RenameFilesTaskParameters;
 import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
@@ -636,41 +636,13 @@ public class ZipFile {
   }
 
   /**
-   * Removes the file provided in the input parameters from the zip file.
-   * This method first finds the file header and then removes the file.
-   * If file does not exist, then this method throws an exception.
+   * Removes the file provided in the input file header from the zip file.
+   *
    * If zip file is a split zip file, then this method throws an exception as
    * zip specification does not allow for updating split zip archives.
    *
-   * @param fileName
-   * @throws ZipException
-   */
-  public void removeFile(String fileName) throws ZipException {
-
-    if (!isStringNotNullAndNotEmpty(fileName)) {
-      throw new ZipException("file name is empty or null, cannot remove file");
-    }
-
-    if (zipModel == null) {
-      readZipInfo();
-    }
-
-    if (zipModel.isSplitArchive()) {
-      throw new ZipException("Zip file format does not allow updating split/spanned files");
-    }
-
-    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
-    if (fileHeader == null) {
-      throw new ZipException("could not find file header for file: " + fileName);
-    }
-
-    removeFile(fileHeader);
-  }
-
-  /**
-   * Removes the file provided in the input file header from the zip file.
-   * If zip file is a split zip file, then this method throws an exception as
-   * zip specification does not allow for updating split zip archives.
+   * If this file header is a directory, all files and directories
+   * under this directory will be removed as well.
    *
    * @param fileHeader
    * @throws ZipException
@@ -680,6 +652,53 @@ public class ZipFile {
       throw new ZipException("input file header is null, cannot remove file");
     }
 
+    removeFile(fileHeader.getFileName());
+  }
+
+  /**
+   * Removes the file provided in the input parameters from the zip file.
+   * This method first finds the file header and then removes the file.
+   *
+   * If file does not exist, then this method throws an exception.
+   *
+   * If zip file is a split zip file, then this method throws an exception as
+   * zip specification does not allow for updating split zip archives.
+   *
+   * If the entry representing this file name is a directory, all files and directories
+   * under this directory will be removed as well.
+   *
+   * @param fileName
+   * @throws ZipException
+   */
+  public void removeFile(String fileName) throws ZipException {
+    if (!isStringNotNullAndNotEmpty(fileName)) {
+      throw new ZipException("file name is empty or null, cannot remove file");
+    }
+
+    removeFiles(Collections.singletonList(fileName));
+  }
+
+  /**
+   * Removes all files from the zip file that match the names in the input list.
+   *
+   * If any of the file is a directory, all the files and directories under this directory
+   * will be removed as well
+   *
+   * If zip file is a split zip file, then this method throws an exception as
+   * zip specification does not allow for updating split zip archives.
+   *
+   * @param fileNames
+   * @throws ZipException
+   */
+  public void removeFiles(List<String> fileNames) throws ZipException {
+    if (fileNames == null) {
+      throw new ZipException("fileNames list is null");
+    }
+
+    if (fileNames.isEmpty()) {
+      return;
+    }
+
     if (zipModel == null) {
       readZipInfo();
     }
@@ -688,8 +707,8 @@ public class ZipFile {
       throw new ZipException("Zip file format does not allow updating split/spanned files");
     }
 
-    new RemoveEntryFromZipFileTask(zipModel, buildAsyncParameters()).execute(
-            new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+    new RemoveFilesFromZipTask(zipModel, headerWriter, buildAsyncParameters()).execute(
+        new RemoveFilesFromZipTaskParameters(fileNames, charset));
   }
 
   /**
@@ -770,8 +789,8 @@ public class ZipFile {
     }
 
     AsyncZipTask.AsyncTaskParameters asyncTaskParameters = buildAsyncParameters();
-    new RenameFileTask(zipModel, headerWriter, new RawIO(), charset, asyncTaskParameters).execute(
-        new RenameFileTaskParameters(fileNamesMap));
+    new RenameFilesTask(zipModel, headerWriter, new RawIO(), charset, asyncTaskParameters).execute(
+        new RenameFilesTaskParameters(fileNamesMap));
   }
 
   /**

@@ -22,14 +22,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.RenameFileTaskParameters> {
+import static net.lingala.zip4j.headers.HeaderUtil.getLocalFileHeaderSize;
+
+public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.RenameFilesTaskParameters> {
 
   private ZipModel zipModel;
   private HeaderWriter headerWriter;
   private RawIO rawIO;
   private Charset charset;
 
-  public RenameFileTask(ZipModel zipModel, HeaderWriter headerWriter, RawIO rawIO, Charset charset, AsyncTaskParameters asyncTaskParameters) {
+  public RenameFilesTask(ZipModel zipModel, HeaderWriter headerWriter, RawIO rawIO, Charset charset, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);
     this.zipModel = zipModel;
     this.headerWriter = headerWriter;
@@ -38,13 +40,14 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
   }
 
   @Override
-  protected void executeTask(RenameFileTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
+  protected void executeTask(RenameFilesTaskParameters taskParameters, ProgressMonitor progressMonitor) throws IOException {
     Map<String, String> fileNamesMap = filterNonExistingEntriesAndAddSeparatorIfNeeded(taskParameters.fileNamesMap);
     if (fileNamesMap.size() == 0) {
       return;
     }
 
     File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
+    boolean successFlag = false;
     try(RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
         OutputStream outputStream = new FileOutputStream(temporaryFile)) {
 
@@ -63,7 +66,7 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
 
         if (fileNameMapForThisEntry == null) {
           // copy complete entry without any changes
-          int headerSize = 30 + fileHeader.getFileNameLength() + fileHeader.getExtraFieldLength(); // 30 = all fixed lengths in local file header
+          int headerSize = getLocalFileHeaderSize(fileHeader);
           currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, headerSize + fileHeader.getCompressedSize(), progressMonitor);
         } else {
           String newFileName = getNewFileName(fileNameMapForThisEntry.getValue(), fileNameMapForThisEntry.getKey(), fileHeader.getFileName());
@@ -80,17 +83,15 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
       }
 
       headerWriter.finalizeZipFile(zipModel, outputStream, charset);
-
-      cleanupFile(true, zipModel.getZipFile(), temporaryFile);
-    } catch (Exception e) {
-      cleanupFile(false, zipModel.getZipFile(), temporaryFile);
-      throw e;
+      successFlag = true;
+    } finally {
+      cleanupFile(successFlag, zipModel.getZipFile(), temporaryFile);
     }
 
   }
 
   @Override
-  protected long calculateTotalWork(RenameFileTaskParameters taskParameters) {
+  protected long calculateTotalWork(RenameFilesTaskParameters taskParameters) {
     return zipModel.getZipFile().length();
   }
 
@@ -146,7 +147,7 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
     fileHeaderToBeChanged.setFileName(newFileName);
     fileHeaderToBeChanged.setFileNameLength(newFileNameBytes.length);
 
-    updateOffsetsForAllSubsequentFileHeaders(fileHeaderToBeChanged, headersOffset);
+    updateOffsetsForAllSubsequentFileHeaders(zipModel, fileHeaderToBeChanged, headersOffset);
 
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(
         zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory() + headersOffset);
@@ -181,16 +182,6 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
     return fileNamesMapToBeChanged;
   }
 
-  private void updateOffsetsForAllSubsequentFileHeaders(FileHeader fileHeaderModified, int offsetToAdd) throws ZipException {
-    int indexOfFileHeader = HeaderUtil.getIndexOfFileHeader(zipModel, fileHeaderModified);
-    List<FileHeader> allFileHeaders = zipModel.getCentralDirectory().getFileHeaders();
-
-    for (int i = indexOfFileHeader + 1; i < allFileHeaders.size(); i++) {
-      FileHeader fileHeaderToUpdate = allFileHeaders.get(i);
-      fileHeaderToUpdate.setOffsetLocalHeader(fileHeaderToUpdate.getOffsetLocalHeader() + offsetToAdd);
-    }
-  }
-
   private String getNewFileName(String newFileName, String oldFileName, String fileNameFromHeaderToBeChanged) throws ZipException {
     if (fileNameFromHeaderToBeChanged.equals(oldFileName)) {
       return newFileName;
@@ -205,10 +196,10 @@ public class RenameFileTask extends AbstractModifyFileTask<RenameFileTask.Rename
     throw new ZipException("old file name was neither an exact match nor a partial match");
   }
 
-  public static class RenameFileTaskParameters {
+  public static class RenameFilesTaskParameters {
     private Map<String, String> fileNamesMap;
 
-    public RenameFileTaskParameters(Map<String, String> fileNamesMap) {
+    public RenameFilesTaskParameters(Map<String, String> fileNamesMap) {
       this.fileNamesMap = fileNamesMap;
     }
   }

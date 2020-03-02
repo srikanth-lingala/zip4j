@@ -79,6 +79,10 @@ public class HeaderUtil {
     }
   }
 
+  public static int getLocalFileHeaderSize(FileHeader fileHeader) {
+    return 30 + fileHeader.getFileNameLength() + fileHeader.getExtraFieldLength(); // 30 = all fixed lengths in local file header
+  }
+
   private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {
     if (zipModel == null) {
       throw new ZipException("zip model is null, cannot determine file header with exact match for fileName: "

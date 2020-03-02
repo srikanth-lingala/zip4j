@@ -178,4 +178,17 @@ public abstract class AbstractFileHeader extends ZipHeader {
   public void setDirectory(boolean directory) {
     isDirectory = directory;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+
+    if (!(obj instanceof AbstractFileHeader)) {
+      return false;
+    }
+
+    return this.getFileName().equals(((AbstractFileHeader) obj).getFileName());
+  }
 }

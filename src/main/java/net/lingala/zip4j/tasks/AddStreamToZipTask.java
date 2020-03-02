@@ -11,7 +11,6 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
-import net.lingala.zip4j.tasks.RemoveEntryFromZipFileTask.RemoveEntryFromZipFileTaskParameters;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
@@ -83,9 +82,7 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileNameInZip);
     if (fileHeader  != null) {
-      AsyncTaskParameters asyncTaskParameters = new AsyncTaskParameters(null, false, progressMonitor);
-      RemoveEntryFromZipFileTask removeEntryFromZipFileTask = new RemoveEntryFromZipFileTask(zipModel, asyncTaskParameters);
-      removeEntryFromZipFileTask.execute(new RemoveEntryFromZipFileTaskParameters(fileHeader, charset));
+      removeFile(fileHeader, progressMonitor, charset);
     }
   }
 
