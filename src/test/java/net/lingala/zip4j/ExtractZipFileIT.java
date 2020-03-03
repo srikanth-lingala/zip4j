@@ -179,10 +179,15 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     zipFile.addFiles(FILES_TO_ADD);
 
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("No file found with name NOT_EXISTING in zip file");
+    try {
+      zipFile.extractFile("NOT_EXISTING", outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e).isNotNull();
+      assertThat(e.getType()).isEqualTo(ZipException.Type.FILE_NOT_FOUND);
+      assertThat(e.getMessage()).isEqualTo("No file found with name NOT_EXISTING in zip file");
+    }
 
-    zipFile.extractFile("NOT_EXISTING", outputFolder.getPath());
   }
 
   @Test

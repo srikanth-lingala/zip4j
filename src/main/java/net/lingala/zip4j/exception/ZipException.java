@@ -55,6 +55,7 @@ public class ZipException extends IOException {
     TASK_CANCELLED_EXCEPTION,
     CHECKSUM_MISMATCH,
     UNKNOWN_COMPRESSION_METHOD,
+    FILE_NOT_FOUND,
     UNKNOWN
   }
 }

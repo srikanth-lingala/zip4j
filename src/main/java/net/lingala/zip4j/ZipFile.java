@@ -546,7 +546,7 @@ public class ZipFile {
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
 
     if (fileHeader == null) {
-      throw new ZipException("No file found with name " + fileName + " in zip file");
+      throw new ZipException("No file found with name " + fileName + " in zip file", ZipException.Type.FILE_NOT_FOUND);
     }
 
     extractFile(fileHeader, destinationPath, newFileName);
