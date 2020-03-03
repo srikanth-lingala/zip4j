@@ -69,6 +69,22 @@ public class RawIOIT extends AbstractIT {
   }
 
   @Test
+  public void testReadLongLitteEndianWithByteArrayAndOffset() {
+    byte[] b = new byte[9];
+    rawIO.writeLongLittleEndian(b, 1, 3463463735346821298L);
+
+    assertThat(rawIO.readLongLittleEndian(b, 1)).isEqualTo(3463463735346821298L);
+  }
+
+  @Test
+  public void testReadLongLittleEndianWithSmallByteArrayAndOffset() {
+    byte[] b = new byte[5];
+    rawIO.writeIntLittleEndian(b, 1, 234233);
+
+    assertThat(rawIO.readLongLittleEndian(b, 1)).isEqualTo(234233);
+  }
+
+  @Test
   public void testReadIntLittleEndianWithRandomAccessFile() throws IOException {
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(fileToTest, RandomAccessFileMode.READ.getValue())) {
       randomAccessFile.seek(16);
