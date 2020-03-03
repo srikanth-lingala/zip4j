@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
         ZipParameters clonedZipParameters = cloneAndAdjustZipParameters(zipParameters, fileToAdd, progressMonitor);
         progressMonitor.setFileName(fileToAdd.getAbsolutePath());
 
-        if (Files.isSymbolicLink(fileToAdd.toPath())) {
+        if (FileUtils.isSymbolicLink(fileToAdd)) {
           if (addSymlink(clonedZipParameters)) {
             addSymlinkToZip(fileToAdd, zipOutputStream, clonedZipParameters, splitOutputStream);
 

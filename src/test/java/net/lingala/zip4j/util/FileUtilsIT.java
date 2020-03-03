@@ -14,6 +14,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -94,6 +97,21 @@ public class FileUtilsIT extends AbstractIT {
     File[] sortedList = FileUtils.getAllSortedNumberedSplitFiles(file001);
 
     assertThat(sortedList).containsExactly(file001, file002, file003, file004, file005, file006);
+  }
+
+  @Test
+  public void testIsSymbolicLinkReturnsFalseWhenNotALink() throws IOException {
+    File targetFile = temporaryFolder.newFile("target.file");
+    assertThat(FileUtils.isSymbolicLink(targetFile)).isFalse();
+  }
+
+  @Test
+  public void testIsSymbolicLinkReturnsTrueForALink() throws IOException {
+    Path targetFile = temporaryFolder.newFile("target.file").toPath();
+    Path linkFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "source.link");
+    Files.createSymbolicLink(linkFile, targetFile);
+
+    assertThat(FileUtils.isSymbolicLink(linkFile.toFile()));
   }
 
   private void testInvalidOffsetsScenario(int start, int offset) throws IOException {

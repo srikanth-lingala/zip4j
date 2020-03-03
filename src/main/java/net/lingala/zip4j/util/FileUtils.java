@@ -131,7 +131,6 @@ public class FileUtils {
     return fileName.substring(0, pos);
   }
 
-
   public static String getZipFileNameWithoutExtension(String zipFile) throws ZipException {
     if (!isStringNotNullAndNotEmpty(zipFile)) {
       throw new ZipException("zip file name is empty or null, cannot determine zip file name");
@@ -208,7 +207,7 @@ public class FileUtils {
 
         String tmpFileName;
 
-        if (Files.isSymbolicLink(fileToAdd.toPath())) {
+        if (isSymbolicLink(fileToAdd)) {
           String rootPath = new File(fileToAdd.getParentFile().getCanonicalFile().getPath() + File.separator + fileToAdd.getCanonicalFile().getName()).getPath();
           tmpFileName = rootPath.substring(rootFolderFileRef.length());
         } else {
@@ -260,13 +259,11 @@ public class FileUtils {
       return fileNameInZip;
     }
 
-    Path path = fileToAdd.toPath();
-
-    if (Files.isSymbolicLink(path)) {
-      return path.toRealPath().getFileName().toString();
+    if (isSymbolicLink(fileToAdd)) {
+      return fileToAdd.toPath().toRealPath().getFileName().toString();
     }
 
-    return path.getFileName().toString();
+    return fileToAdd.getName();
   }
 
   public static boolean isZipEntryDirectory(String fileNameInZip) {
@@ -364,6 +361,14 @@ public class FileUtils {
 
   public static String getNextNumberedSplitFileCounterAsExtension(int index) {
     return "." + getExtensionZerosPrefix(index) + (index + 1);
+  }
+
+  public static boolean isSymbolicLink(File file) {
+    try {
+      return Files.isSymbolicLink(file.toPath());
+    } catch (Exception | Error e) {
+      return false;
+    }
   }
 
   private static String getExtensionZerosPrefix(int index) {

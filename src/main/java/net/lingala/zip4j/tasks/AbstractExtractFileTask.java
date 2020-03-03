@@ -96,15 +96,22 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
   private void createSymLink(ZipInputStream zipInputStream, FileHeader fileHeader, File outputFile,
                              ProgressMonitor progressMonitor) throws IOException {
+
     String symLinkPath = new String(readCompleteEntry(zipInputStream, fileHeader, progressMonitor));
-    Path linkTarget = Paths.get(symLinkPath);
 
     if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
       throw new ZipException("Could not create parent directories");
     }
 
-    Files.createSymbolicLink(outputFile.toPath(), linkTarget);
-    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+    try {
+      Path linkTarget = Paths.get(symLinkPath);
+      Files.createSymbolicLink(outputFile.toPath(), linkTarget);
+      UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+    } catch (NoSuchMethodError error) {
+      try (OutputStream outputStream = new FileOutputStream(outputFile)) {
+        outputStream.write(symLinkPath.getBytes());
+      }
+    }
   }
 
   private byte[] readCompleteEntry(ZipInputStream zipInputStream, FileHeader fileHeader,

@@ -383,6 +383,13 @@ public class FileUtilsTest {
     assertThat(FileUtils.getNextNumberedSplitFileCounterAsExtension(100)).isEqualTo(".101");
   }
 
+  @Test
+  public void testIsSymbolicLinkWhenNoSuchMethodErrorReturnsFalse() {
+    File file = mock(File.class);
+    when(file.toPath()).thenThrow(NoSuchMethodError.class);
+    assertThat(FileUtils.isSymbolicLink(file)).isFalse();
+  }
+
   private File mockZipFileAsExists(String path, String zipFileNameWithoutExtension) {
     File file = mock(File.class);
     when(file.exists()).thenReturn(true);
