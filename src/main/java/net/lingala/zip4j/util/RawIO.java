@@ -52,10 +52,10 @@ public class RawIO {
   }
 
   public long readLongLittleEndian(byte[] array, int pos) {
-    if (array.length < 8) {
+    if (array.length - pos < 8) {
       resetBytes(longBuff);
     }
-    System.arraycopy(array, pos, longBuff, 0, array.length < 8 ? array.length : 8);
+    System.arraycopy(array, pos, longBuff, 0, array.length < 8 ? array.length - pos : 8);
 
     long temp = 0;
     temp |= longBuff[7] & 0xff;
