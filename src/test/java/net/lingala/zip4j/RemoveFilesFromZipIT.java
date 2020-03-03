@@ -1,7 +1,6 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -19,7 +18,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyZipFileDoesNotContainFolders;
 
 public class RemoveFilesFromZipIT extends AbstractIT {
 
@@ -59,7 +59,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFile("sample_text1.txt");
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_text1.txt");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("sample_text1.txt"));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFile("sample_text1.txt");
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true, CHARSET_CP_949);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_text1.txt");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("sample_text1.txt"));
   }
 
   @Test
@@ -86,7 +86,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFile("test-files/öüäöäö/asöäööl");
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "test-files/öüäöäö/asöäööl");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("test-files/öüäöäö/asöäööl"));
   }
 
   @Test
@@ -98,7 +98,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFile(zipFile.getFileHeader("test-files/sample_directory/favicon.ico"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 12);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_directory/favicon.ico");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("sample_directory/favicon.ico"));
   }
 
   @Test
@@ -109,7 +109,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(Collections.singletonList("sample_text1.txt"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, FILES_TO_ADD.size() - 1);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample_text1.txt");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("sample_text1.txt"));
   }
 
   @Test
@@ -120,7 +120,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(Collections.singletonList("sample.pdf"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, FILES_TO_ADD.size() - 1);
-    verifyZipFileDoesNotContainFile(generatedZipFile, "sample.pdf");
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("sample.pdf"));
   }
 
   @Test
@@ -132,7 +132,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(filesToRemove);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, FILES_TO_ADD.size() - 2);
-    verifyZipFileDoesNotContainFiles(generatedZipFile, filesToRemove);
+    verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
   }
 
   @Test
@@ -147,7 +147,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(filesToRemove);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size() - 2);
-    verifyZipFileDoesNotContainFiles(generatedZipFile, filesToRemove);
+    verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
   }
 
   @Test
@@ -158,7 +158,7 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(Collections.singletonList("test-files/öüäöäö/"));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 11);
-    verifyZipFileDoesNotContainFolders(generatedZipFile, Collections.singletonList("test-files/öüäöäö/"));
+    verifyZipFileDoesNotContainFolders(zipFile, Collections.singletonList("test-files/öüäöäö/"));
   }
 
   @Test
@@ -174,12 +174,12 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     ));
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 7);
-    verifyZipFileDoesNotContainFolders(generatedZipFile, Arrays.asList("test-files/öüäöäö/", "test-files/sample_directory"));
-    verifyZipFileDoesNotContainFiles(generatedZipFile, Arrays.asList("test-files/after_deflate_remaining_bytes.bin", "test-files/бореиская.txt"));
+    verifyZipFileDoesNotContainFolders(zipFile, Arrays.asList("test-files/öüäöäö/", "test-files/sample_directory/"));
+    verifyFileHeadersDoesNotExist(zipFile, Arrays.asList("test-files/after_deflate_remaining_bytes.bin", "test-files/бореиская.txt"));
   }
 
   @Test
-  public void testRemoveFilesRemovesSinglEntryFromAFolderInAZip() throws IOException {
+  public void testRemoveFilesRemovesSingleEntryFromAFolderInAZip() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.addFolder(TestUtils.getTestFileFromResources(""));
     List<String> fileToRemove = Collections.singletonList("test-files/öüäöäö/asöäööl");
@@ -187,27 +187,6 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile.removeFiles(fileToRemove);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
-    verifyZipFileDoesNotContainFiles(generatedZipFile, fileToRemove);
+    verifyFileHeadersDoesNotExist(zipFile, fileToRemove);
   }
-
-  private void verifyZipFileDoesNotContainFile(File generatedZipFile, String fileNameToCheck) throws ZipException {
-    verifyZipFileDoesNotContainFiles(generatedZipFile, Collections.singletonList(fileNameToCheck));
-  }
-
-  private void verifyZipFileDoesNotContainFiles(File generatedZipFile, List<String> filesNamesToCheck) throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-
-    for (FileHeader fileHeader : zipFile.getFileHeaders()) {
-      assertThat(filesNamesToCheck).doesNotContain(fileHeader.getFileName());
-    }
-  }
-
-  private void verifyZipFileDoesNotContainFolders(File generatedZipFile, List<String> folderNames) throws ZipException {
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-
-    for (FileHeader fileHeader : zipFile.getFileHeaders()) {
-      folderNames.forEach(e -> assertThat(fileHeader.getFileName().startsWith(e)).isFalse());
-    }
-  }
-
 }

@@ -17,7 +17,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersExist;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTests.class)
@@ -64,6 +70,45 @@ public class ZipFileZip64IT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     assertThat(zipFile.getFileHeaders()).hasSize(70000);
     verifyZip64HeadersPresent();
+  }
+
+  @Test
+  public void testZip64RenameFiles() throws IOException {
+    long eachEntrySize = (InternalZipConstants.ZIP_64_SIZE_LIMIT / 2) + 100;
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEntrySize(eachEntrySize);
+
+    createZip64FileWithEntries(3, eachEntrySize, zipParameters);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    Map<String, String> fileNamesMap = new HashMap<>();
+    fileNamesMap.put("FILE_1", "NEW_FILE_1");
+    fileNamesMap.put("FILE_2", "NEW_FILE_2");
+    zipFile.renameFiles(fileNamesMap);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 3, false);
+    verifyZip64HeadersPresent();
+    verifyFileHeadersDoesNotExist(zipFile, fileNamesMap.keySet());
+    verifyFileHeadersExist(zipFile, fileNamesMap.values());
+  }
+
+  @Test
+  public void testZip64RemoveFiles() throws IOException {
+    long eachEntrySize = (InternalZipConstants.ZIP_64_SIZE_LIMIT / 2) + 100;
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEntrySize(eachEntrySize);
+
+    createZip64FileWithEntries(3, eachEntrySize, zipParameters);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<String> filesToRemove = Collections.singletonList("FILE_1");
+    zipFile.removeFiles(filesToRemove);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 2, false);
+    verifyZip64HeadersPresent();
+    verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
   }
 
   private void verifyZip64HeadersPresent() throws IOException {

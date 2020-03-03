@@ -49,7 +49,7 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
           && fileHeaderToUpdate.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
 
         fileHeaderToUpdate.getZip64ExtendedInfo().setOffsetLocalHeader(
-            fileHeaderModified.getZip64ExtendedInfo().getOffsetLocalHeader() + offsetToAdd
+            fileHeaderToUpdate.getZip64ExtendedInfo().getOffsetLocalHeader() + offsetToAdd
         );
       }
     }

@@ -1,6 +1,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -14,15 +15,19 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersExist;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -202,6 +207,19 @@ public class RenameFilesInZipIT extends AbstractIT {
   }
 
   @Test
+  public void testRenameForZipFileContainingExtraDataRecords() throws IOException {
+    createZipFileWithZipOutputStream(FILES_TO_ADD);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    Map<String, String> fileNamesMap = new HashMap<>();
+    fileNamesMap.put("sample_text_large.txt", "new_file.txt");
+    zipFile.renameFiles(fileNamesMap);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 3, false);
+    verifyFileNamesChanged(zipFile, fileNamesMap, false);
+  }
+
+  @Test
   public void testRenameWithMapProgressMonitor() throws IOException, InterruptedException {
     TestUtils.copyFileToFolder(getTestFileFromResources("file_PDF_1MB.pdf"), temporaryFolder.getRoot(), 100);
 
@@ -246,6 +264,28 @@ public class RenameFilesInZipIT extends AbstractIT {
     verifyFileNamesChanged(zipFile, fileNamesMap, false);
   }
 
+  private void createZipFileWithZipOutputStream(List<File> filesToAdd) throws IOException {
+
+    byte[] buff = new byte[InternalZipConstants.BUFF_SIZE];
+    int readLen = -1;
+    ZipParameters zipParameters = new ZipParameters();
+
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      for (File fileToAdd : filesToAdd) {
+        zipParameters.setFileNameInZip(fileToAdd.getName());
+        zipOutputStream.putNextEntry(zipParameters);
+
+        try(InputStream inputStream = new FileInputStream(fileToAdd)) {
+          while ((readLen = inputStream.read(buff)) != -1) {
+            zipOutputStream.write(buff, 0, readLen);
+          }
+        }
+
+        zipOutputStream.closeEntry();
+      }
+    }
+  }
+
   private void verifyFileNamesChanged(ZipFile zipFile, Map<String, String> fileNamesMap) throws IOException {
     verifyFileNamesChanged(zipFile, fileNamesMap, true);
   }
@@ -265,18 +305,6 @@ public class RenameFilesInZipIT extends AbstractIT {
           verifyContentOfChangedFile(changedFileNameEntry.getKey(), changedFileNameEntry.getValue());
         }
       }
-    }
-  }
-
-  private void verifyFileHeadersExist(ZipFile zipFile, Collection<String> fileNamesToVerify) throws IOException {
-    for (String fileNameToVerify : fileNamesToVerify) {
-      assertThat(zipFile.getFileHeader(fileNameToVerify)).isNotNull();
-    }
-  }
-
-  private void verifyFileHeadersDoesNotExist(ZipFile zipFile, Collection<String> fileNamesToVerify) throws IOException {
-    for (String fileNameToVerify : fileNamesToVerify) {
-      assertThat(zipFile.getFileHeader(fileNameToVerify)).isNull();
     }
   }
 

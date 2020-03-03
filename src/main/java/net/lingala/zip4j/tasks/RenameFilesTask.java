@@ -3,6 +3,8 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
+import net.lingala.zip4j.io.outputstream.CountingOutputStream;
+import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
@@ -12,7 +14,6 @@ import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -49,7 +50,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
     boolean successFlag = false;
     try(RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
-        OutputStream outputStream = new FileOutputStream(temporaryFile)) {
+        OutputStream outputStream = new CountingOutputStream(new SplitOutputStream(temporaryFile))) {
 
       long currentFileCopyPointer = 0;
 
@@ -115,8 +116,20 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     outputStream.write(newFileNameBytes);
     currentFileCopyPointer += fileHeader.getFileNameLength();
 
+    long remainingLengthToCopy = fileHeader.getExtraFieldLength() + fileHeader.getCompressedSize();
+
+    if (fileHeader.isDataDescriptorExists()) {
+      if (zipModel.isZip64Format()
+          && fileHeader.getZip64ExtendedInfo() != null
+          && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
+        remainingLengthToCopy += 24; // Length of extra data record for a zip64 entry
+      } else {
+        remainingLengthToCopy += 16; // Length of extra data record for a non-zip64 entry
+      }
+    }
+
     currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer,
-        fileHeader.getExtraFieldLength() + fileHeader.getCompressedSize(), progressMonitor);
+       remainingLengthToCopy, progressMonitor);
 
     return currentFileCopyPointer;
   }

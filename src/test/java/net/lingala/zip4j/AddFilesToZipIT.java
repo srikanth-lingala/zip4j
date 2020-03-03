@@ -12,7 +12,6 @@ import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.testutils.HeaderVerifier;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.BitUtils;
@@ -32,14 +31,13 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static net.lingala.zip4j.testutils.HeaderVerifier.verifyLocalFileHeaderUncompressedSize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AddFilesToZipIT extends AbstractIT {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
-
-  private HeaderVerifier headerVerifier = new HeaderVerifier();
 
   @Test
   public void testAddFileAsStringParameterThrowsExceptionWhenFileDoesNotExist() throws ZipException {
@@ -753,7 +751,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("бореиская.txt"), CompressionMethod.DEFLATE,
         EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
-    headerVerifier.verifyLocalFileHeaderUncompressedSize(generatedZipFile, "бореиская.txt", 0);
+    verifyLocalFileHeaderUncompressedSize(generatedZipFile, "бореиская.txt", 0);
   }
 
   @Test
