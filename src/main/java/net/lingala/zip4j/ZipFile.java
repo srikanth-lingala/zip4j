@@ -503,8 +503,8 @@ public class ZipFile {
    * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
    * input file name has to be abc/b.txt
    * <br><br>
-   * Throws an exception if file header could not be found for the given file name or if
-   * the destination path is invalid
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * Throws an exception if the destination path is invalid.
    *
    * @param fileName
    * @param destinationPath
@@ -527,8 +527,8 @@ public class ZipFile {
    * the value in newFileName. If this value is null, then the file name will be the
    * value in FileHeader.getFileName
    * <br><br>
-   * Throws an exception if file header could not be found for the given file name or if
-   * the destination path is invalid
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * Throws an exception if the destination path is invalid.
    *
    * @param fileName
    * @param destinationPath
@@ -546,7 +546,7 @@ public class ZipFile {
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
 
     if (fileHeader == null) {
-      throw new ZipException("No file found with name " + fileName + " in zip file");
+      throw new ZipException("No file found with name " + fileName + " in zip file", ZipException.Type.FILE_NOT_FOUND);
     }
 
     extractFile(fileHeader, destinationPath, newFileName);
