@@ -69,4 +69,8 @@ public abstract class AbstractIT {
   protected File getTestArchiveFromResources(String archiveName) {
     return TestUtils.getTestArchiveFromResources(archiveName);
   }
+
+  protected void cleanupOutputFolder() {
+    Arrays.stream(outputFolder.listFiles()).forEach(File::delete);
+  }
 }

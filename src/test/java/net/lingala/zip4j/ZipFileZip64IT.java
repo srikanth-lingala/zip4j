@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
+import net.lingala.zip4j.testutils.HeaderVerifier;
 import net.lingala.zip4j.testutils.RandomInputStream;
 import net.lingala.zip4j.testutils.SlowTests;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
@@ -17,19 +18,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
-import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersExist;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTests.class)
 public class ZipFileZip64IT extends AbstractIT {
 
-  private byte[] readBuffer = new byte[4096];
+  private byte[] readBuffer = new byte[2 * InternalZipConstants.BUFF_SIZE];
 
   @Test
   public void testZip64WithSingleLargeZipEntry() throws IOException {
@@ -43,6 +43,24 @@ public class ZipFileZip64IT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
     verifyZip64HeadersPresent();
+
+    cleanupOutputFolder();
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.renameFile("FILE_0", "NEW_FILE_0");
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
+    verifyZip64HeadersPresent();
+    HeaderVerifier.verifyFileHeadersExist(zipFile, Collections.singletonList("NEW_FILE_0"));
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("FILE_0"));
+
+    cleanupOutputFolder();
+
+    zipFile = new ZipFile(generatedZipFile);
+    zipFile.removeFile("NEW_FILE_0");
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 0, false);
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList("NEW_FILE_0"));
   }
 
   @Test
@@ -56,6 +74,31 @@ public class ZipFileZip64IT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 3, false);
     verifyZip64HeadersPresent();
+
+    cleanupOutputFolder();
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    Map<String, String> fileNamesMap = new HashMap<>();
+    fileNamesMap.put("FILE_1", "NEW_FILE_1");
+    fileNamesMap.put("FILE_2", "NEW_FILE_2");
+    zipFile.renameFiles(fileNamesMap);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 3, false);
+    verifyZip64HeadersPresent();
+    HeaderVerifier.verifyFileHeadersExist(zipFile, fileNamesMap.values());
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, fileNamesMap.keySet());
+
+    cleanupOutputFolder();
+
+    zipFile = new ZipFile(generatedZipFile);
+    List<String> filesToRemove = new ArrayList<>();
+    filesToRemove.add("FILE_0");
+    filesToRemove.add("NEW_FILE_2");
+    zipFile.removeFiles(filesToRemove);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
+    HeaderVerifier.verifyFileHeadersExist(zipFile, Collections.singleton("NEW_FILE_1"));
   }
 
   @Test
@@ -70,45 +113,30 @@ public class ZipFileZip64IT extends AbstractIT {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     assertThat(zipFile.getFileHeaders()).hasSize(70000);
     verifyZip64HeadersPresent();
-  }
 
-  @Test
-  public void testZip64RenameFiles() throws IOException {
-    long eachEntrySize = (InternalZipConstants.ZIP_64_SIZE_LIMIT / 2) + 100;
+    cleanupOutputFolder();
 
-    ZipParameters zipParameters = new ZipParameters();
-    zipParameters.setEntrySize(eachEntrySize);
-
-    createZip64FileWithEntries(3, eachEntrySize, zipParameters);
-
-    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile = new ZipFile(generatedZipFile);
     Map<String, String> fileNamesMap = new HashMap<>();
-    fileNamesMap.put("FILE_1", "NEW_FILE_1");
-    fileNamesMap.put("FILE_2", "NEW_FILE_2");
+    fileNamesMap.put("FILE_10", "NEW_FILE_10");
+    fileNamesMap.put("FILE_20", "NEW_FILE_20");
+    fileNamesMap.put("FILE_30", "NEW_FILE_30");
     zipFile.renameFiles(fileNamesMap);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 3, false);
     verifyZip64HeadersPresent();
-    verifyFileHeadersDoesNotExist(zipFile, fileNamesMap.keySet());
-    verifyFileHeadersExist(zipFile, fileNamesMap.values());
-  }
+    HeaderVerifier.verifyFileHeadersExist(zipFile, fileNamesMap.values());
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, fileNamesMap.keySet());
 
-  @Test
-  public void testZip64RemoveFiles() throws IOException {
-    long eachEntrySize = (InternalZipConstants.ZIP_64_SIZE_LIMIT / 2) + 100;
+    cleanupOutputFolder();
 
-    ZipParameters zipParameters = new ZipParameters();
-    zipParameters.setEntrySize(eachEntrySize);
-
-    createZip64FileWithEntries(3, eachEntrySize, zipParameters);
-
-    ZipFile zipFile = new ZipFile(generatedZipFile);
-    List<String> filesToRemove = Collections.singletonList("FILE_1");
+    zipFile = new ZipFile(generatedZipFile);
+    List<String> filesToRemove = new ArrayList<>();
+    filesToRemove.add("FILE_0");
+    filesToRemove.add("NEW_FILE_10");
+    filesToRemove.add("NEW_FILE_30");
     zipFile.removeFiles(filesToRemove);
 
-    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 2, false);
-    verifyZip64HeadersPresent();
-    verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
+    HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
   }
 
   private void verifyZip64HeadersPresent() throws IOException {
