@@ -189,4 +189,16 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
     verifyFileHeadersDoesNotExist(zipFile, fileToRemove);
   }
+
+  @Test
+  public void testRemoveFilesFromZipWithDataDescriptors() throws IOException {
+    TestUtils.createZipFileWithZipOutputStream(generatedZipFile, FILES_TO_ADD);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<String> filesToRemove = Collections.singletonList("sample_text_large.txt");
+
+    zipFile.removeFiles(filesToRemove);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
+    verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
+  }
 }

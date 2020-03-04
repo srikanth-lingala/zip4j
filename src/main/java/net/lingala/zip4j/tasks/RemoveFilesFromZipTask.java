@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getDataDescriptorSize;
 import static net.lingala.zip4j.headers.HeaderUtil.getLocalFileHeaderSize;
 
 public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFromZipTaskParameters>  {
@@ -55,7 +56,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
 
       for (FileHeader fileHeader : allUnchangedFileHeaders) {
         if (shouldEntryBeRemoved(fileHeader, entriesToRemove)) {
-          long offsetToSubtract = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize();
+          long offsetToSubtract = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
           updateHeaders(fileHeader, offsetToSubtract);
 
           if (!zipModel.getCentralDirectory().getFileHeaders().remove(fileHeader)) {
@@ -65,8 +66,8 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
           currentFileCopyPointer += offsetToSubtract;
         } else {
           // copy complete entry without any changes
-          int headerSize = getLocalFileHeaderSize(fileHeader);
-          currentFileCopyPointer += super.copyFile(inputStream, outputStream, currentFileCopyPointer, headerSize + fileHeader.getCompressedSize(), progressMonitor);
+          long lengthToCopy = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
+          currentFileCopyPointer += super.copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
         }
         verifyIfTaskIsCancelled();
       }
@@ -127,8 +128,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
           zipModel.getZip64EndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory() - 1);
 
       zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(
-          zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord() - offsetToSubtract
-      );
+          zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord() - offsetToSubtract);
     }
   }
 

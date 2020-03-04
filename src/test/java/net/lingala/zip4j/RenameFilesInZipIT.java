@@ -1,7 +1,6 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -15,10 +14,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -208,11 +204,11 @@ public class RenameFilesInZipIT extends AbstractIT {
 
   @Test
   public void testRenameForZipFileContainingExtraDataRecords() throws IOException {
-    createZipFileWithZipOutputStream(FILES_TO_ADD);
+    TestUtils.createZipFileWithZipOutputStream(generatedZipFile, FILES_TO_ADD);
     ZipFile zipFile = new ZipFile(generatedZipFile);
-
     Map<String, String> fileNamesMap = new HashMap<>();
     fileNamesMap.put("sample_text_large.txt", "new_file.txt");
+
     zipFile.renameFiles(fileNamesMap);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 3, false);
@@ -262,28 +258,6 @@ public class RenameFilesInZipIT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 100, false);
     verifyFileNamesChanged(zipFile, fileNamesMap, false);
-  }
-
-  private void createZipFileWithZipOutputStream(List<File> filesToAdd) throws IOException {
-
-    byte[] buff = new byte[InternalZipConstants.BUFF_SIZE];
-    int readLen = -1;
-    ZipParameters zipParameters = new ZipParameters();
-
-    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
-      for (File fileToAdd : filesToAdd) {
-        zipParameters.setFileNameInZip(fileToAdd.getName());
-        zipOutputStream.putNextEntry(zipParameters);
-
-        try(InputStream inputStream = new FileInputStream(fileToAdd)) {
-          while ((readLen = inputStream.read(buff)) != -1) {
-            zipOutputStream.write(buff, 0, readLen);
-          }
-        }
-
-        zipOutputStream.closeEntry();
-      }
-    }
   }
 
   private void verifyFileNamesChanged(ZipFile zipFile, Map<String, String> fileNamesMap) throws IOException {

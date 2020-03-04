@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getDataDescriptorSize;
 import static net.lingala.zip4j.headers.HeaderUtil.getLocalFileHeaderSize;
 
 public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.RenameFilesTaskParameters> {
@@ -67,8 +68,8 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
 
         if (fileNameMapForThisEntry == null) {
           // copy complete entry without any changes
-          int headerSize = getLocalFileHeaderSize(fileHeader);
-          currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, headerSize + fileHeader.getCompressedSize(), progressMonitor);
+          long lengthToCopy = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
+          currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
         } else {
           String newFileName = getNewFileName(fileNameMapForThisEntry.getValue(), fileNameMapForThisEntry.getKey(), fileHeader.getFileName());
           byte[] newFileNameBytes = newFileName.getBytes(charset);
@@ -116,17 +117,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     outputStream.write(newFileNameBytes);
     currentFileCopyPointer += fileHeader.getFileNameLength();
 
-    long remainingLengthToCopy = fileHeader.getExtraFieldLength() + fileHeader.getCompressedSize();
-
-    if (fileHeader.isDataDescriptorExists()) {
-      if (zipModel.isZip64Format()
-          && fileHeader.getZip64ExtendedInfo() != null
-          && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
-        remainingLengthToCopy += 24; // Length of extra data record for a zip64 entry
-      } else {
-        remainingLengthToCopy += 16; // Length of extra data record for a non-zip64 entry
-      }
-    }
+    long remainingLengthToCopy = fileHeader.getExtraFieldLength() + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
 
     currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer,
        remainingLengthToCopy, progressMonitor);

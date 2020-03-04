@@ -83,6 +83,20 @@ public class HeaderUtil {
     return 30 + fileHeader.getFileNameLength() + fileHeader.getExtraFieldLength(); // 30 = all fixed lengths in local file header
   }
 
+  public static int getDataDescriptorSize(ZipModel zipModel, FileHeader fileHeader) {
+    if (!fileHeader.isDataDescriptorExists()) {
+      return 0;
+    }
+
+    if (zipModel.isZip64Format()
+        && fileHeader.getZip64ExtendedInfo() != null
+        && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
+      return  24; // Length of extra data record for a zip64 entry
+    }
+
+    return  16; // Length of extra data record for a non-zip64 entry
+  }
+
   private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {
     if (zipModel == null) {
       throw new ZipException("zip model is null, cannot determine file header with exact match for fileName: "
