@@ -71,6 +71,12 @@ public abstract class AbstractIT {
   }
 
   protected void cleanupOutputFolder() {
-    Arrays.stream(outputFolder.listFiles()).forEach(File::delete);
+    File[] filesInOutputFolder = outputFolder.listFiles();
+
+    if (filesInOutputFolder == null) {
+      return;
+    }
+
+    Arrays.stream(filesInOutputFolder).forEach(File::delete);
   }
 }

@@ -114,8 +114,6 @@ public class ZipFileZip64IT extends AbstractIT {
     assertThat(zipFile.getFileHeaders()).hasSize(70000);
     verifyZip64HeadersPresent();
 
-    cleanupOutputFolder();
-
     zipFile = new ZipFile(generatedZipFile);
     Map<String, String> fileNamesMap = new HashMap<>();
     fileNamesMap.put("FILE_10", "NEW_FILE_10");
@@ -126,8 +124,6 @@ public class ZipFileZip64IT extends AbstractIT {
     verifyZip64HeadersPresent();
     HeaderVerifier.verifyFileHeadersExist(zipFile, fileNamesMap.values());
     HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, fileNamesMap.keySet());
-
-    cleanupOutputFolder();
 
     zipFile = new ZipFile(generatedZipFile);
     List<String> filesToRemove = new ArrayList<>();
