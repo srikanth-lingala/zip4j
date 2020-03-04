@@ -18,9 +18,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.lingala.zip4j.headers.HeaderUtil.getDataDescriptorSize;
-import static net.lingala.zip4j.headers.HeaderUtil.getLocalFileHeaderSize;
-
 public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFromZipTaskParameters>  {
 
   private ZipModel zipModel;
@@ -55,19 +52,18 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
       List<FileHeader> allUnchangedFileHeaders = new ArrayList<>(zipModel.getCentralDirectory().getFileHeaders());
 
       for (FileHeader fileHeader : allUnchangedFileHeaders) {
+        long lengthOfCurrentEntry = HeaderUtil.getOffsetOfNextEntry(zipModel, fileHeader) - outputStream.getFilePointer();
         if (shouldEntryBeRemoved(fileHeader, entriesToRemove)) {
-          long offsetToSubtract = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
-          updateHeaders(fileHeader, offsetToSubtract);
+          updateHeaders(fileHeader, lengthOfCurrentEntry);
 
           if (!zipModel.getCentralDirectory().getFileHeaders().remove(fileHeader)) {
             throw new ZipException("Could not remove entry from list of central directory headers");
           }
 
-          currentFileCopyPointer += offsetToSubtract;
+          currentFileCopyPointer += lengthOfCurrentEntry;
         } else {
           // copy complete entry without any changes
-          long lengthToCopy = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
-          currentFileCopyPointer += super.copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
+          currentFileCopyPointer += super.copyFile(inputStream, outputStream, currentFileCopyPointer, lengthOfCurrentEntry, progressMonitor);
         }
         verifyIfTaskIsCancelled();
       }

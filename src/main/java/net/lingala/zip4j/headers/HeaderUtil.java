@@ -79,22 +79,24 @@ public class HeaderUtil {
     }
   }
 
-  public static int getLocalFileHeaderSize(FileHeader fileHeader) {
-    return 30 + fileHeader.getFileNameLength() + fileHeader.getExtraFieldLength(); // 30 = all fixed lengths in local file header
+
+  public static long getOffsetOfNextEntry(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
+    int indexOfFileHeader = getIndexOfFileHeader(zipModel, fileHeader);
+
+    List<FileHeader> fileHeaders = zipModel.getCentralDirectory().getFileHeaders();
+    if (indexOfFileHeader == fileHeaders.size() - 1) {
+      return getOffsetOfEndOfCentralDirectory(zipModel);
+    } else {
+      return fileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
+    }
   }
 
-  public static int getDataDescriptorSize(ZipModel zipModel, FileHeader fileHeader) {
-    if (!fileHeader.isDataDescriptorExists()) {
-      return 0;
+  private static long getOffsetOfEndOfCentralDirectory(ZipModel zipModel) {
+    if (zipModel.isZip64Format()) {
+      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
     }
 
-    if (zipModel.isZip64Format()
-        && fileHeader.getZip64ExtendedInfo() != null
-        && fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader() != -1) {
-      return  24; // Length of extra data record for a zip64 entry
-    }
-
-    return  16; // Length of extra data record for a non-zip64 entry
+    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 
   private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {

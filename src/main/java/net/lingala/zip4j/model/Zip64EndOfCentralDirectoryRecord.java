@@ -26,7 +26,7 @@ public class Zip64EndOfCentralDirectoryRecord extends ZipHeader {
   private long totalNumberOfEntriesInCentralDirectoryOnThisDisk;
   private long totalNumberOfEntriesInCentralDirectory;
   private long sizeOfCentralDirectory;
-  private long offsetStartCentralDirectoryWRTStartDiskNumber;
+  private long offsetStartCentralDirectoryWRTStartDiskNumber = -1;
   private byte[] extensibleDataSector;
 
   public long getSizeOfZip64EndCentralDirectoryRecord() {

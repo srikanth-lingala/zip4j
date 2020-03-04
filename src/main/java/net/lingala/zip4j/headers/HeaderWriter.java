@@ -173,7 +173,7 @@ public class HeaderWriter {
 
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       processHeaderData(zipModel, outputStream);
-      long offsetCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
+      long offsetCentralDir = getOffsetOfCentralDirectory(zipModel);
       writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO, charset);
       int sizeOfCentralDir = byteArrayOutputStream.size();
 
@@ -666,5 +666,15 @@ public class HeaderWriter {
         || fileHeader.getUncompressedSize() >= ZIP_64_SIZE_LIMIT
         || fileHeader.getOffsetLocalHeader() >= ZIP_64_SIZE_LIMIT
         || fileHeader.getDiskNumberStart() >= ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
+  }
+
+  private long getOffsetOfCentralDirectory(ZipModel zipModel) {
+    if (zipModel.isZip64Format()
+        && zipModel.getZip64EndOfCentralDirectoryRecord() != null
+        && zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber() != -1) {
+      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
+    }
+
+    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 }

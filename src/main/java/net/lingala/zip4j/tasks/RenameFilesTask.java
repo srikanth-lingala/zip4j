@@ -3,7 +3,6 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
-import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -22,9 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static net.lingala.zip4j.headers.HeaderUtil.getDataDescriptorSize;
-import static net.lingala.zip4j.headers.HeaderUtil.getLocalFileHeaderSize;
 
 public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.RenameFilesTaskParameters> {
 
@@ -51,7 +47,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
     boolean successFlag = false;
     try(RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
-        OutputStream outputStream = new CountingOutputStream(new SplitOutputStream(temporaryFile))) {
+        SplitOutputStream outputStream = new SplitOutputStream(temporaryFile)) {
 
       long currentFileCopyPointer = 0;
 
@@ -66,16 +62,16 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
         Map.Entry<String, String> fileNameMapForThisEntry = getCorrespondingEntryFromMap(fileHeader, fileNamesMap);
         progressMonitor.setFileName(fileHeader.getFileName());
 
+        long lengthToCopy = HeaderUtil.getOffsetOfNextEntry(zipModel, fileHeader) - outputStream.getFilePointer();
         if (fileNameMapForThisEntry == null) {
           // copy complete entry without any changes
-          long lengthToCopy = getLocalFileHeaderSize(fileHeader) + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
           currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
         } else {
           String newFileName = getNewFileName(fileNameMapForThisEntry.getValue(), fileNameMapForThisEntry.getKey(), fileHeader.getFileName());
           byte[] newFileNameBytes = newFileName.getBytes(charset);
           int headersOffset = newFileNameBytes.length - fileHeader.getFileNameLength();
 
-          currentFileCopyPointer = copyEntryAndChangeFileName(newFileNameBytes, fileHeader, currentFileCopyPointer,
+          currentFileCopyPointer = copyEntryAndChangeFileName(newFileNameBytes, fileHeader, currentFileCopyPointer, lengthToCopy,
               inputStream, outputStream, progressMonitor);
 
           updateHeadersInZipModel(fileHeader, newFileName, newFileNameBytes, headersOffset);
@@ -102,7 +98,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     return ProgressMonitor.Task.RENAME_FILE;
   }
 
-  private long copyEntryAndChangeFileName(byte[] newFileNameBytes, FileHeader fileHeader, long start,
+  private long copyEntryAndChangeFileName(byte[] newFileNameBytes, FileHeader fileHeader, long start, long totalLengthOfEntry,
                                           RandomAccessFile inputStream, OutputStream outputStream,
                                           ProgressMonitor progressMonitor) throws IOException {
     long currentFileCopyPointer = start;
@@ -117,7 +113,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     outputStream.write(newFileNameBytes);
     currentFileCopyPointer += fileHeader.getFileNameLength();
 
-    long remainingLengthToCopy = fileHeader.getExtraFieldLength() + fileHeader.getCompressedSize() + getDataDescriptorSize(zipModel, fileHeader);
+    long remainingLengthToCopy = totalLengthOfEntry - (currentFileCopyPointer - start);
 
     currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer,
        remainingLengthToCopy, progressMonitor);
