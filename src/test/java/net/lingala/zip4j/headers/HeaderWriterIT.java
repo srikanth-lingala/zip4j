@@ -7,6 +7,7 @@ import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.CentralDirectory;
 import net.lingala.zip4j.model.DataDescriptor;
+import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
@@ -223,6 +224,16 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
+  public void testFinalizeZipFileWithNullExtraDataWritesSuccessfully() throws IOException {
+    testFinalizeZipFileWhenExtraDataRecordIsNullOrEmpty(null);
+  }
+
+  @Test
+  public void testFinalizeZipFileWithEmptyExtraDataWritesSuccessfully() throws IOException {
+    testFinalizeZipFileWhenExtraDataRecordIsNullOrEmpty(new byte[0]);
+  }
+
+  @Test
   public void testFinalizeZipFileForZip64Format() throws IOException {
     ZipModel zipModel = createZipModel(10, COMPRESSED_SIZE_ZIP64, UNCOMPRESSED_SIZE_ZIP64);
     File headersFile = temporaryFolder.newFile();
@@ -418,7 +429,29 @@ public class HeaderWriterIT extends AbstractIT {
     verifyEntrySizesIsMaxValueInLFHWhenZip64Format(headersFile);
   }
 
-  public void createAndUpdateLocalFileHeader(File headersFile, long compressedSize, long uncompressedSize, long crc)
+  private void testFinalizeZipFileWhenExtraDataRecordIsNullOrEmpty(byte[] extraDataRecord) throws IOException {
+    ZipModel zipModel = createZipModel(10);
+    File headersFile = temporaryFolder.newFile();
+    addExtraDataRecordToFirstFileHeader(zipModel, extraDataRecord);
+
+    try(OutputStream outputStream = new FileOutputStream(headersFile)) {
+      headerWriter.finalizeZipFile(zipModel, outputStream, InternalZipConstants.CHARSET_UTF_8);
+    }
+
+    try(RandomAccessFile randomAccessFile = new RandomAccessFile(headersFile, RandomAccessFileMode.READ.getValue())) {
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      verifyZipModel(readZipModel, 10);
+
+      for (int i = 0; i < zipModel.getCentralDirectory().getFileHeaders().size(); i++) {
+        FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(i);
+        assertThat(fileHeader.getZip64ExtendedInfo()).isNull();
+        assertThat(fileHeader.getAesExtraDataRecord()).isNull();
+        assertThat(fileHeader.getExtraFieldLength()).isEqualTo(i == 0 ? 4 : 0);
+      }
+    }
+  }
+
+  private void createAndUpdateLocalFileHeader(File headersFile, long compressedSize, long uncompressedSize, long crc)
       throws IOException {
     ZipModel zipModel = createZipModel(3);
     LocalFileHeader localFileHeaderToWrite = createLocalFileHeader("LFH", compressedSize, uncompressedSize, false);
@@ -658,6 +691,21 @@ public class HeaderWriterIT extends AbstractIT {
     }
 
     return fileHeaders;
+  }
+
+  private void addExtraDataRecordToFirstFileHeader(ZipModel zipModel, byte[] data) {
+    ExtraDataRecord extraDataRecord = new ExtraDataRecord();
+    extraDataRecord.setHeader(12345);
+    extraDataRecord.setSizeOfData(data == null ? 0 : data.length);
+    extraDataRecord.setData(data);
+
+    FileHeader firstFileHeader = zipModel.getCentralDirectory().getFileHeaders().get(0);
+
+    if (firstFileHeader.getExtraDataRecords() == null) {
+      firstFileHeader.setExtraDataRecords(new ArrayList<>());
+    }
+
+    firstFileHeader.getExtraDataRecords().add(extraDataRecord);
   }
 
 }
