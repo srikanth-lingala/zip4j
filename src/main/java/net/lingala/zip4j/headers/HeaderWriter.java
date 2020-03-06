@@ -540,7 +540,10 @@ public class HeaderWriter {
 
       rawIO.writeShortLittleEndian(outputStream, (int) extraDataRecord.getHeader());
       rawIO.writeShortLittleEndian(outputStream, extraDataRecord.getSizeOfData());
-      outputStream.write(extraDataRecord.getData());
+
+      if (extraDataRecord.getSizeOfData() > 0 && extraDataRecord.getData() != null) {
+        outputStream.write(extraDataRecord.getData());
+      }
     }
   }
 
