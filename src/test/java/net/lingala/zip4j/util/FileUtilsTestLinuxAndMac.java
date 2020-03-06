@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -164,5 +165,7 @@ public class FileUtilsTestLinuxAndMac {
     when(basicFileAttributes.isRegularFile()).thenReturn(!isDirectory);
     when(basicFileAttributes.isDirectory()).thenReturn(isDirectory);
     when(fileSystemProvider.readAttributes(path, BasicFileAttributes.class)).thenReturn(basicFileAttributes);
+    when(fileSystemProvider.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS))
+        .thenReturn(basicFileAttributes);
   }
 }
