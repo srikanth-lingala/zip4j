@@ -486,7 +486,11 @@ public class MiscZipFileIT extends AbstractIT {
     });
     zipFile.setRunInThread(true);
 
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
     List<Thread> zip4jThread = threadSet.stream().filter(e -> e.getName().equals(threadName)).collect(Collectors.toList());
