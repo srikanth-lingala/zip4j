@@ -2,11 +2,16 @@
 
 # Used from https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh
 
+if [ "$#" -ne 1 ]; then
+  echo "Travis token missing"
+  exit 1
+fi
+
 TRAVIS_URL=travis-ci.org
 BRANCH=master
 USER=srikanth-lingala
 REPO=zip4j-android-test
-TOKEN=$(TRAVIS_CI_TOKEN)
+TOKEN="$1"
 
 ## For debugging:
 # echo "USER=$USER"
