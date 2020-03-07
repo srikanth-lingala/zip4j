@@ -1,7 +1,7 @@
 language: java
 
 before_script:
-  - "curl -u ${CIRCLE_CI_TOKEN}: -d build_parameters[CIRCLE_JOB]=build https://circleci.com/api/v1.1/project/git/srikanth-lingala/zip4j-android-test/tree/master"
+  - "curl -u ${CIRCLE_CI_TOKEN}: -d build_parameters[CIRCLE_JOB]=build https://circleci.com/api/v1.1/project/github/srikanth-lingala/zip4j-android-test/tree/master"
 
 script:
   - travis_wait 30 mvn clean verify
