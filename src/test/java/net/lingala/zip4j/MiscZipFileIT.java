@@ -20,11 +20,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -478,6 +478,8 @@ public class MiscZipFileIT extends AbstractIT {
 
   @Test
   public void testCustomThreadFactory() throws IOException {
+    TestUtils.copyFileToFolder(getTestFileFromResources("file_PDF_1MB.pdf"), temporaryFolder.getRoot(), 1000);
+
     String threadName = "CustomThreadFactoryTest";
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.setThreadFactory(r -> {
@@ -491,9 +493,9 @@ public class MiscZipFileIT extends AbstractIT {
     zipParameters.setEncryptFiles(true);
     zipParameters.setEncryptionMethod(EncryptionMethod.AES);
 
-    zipFile.addFolder(TestUtils.getTestFileFromResources("").getParentFile(), zipParameters);
+    zipFile.addFolder(temporaryFolder.getRoot(), zipParameters);
 
-    Set<Thread> threadSet = new HashSet<>(Thread.getAllStackTraces().keySet());
+    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
     List<Thread> zip4jThread = threadSet.stream().filter(e -> e.getName().equals(threadName)).collect(Collectors.toList());
     assertThat(zip4jThread).hasSize(1);
     assertThat(zip4jThread.get(0).getName()).isEqualTo(threadName);

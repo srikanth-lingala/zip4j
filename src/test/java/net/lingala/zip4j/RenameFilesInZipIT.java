@@ -203,10 +203,7 @@ public class RenameFilesInZipIT extends AbstractIT {
 
   @Test
   public void testRenameWithMapProgressMonitor() throws IOException, InterruptedException {
-    for (int i = 0; i < 100; i++) {
-      File destinationFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), i + ".pdf").toFile();
-      TestUtils.copyFile(getTestFileFromResources("file_PDF_1MB.pdf"), destinationFile);
-    }
+    TestUtils.copyFileToFolder(getTestFileFromResources("file_PDF_1MB.pdf"), temporaryFolder.getRoot(), 100);
 
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     ZipParameters zipParameters = buildZipParameters(CompressionMethod.DEFLATE, true, EncryptionMethod.AES);

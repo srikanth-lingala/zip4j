@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class TestUtils {
 
@@ -75,6 +76,13 @@ public class TestUtils {
 
   public static void copyFile(File sourceFile, File destinationFile) throws IOException {
     Files.copy(sourceFile.toPath(), destinationFile.toPath());
+  }
+
+  public static void copyFileToFolder(File sourceFile, File outputFolder, int numberOfCopiesToMake) throws IOException {
+    for (int i = 0; i < numberOfCopiesToMake; i++) {
+      File destinationFile = Paths.get(outputFolder.getAbsolutePath(), i + ".pdf").toFile();
+      copyFile(sourceFile, destinationFile);
+    }
   }
 
   private static OutputStream startNext7ZipSplitStream(File sourceFile, File outputFolder, int index) throws IOException {
