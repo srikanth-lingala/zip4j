@@ -60,6 +60,7 @@ public class InflaterInputStream extends DecompressedInputStream {
   public void endOfEntryReached(InputStream inputStream) throws IOException {
     if (inflater != null) {
       inflater.end();
+      inflater = null;
     }
     super.endOfEntryReached(inputStream);
   }
@@ -71,6 +72,14 @@ public class InflaterInputStream extends DecompressedInputStream {
       byte[] rawDataCache = getLastReadRawDataCache();
       pushbackInputStream.unread(rawDataCache, len - n, n);
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (inflater != null) {
+      inflater.end();
+    }
+    super.close();
   }
 
   private void fill() throws IOException {
