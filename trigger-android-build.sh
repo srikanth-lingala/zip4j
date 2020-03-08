@@ -1,40 +1,15 @@
 #!/bin/sh -f
 
-# Used from https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh
-
 if [ "$#" -ne 1 ]; then
-  echo "Travis token missing"
+  echo "Circle CI token missing"
   exit 1
 fi
 
-TRAVIS_URL=travis-ci.org
-BRANCH=master
-USER=srikanth-lingala
-REPO=zip4j-android-test
 TOKEN="$1"
 
-## For debugging:
-# echo "USER=$USER"
-# echo "REPO=$REPO"
+curl -X POST https://circleci.com/api/v1.1/project/github/srikanth-lingala/zip4j-android-test/build?circle-token=${TOKEN} | tee /tmp/travis-request-output.$$.txt
 
-body="{
-\"request\": {
-  \"branch\":\"$BRANCH\"
-}}"
-
-# It does not work to put / in place of %2F in the URL below.  I'm not sure why.
-curl -s -X POST \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -H "Travis-API-Version: 3" \
-  -H "Authorization: token ${TOKEN}" \
-  -d "$body" \
-  https://api.${TRAVIS_URL}/repo/${USER}%2F${REPO}/requests \
- | tee /tmp/travis-request-output.$$.txt
-
-if grep -q '"@type": "error"' /tmp/travis-request-output.$$.txt; then
-    exit 1
-fi
-if grep -q 'access denied' /tmp/travis-request-output.$$.txt; then
+if ! grep -q 'Build created' /tmp/travis-request-output.$$.txt; then
+    echo "CircleCI Android build trigger failed"
     exit 1
 fi

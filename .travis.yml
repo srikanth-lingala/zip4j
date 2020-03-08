@@ -1,7 +1,7 @@
 language: java
 
 before_script:
-  - bash trigger-android-build.sh ${TRAVIS_CI_TOKEN} || travis_terminate 1;
+  - bash trigger-android-build.sh ${CIRCLE_CI_TOKEN} || travis_terminate 1;
 
 script:
   - travis_wait 30 mvn clean verify
