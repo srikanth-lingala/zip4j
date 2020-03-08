@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -492,7 +493,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     zipFile.addFolder(TestUtils.getTestFileFromResources("").getParentFile(), zipParameters);
 
-    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    Set<Thread> threadSet = new HashSet<>(Thread.getAllStackTraces().keySet());
     List<Thread> zip4jThread = threadSet.stream().filter(e -> e.getName().equals(threadName)).collect(Collectors.toList());
     assertThat(zip4jThread).hasSize(1);
     assertThat(zip4jThread.get(0).getName()).isEqualTo(threadName);
