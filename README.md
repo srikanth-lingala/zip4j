@@ -1,5 +1,6 @@
 
 [![Build Status](https://travis-ci.org/srikanth-lingala/zip4j.svg?branch=master)](https://travis-ci.org/srikanth-lingala/zip4j)
+[![Android Build Status](https://circleci.com/gh/srikanth-lingala/zip4j-android-test.svg?style=svg)](https://circleci.com/gh/srikanth-lingala/zip4j-android-test)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
 [![Known Vulnerabilities](https://snyk.io//test/github/srikanth-lingala/zip4j/badge.svg?targetFile=pom.xml)](https://snyk.io//test/github/srikanth-lingala/zip4j?targetFile=pom.xml)
 

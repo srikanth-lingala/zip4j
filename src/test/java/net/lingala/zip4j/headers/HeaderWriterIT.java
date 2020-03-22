@@ -109,9 +109,15 @@ public class HeaderWriterIT extends AbstractIT {
   }
 
   @Test
-  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithoutUtf8ShouldMatch()
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithoutUtf8ShouldNotMatch()
       throws IOException {
-    testWriteLocalFileHeaderWithFileName("公ゃ的年社", false, true);
+    testWriteLocalFileHeaderWithFileName("公ゃ的年社", false, false);
+  }
+
+  @Test
+  public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithUtf8ShouldMatch()
+      throws IOException {
+    testWriteLocalFileHeaderWithFileName("公ゃ的年社", true, true);
   }
 
   @Test
@@ -129,7 +135,7 @@ public class HeaderWriterIT extends AbstractIT {
   @Test
   public void testWriteLocalFileHeaderJapaneseCharactersInFileNameWithUTF8CharsetWithoutUtf8ShouldMatch()
           throws IOException {
-    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", false, true, InternalZipConstants.CHARSET_UTF_8);
+    testWriteLocalFileHeaderWithFileNameAndCharset("公ゃ的年社", true, true, InternalZipConstants.CHARSET_UTF_8);
   }
 
   @Test

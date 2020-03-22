@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class HeaderReaderIT extends AbstractIT {
   private HeaderWriter headerWriter = new HeaderWriter();
 
   @Test
-  public void testReadAllHeadersWith10Entries() throws IOException, ZipException {
+  public void testReadAllHeadersWith10Entries() throws IOException {
     int numberOfEntries = 10;
     ZipModel actualZipModel = generateZipHeadersFile(numberOfEntries, EncryptionMethod.NONE);
 
@@ -51,7 +52,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllHeadersWithEndOfCentralDirectoryComment() throws IOException, ZipException {
+  public void testReadAllHeadersWithEndOfCentralDirectoryComment() throws IOException {
     ZipModel actualZipModel = generateZipModel(1);
     actualZipModel.getEndOfCentralDirectoryRecord().setComment(END_OF_CENTRAL_DIR_COMMENT);
     File headersFile = writeZipHeaders(actualZipModel);
@@ -98,7 +99,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithoutFileHeaderSignatureThrowsException() throws IOException, ZipException {
+  public void testReadAllWithoutFileHeaderSignatureThrowsException() throws IOException {
     ZipModel actualZipModel = generateZipModel(2);
     actualZipModel.getCentralDirectory().getFileHeaders().get(1).setSignature(HeaderSignature.DIGITAL_SIGNATURE);
     File headersFile = writeZipHeaders(actualZipModel);
@@ -114,7 +115,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithFileNameContainsWindowsDriveExcludesIt() throws IOException, ZipException {
+  public void testReadAllWithFileNameContainsWindowsDriveExcludesIt() throws IOException {
     String fileName = "C:\\test.txt";
     ZipModel actualZipModel = generateZipModel(1);
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setFileName(fileName);
@@ -130,7 +131,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithoutFileNameWritesNull() throws IOException, ZipException {
+  public void testReadAllWithoutFileNameWritesNull() throws IOException {
     ZipModel actualZipModel = generateZipModel(1);
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setFileName(null);
     File headersFile = writeZipHeaders(actualZipModel);
@@ -145,24 +146,24 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithJapaneseCharacters() throws IOException, ZipException {
+  public void testReadAllWithJapaneseCharacters() throws IOException {
     testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", true, false);
   }
 
   @Test
   public void testReadAllWithoutUtf8FlagDecodesWithoutCharsetFlagForJapaneseCharactersDoesNotMatch()
-      throws IOException, ZipException {
-    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", false, true);
+      throws IOException {
+    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", false, true, InternalZipConstants.CHARSET_UTF_8);
   }
 
   @Test
   public void testReadAllWithoutUtf8FlagDecodesWithoutCharsetFlagForEnglishCharactersMatches()
-      throws IOException, ZipException {
+      throws IOException {
     testWithoutUtf8FileName("SOME_TEXT", "SOME_COMMENT", true, true);
   }
 
   @Test
-  public void testReadAllWithAesEncryption() throws ZipException, IOException {
+  public void testReadAllWithAesEncryption() throws IOException {
     ZipModel actualZipModel = generateZipHeadersFile(3, EncryptionMethod.AES);
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
@@ -176,7 +177,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithStandardZipEncryption() throws ZipException, IOException {
+  public void testReadAllWithStandardZipEncryption() throws IOException {
     ZipModel actualZipModel = generateZipHeadersFile(3, EncryptionMethod.ZIP_STANDARD);
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
@@ -191,7 +192,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllZip64Format() throws IOException, ZipException {
+  public void testReadAllZip64Format() throws IOException {
     ZipModel actualZipModel = generateZipModel(1);
     long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setUncompressedSize(entrySize);
@@ -212,7 +213,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadLocalFileHeader() throws ZipException, IOException {
+  public void testReadLocalFileHeader() throws IOException {
     long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.NONE);
 
@@ -225,7 +226,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadLocalFileHeaderWithAesEncryption() throws ZipException, IOException {
+  public void testReadLocalFileHeaderWithAesEncryption() throws IOException {
     long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT - 1001 ;
     File headerFile = generateAndWriteLocalFileHeader(entrySize, EncryptionMethod.AES);
 
@@ -246,7 +247,12 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   private void testWithoutUtf8FileName(String fileName, String entryComment, boolean shouldFileNamesMatch,
-                                       boolean unsetUtf8Flag) throws IOException, ZipException {
+                                       boolean unsetUtf8Flag) throws IOException {
+    testWithoutUtf8FileName(fileName, entryComment, shouldFileNamesMatch, unsetUtf8Flag, null);
+  }
+
+  private void testWithoutUtf8FileName(String fileName, String entryComment, boolean shouldFileNamesMatch,
+                                       boolean unsetUtf8Flag, Charset charsetToUseForReading) throws IOException {
     ZipModel actualZipModel = generateZipModel(3);
     FileHeader secondFileHeader = actualZipModel.getCentralDirectory().getFileHeaders().get(1);
 
@@ -264,7 +270,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, charsetToUseForReading);
       FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(1);
       if (shouldFileNamesMatch) {
         assertThat(fileHeader.getFileName()).isEqualTo(fileName);
@@ -326,7 +332,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   private ZipModel generateZipHeadersFile(int numberOfEntries, EncryptionMethod encryptionMethod)
-      throws IOException, ZipException {
+      throws IOException {
     ZipModel zipModel = generateZipModel(numberOfEntries, encryptionMethod);
     File headersFile = writeZipHeaders(zipModel);
     zipModel.setZipFile(headersFile);
@@ -377,7 +383,7 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   private File generateAndWriteLocalFileHeader(long entrySize, EncryptionMethod encryptionMethod)
-      throws ZipException, IOException {
+      throws IOException {
     LocalFileHeader localFileHeader = generateLocalFileHeader(entrySize, encryptionMethod);
 
     if (encryptionMethod != null && encryptionMethod != EncryptionMethod.NONE) {
@@ -395,7 +401,7 @@ public class HeaderReaderIT extends AbstractIT {
     return headerFile;
   }
 
-  private File writeZipHeaders(ZipModel zipModel) throws IOException, ZipException {
+  private File writeZipHeaders(ZipModel zipModel) throws IOException {
     File headersFile = temporaryFolder.newFile();
     try(SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile)) {
       headerWriter.finalizeZipFile(zipModel, splitOutputStream, InternalZipConstants.CHARSET_UTF_8);
