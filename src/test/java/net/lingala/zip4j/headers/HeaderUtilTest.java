@@ -224,11 +224,11 @@ public class HeaderUtilTest {
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithoutUtf8ForUtf8String() {
+  public void testDecodeStringWithCharsetWithUtf8ForUtf8String() {
     String utf8StringToEncode = "asdäüöö";
     byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(InternalZipConstants.CHARSET_UTF_8);
 
-    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false, null)).isNotEqualTo(utf8StringToEncode);
+    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false, InternalZipConstants.CHARSET_UTF_8)).isNotEqualTo(utf8StringToEncode);
 
   }
 

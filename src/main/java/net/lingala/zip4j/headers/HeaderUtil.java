@@ -64,19 +64,19 @@ public class HeaderUtil {
   }
 
   public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, Charset charset) {
+    if (InternalZipConstants.CHARSET_UTF_8.equals(charset) && !isUtf8Encoded) {
+      try {
+        return new String(data, ZIP_STANDARD_CHARSET);
+      } catch (UnsupportedEncodingException e) {
+        return new String(data);
+      }
+    }
+
     if(charset != null) {
       return new String(data, charset);
     }
 
-    if (isUtf8Encoded) {
-      return new String(data, InternalZipConstants.CHARSET_UTF_8);
-    }
-
-    try {
-      return new String(data, ZIP_STANDARD_CHARSET);
-    } catch (UnsupportedEncodingException e) {
-      return new String(data);
-    }
+    return new String(data, InternalZipConstants.CHARSET_UTF_8);
   }
 
 
