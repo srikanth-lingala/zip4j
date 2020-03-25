@@ -582,6 +582,10 @@ example: no more explicitly closing the streams all over the code). If you still
 I am pretty sure that there are things to be improved), please let me know by opening an issue here or writing to me 
 (My email id is in point #2 above).
 
+6. **What are the licensing conditions for older releases of zip4j?**
+
+    All releases of zip4j, from version 1.0, are licensed under Apache License 2.0
+
 
 [1]: https://stackoverflow.com/questions/9324933/what-is-a-good-java-library-to-zip-unzip-files
 [2]: https://stackoverflow.com/questions/5362364/java-library-to-work-with-zip-files
