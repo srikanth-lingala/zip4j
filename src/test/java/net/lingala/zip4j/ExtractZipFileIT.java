@@ -416,6 +416,35 @@ public class ExtractZipFileIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(firstSplitFile, PASSWORD, outputFolder, 4);
   }
 
+  @Test
+  public void testExtractDifferentPasswordsInSameZip() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    addFileToZip(zipFile, "sample.pdf", EncryptionMethod.AES, "password1");
+    addFileToZip(zipFile, "sample_text1.txt", EncryptionMethod.AES, "password2");
+    addFileToZip(zipFile, "file_PDF_1MB.pdf", null, null);
+
+    zipFile.setPassword("password1".toCharArray());
+    zipFile.extractFile("sample.pdf", outputFolder.getPath());
+
+    zipFile.setPassword("password2".toCharArray());
+    zipFile.extractFile("sample_text1.txt", outputFolder.getPath());
+
+    zipFile.setPassword(null);
+    zipFile.extractFile("file_PDF_1MB.pdf", outputFolder.getPath());
+  }
+
+  private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(encryptionMethod != null);
+    zipParameters.setEncryptionMethod(encryptionMethod);
+
+    if (password != null) {
+      zipFile.setPassword(password.toCharArray());
+    }
+
+    zipFile.addFile(getTestFileFromResources(fileName), zipParameters);
+  }
+
   private void testExtractNestedZipFileWithEncrpytion(EncryptionMethod innerZipEncryption,
                                                        EncryptionMethod outerZipEncryption) throws IOException {
     File innerZipFile = temporaryFolder.newFile("inner.zip");
