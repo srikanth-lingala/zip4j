@@ -433,6 +433,11 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractFile("file_PDF_1MB.pdf", outputFolder.getPath());
   }
 
+  @Test
+  public void testExtractZipFileWithCommentLengthGreaterThanZipFileLength() throws IOException {
+    verifyZipFileByExtractingAllFiles(getTestArchiveFromResources("zip_with_corrupt_comment_length.zip"), outputFolder, 1);
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

@@ -131,14 +131,7 @@ public class HeaderReader {
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
 
     int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
-
-    if (commentLength > 0) {
-      byte[] commentBuf = new byte[commentLength];
-      zip4jRaf.readFully(commentBuf);
-      endOfCentralDirectoryRecord.setComment(new String(commentBuf, charset));
-    } else {
-      endOfCentralDirectoryRecord.setComment(null);
-    }
+    endOfCentralDirectoryRecord.setComment(readZipComment(zip4jRaf, commentLength, charset));
 
     zipModel.setSplitArchive(endOfCentralDirectoryRecord.getNumberOfThisDisk() > 0);
     return endOfCentralDirectoryRecord;
@@ -737,6 +730,21 @@ public class HeaderReader {
       ((NumberedSplitRandomAccessFile) randomAccessFile).seekInCurrentPart(pos);
     } else {
       randomAccessFile.seek(pos);
+    }
+  }
+
+  private String readZipComment(RandomAccessFile raf, int commentLength, Charset charset) {
+    if (commentLength <= 0) {
+      return null;
+    }
+
+    try {
+      byte[] commentBuf = new byte[commentLength];
+      raf.readFully(commentBuf);
+      return new String(commentBuf, charset);
+    } catch (IOException e) {
+      // Ignore any exception and set comment to null if comment cannot be read
+      return null;
     }
   }
 }
