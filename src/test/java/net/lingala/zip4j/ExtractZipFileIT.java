@@ -438,6 +438,12 @@ public class ExtractZipFileIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(getTestArchiveFromResources("zip_with_corrupt_comment_length.zip"), outputFolder, 1);
   }
 
+  @Test
+  public void testExtractZipFileWithEndOfCentralDirectoryNotAtExpectedPosition() throws IOException {
+    verifyZipFileByExtractingAllFiles(getTestArchiveFromResources("end_of_cen_dir_not_at_expected_position.zip"),
+        null, outputFolder, 24, false);
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

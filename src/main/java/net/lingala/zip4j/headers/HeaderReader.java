@@ -47,6 +47,7 @@ import java.util.List;
 
 import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
@@ -83,7 +84,8 @@ public class HeaderReader {
     }
 
     // If file is Zip64 format, Zip64 headers have to be read before reading central directory
-    zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndOfCentralDirectoryLocator(zip4jRaf, rawIO));
+    zipModel.setZip64EndOfCentralDirectoryLocator(readZip64EndOfCentralDirectoryLocator(zip4jRaf, rawIO,
+        zipModel.getEndOfCentralDirectoryRecord().getOffsetOfEndOfCentralDirectory()));
 
     if (zipModel.isZip64Format()) {
       zipModel.setZip64EndOfCentralDirectoryRecord(readZip64EndCentralDirRec(zip4jRaf, rawIO));
@@ -102,21 +104,16 @@ public class HeaderReader {
 
   private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset)
       throws IOException {
-    long zipFileLengthWithoutEndHeader = zip4jRaf.length() - ENDHDR;
-    long pos = zipFileLengthWithoutEndHeader;
+
+    seekInCurrentPart(zip4jRaf, zip4jRaf.length() - ENDHDR);
+    int headerSignature = rawIO.readIntLittleEndian(zip4jRaf);
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
 
-    int counter = 0;
-    int headerSignature;
-    do {
-      seekInCurrentPart(zip4jRaf, pos--);
-      counter++;
-    } while (((headerSignature = rawIO.readIntLittleEndian(zip4jRaf))
-        != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) && counter <= zipFileLengthWithoutEndHeader);
-
     if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-      throw new ZipException("Zip headers not found. Probably not a zip file");
+      long offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf);
+      zip4jRaf.seek(offsetEndOfCentralDirectory + 4); // 4 to ignore reading signature again
+      endOfCentralDirectoryRecord.setOffsetOfEndOfCentralDirectory(offsetEndOfCentralDirectory);
     }
 
     endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
@@ -345,10 +342,11 @@ public class HeaderReader {
   }
 
   private Zip64EndOfCentralDirectoryLocator readZip64EndOfCentralDirectoryLocator(RandomAccessFile zip4jRaf,
-                                                                                  RawIO rawIO) throws IOException {
+                            RawIO rawIO, long offsetEndOfCentralDirectoryRecord) throws IOException {
+
     Zip64EndOfCentralDirectoryLocator zip64EndOfCentralDirectoryLocator = new Zip64EndOfCentralDirectoryLocator();
 
-    setFilePointerToReadZip64EndCentralDirLoc(zip4jRaf, rawIO);
+    setFilePointerToReadZip64EndCentralDirLoc(zip4jRaf, offsetEndOfCentralDirectoryRecord);
 
     int signature = rawIO.readIntLittleEndian(zip4jRaf);
     if (signature == HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_LOCATOR.getValue()) {
@@ -518,13 +516,8 @@ public class HeaderReader {
     return null;
   }
 
-  private void setFilePointerToReadZip64EndCentralDirLoc(RandomAccessFile zip4jRaf, RawIO rawIO) throws IOException {
-    long pos = zip4jRaf.length() - ENDHDR;
-
-    do {
-      seekInCurrentPart(zip4jRaf, pos--);
-    } while (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue());
-
+  private void setFilePointerToReadZip64EndCentralDirLoc(RandomAccessFile zip4jRaf,
+                                                         long offsetEndOfCentralDirectoryRecord) throws IOException {
     // Now the file pointer is at the end of signature of Central Dir Rec
     // Seek back with the following values
     // 4 -> end of central dir signature
@@ -533,7 +526,7 @@ public class HeaderReader {
     // 4 -> number of the disk with the start of the zip64 end of central directory
     // 4 -> zip64 end of central dir locator signature
     // Refer to Appnote for more information
-    seekInCurrentPart(zip4jRaf, zip4jRaf.getFilePointer() - 4 - 4 - 8 - 4 - 4);
+    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectoryRecord - 4 - 4 - 8 - 4 - 4);
   }
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream, Charset charset) throws IOException {
@@ -723,6 +716,32 @@ public class HeaderReader {
     }
 
     return zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
+  }
+
+  private long determineOffsetOfEndOfCentralDirectory(RandomAccessFile randomAccessFile) throws IOException {
+    byte[] buff = new byte[BUFF_SIZE];
+    long currentFilePointer = randomAccessFile.getFilePointer();
+
+    do {
+      int toRead = currentFilePointer > BUFF_SIZE ? BUFF_SIZE : (int) currentFilePointer;
+      // read 4 bytes again to make sure that the header is not spilled over
+      long seekPosition = currentFilePointer - toRead + 4;
+      if (seekPosition == 4) {
+        seekPosition = 0;
+      }
+
+      seekInCurrentPart(randomAccessFile, seekPosition);
+      randomAccessFile.read(buff, 0, toRead);
+      currentFilePointer = seekPosition;
+
+      for (int i = 0; i < toRead - 3; i++) {
+        if (rawIO.readIntLittleEndian(buff, i) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
+          return currentFilePointer + i;
+        }
+      }
+    } while (currentFilePointer > 0);
+
+    throw new ZipException("Zip headers not found. Probably not a zip file");
   }
 
   private void seekInCurrentPart(RandomAccessFile randomAccessFile, long pos) throws IOException {

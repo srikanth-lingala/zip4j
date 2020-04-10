@@ -26,6 +26,7 @@ public class EndOfCentralDirectoryRecord extends ZipHeader {
   private int totalNumberOfEntriesInCentralDirectory;
   private int sizeOfCentralDirectory;
   private long offsetOfStartOfCentralDirectory;
+  private long offsetOfEndOfCentralDirectory;
   private String comment = "";
 
   public EndOfCentralDirectoryRecord() {
@@ -79,6 +80,14 @@ public class EndOfCentralDirectoryRecord extends ZipHeader {
 
   public void setOffsetOfStartOfCentralDirectory(long offSetOfStartOfCentralDir) {
     this.offsetOfStartOfCentralDirectory = offSetOfStartOfCentralDir;
+  }
+
+  public long getOffsetOfEndOfCentralDirectory() {
+    return offsetOfEndOfCentralDirectory;
+  }
+
+  public void setOffsetOfEndOfCentralDirectory(long offsetOfEndOfCentralDirectory) {
+    this.offsetOfEndOfCentralDirectory = offsetOfEndOfCentralDirectory;
   }
 
   public String getComment() {
