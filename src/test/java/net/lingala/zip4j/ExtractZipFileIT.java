@@ -440,8 +440,12 @@ public class ExtractZipFileIT extends AbstractIT {
 
   @Test
   public void testExtractZipFileWithEndOfCentralDirectoryNotAtExpectedPosition() throws IOException {
-    verifyZipFileByExtractingAllFiles(getTestArchiveFromResources("end_of_cen_dir_not_at_expected_position.zip"),
-        null, outputFolder, 24, false);
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("end_of_cen_dir_not_at_expected_position.zip"));
+    zipFile.extractAll(outputFolder.getPath());
+    List<File> outputFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
+
+    assertThat(outputFiles).hasSize(24);
+    assertThat(zipFile.getFileHeaders()).hasSize(19);
   }
 
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {

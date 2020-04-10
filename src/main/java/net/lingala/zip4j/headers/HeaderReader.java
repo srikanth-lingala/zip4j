@@ -105,17 +105,16 @@ public class HeaderReader {
   private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset)
       throws IOException {
 
-    seekInCurrentPart(zip4jRaf, zip4jRaf.length() - ENDHDR);
+    long offsetEndOfCentralDirectory = zip4jRaf.length() - ENDHDR;
+    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectory);
     int headerSignature = rawIO.readIntLittleEndian(zip4jRaf);
 
-    EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
-
     if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-      long offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf);
+      offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf);
       zip4jRaf.seek(offsetEndOfCentralDirectory + 4); // 4 to ignore reading signature again
-      endOfCentralDirectoryRecord.setOffsetOfEndOfCentralDirectory(offsetEndOfCentralDirectory);
     }
 
+    EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
     endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
     endOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readShortLittleEndian(zip4jRaf));
     endOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDir(rawIO.readShortLittleEndian(zip4jRaf));
@@ -123,6 +122,7 @@ public class HeaderReader {
         rawIO.readShortLittleEndian(zip4jRaf));
     endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(zip4jRaf));
     endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setOffsetOfEndOfCentralDirectory(offsetEndOfCentralDirectory);
 
     zip4jRaf.readFully(intBuff);
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
@@ -520,13 +520,12 @@ public class HeaderReader {
                                                          long offsetEndOfCentralDirectoryRecord) throws IOException {
     // Now the file pointer is at the end of signature of Central Dir Rec
     // Seek back with the following values
-    // 4 -> end of central dir signature
     // 4 -> total number of disks
     // 8 -> relative offset of the zip64 end of central directory record
     // 4 -> number of the disk with the start of the zip64 end of central directory
     // 4 -> zip64 end of central dir locator signature
     // Refer to Appnote for more information
-    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectoryRecord - 4 - 4 - 8 - 4 - 4);
+    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectoryRecord - 4 - 8 - 4 - 4);
   }
 
   public LocalFileHeader readLocalFileHeader(InputStream inputStream, Charset charset) throws IOException {
