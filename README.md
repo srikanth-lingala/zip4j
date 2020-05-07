@@ -477,6 +477,20 @@ public class ZipOutputStreamExample {
   }
 }
 ~~~~
+### Split output stream
+There is additional `SplitOutputStream` class for genetaring split zip files.
+
+~~~~
+OutputStream os ;
+if (shouldSplit) {
+    os = new FileOutputStream(zipFile);
+} else {
+    os = new SplitOutputStream(new File(zipFile), 10485760); // using 10MB in this example
+}
+
+ZipOutputStream = new ZipOutputStream(os);
+~~~~
+
 
 ### Extract files with ZipInputStream
 
