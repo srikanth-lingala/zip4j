@@ -3,6 +3,7 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.CentralDirectory;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
@@ -200,7 +201,7 @@ public class HeaderUtilTest {
   public void testGetIndexOfFileHeaderGetsIndexSuccessfully() throws ZipException {
     String fileNamePrefix = "FILE_NAME_";
     int numberOfEntriesToAdd = 10;
-    List<FileHeader> fileHeadersInZipModel = generateFileHeaderWithFileNames(fileNamePrefix, numberOfEntriesToAdd);
+    List<FileHeader> fileHeadersInZipModel = generateFileHeaderWithFileNamesWithEmptyAndNullFileNames(fileNamePrefix, numberOfEntriesToAdd);
     ZipModel zipModel = new ZipModel();
     zipModel.getCentralDirectory().setFileHeaders(fileHeadersInZipModel);
 
@@ -265,13 +266,60 @@ public class HeaderUtilTest {
     assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(englishString);
   }
 
+  @Test
+  public void testGetFileHeadersUnderDirectoryWhenNotDirectoryReturnsEmptyList() {
+    List<FileHeader> allFileHeaders = generateFileHeaderWithFileNames("header", 5);
+    FileHeader rootFileHeader = generateFileHeader("some_name");
+    rootFileHeader.setDirectory(false);
+
+    assertThat(HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, rootFileHeader)).isEmpty();
+  }
+
+  @Test
+  public void testGetFileHeadersUnderDirectoryReturnsFileHeadersUnderDirectory() {
+    List<FileHeader> allFileHeaders = generateFileHeaderWithFileNames("some_name/header", 5);
+    allFileHeaders.add(generateFileHeader("some_name/"));
+    allFileHeaders.add(generateFileHeader("some_other_name.txt"));
+    FileHeader rootFileHeader = generateFileHeader("some_name/");
+    rootFileHeader.setDirectory(true);
+
+    List<FileHeader> filHeadersUnderDirectory = HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, rootFileHeader);
+    assertThat(filHeadersUnderDirectory).hasSize(6);
+    for (FileHeader fileHeader : filHeadersUnderDirectory) {
+      assertThat(fileHeader)
+          .withFailMessage("file header with name some_other_name.txt should not exist")
+          .isNotEqualTo("some_other_name.txt");
+    }
+  }
+
+  @Test
+  public void testGetUncompressedSizeOfAllFileHeaders() {
+    FileHeader fileHeader1 = generateFileHeader("1");
+    fileHeader1.setUncompressedSize(1000);
+    FileHeader fileHeader2 = generateFileHeader("2");
+    fileHeader2.setUncompressedSize(2000);
+    FileHeader fileHeader3 = generateFileHeader("3");
+    Zip64ExtendedInfo zip64ExtendedInfo = new Zip64ExtendedInfo();
+    zip64ExtendedInfo.setUncompressedSize(3000);
+    fileHeader3.setZip64ExtendedInfo(zip64ExtendedInfo);
+    fileHeader3.setUncompressedSize(0);
+    List<FileHeader> fileHeaders = Arrays.asList(fileHeader1, fileHeader2, fileHeader3);
+
+    assertThat(HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders(fileHeaders)).isEqualTo(6000);
+  }
+
+  private List<FileHeader> generateFileHeaderWithFileNamesWithEmptyAndNullFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {
+    List<FileHeader> fileHeaders = generateFileHeaderWithFileNames(fileNamePrefix, numberOfEntriesToAdd);
+    fileHeaders.add(generateFileHeader(""));
+    fileHeaders.add(generateFileHeader(null));
+    return fileHeaders;
+  }
+
   private List<FileHeader> generateFileHeaderWithFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntriesToAdd; i++) {
       fileHeaders.add(generateFileHeader(fileNamePrefix + i));
     }
-    fileHeaders.add(generateFileHeader(""));
-    fileHeaders.add(generateFileHeader(null));
     return fileHeaders;
   }
 

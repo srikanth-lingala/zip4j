@@ -7,7 +7,9 @@ import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
@@ -89,6 +91,27 @@ public class HeaderUtil {
     } else {
       return fileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
     }
+  }
+
+  public static List<FileHeader> getFileHeadersUnderDirectory(List<FileHeader> allFileHeaders, FileHeader rootFileHeader) {
+    if (!rootFileHeader.isDirectory()) {
+      return Collections.emptyList();
+    }
+
+    return allFileHeaders.stream().filter(e -> e.getFileName().startsWith(rootFileHeader.getFileName())).collect(Collectors.toList());
+  }
+
+  public static long getTotalUncompressedSizeOfAllFileHeaders(List<FileHeader> fileHeaders) {
+    long totalUncompressedSize = 0;
+    for (FileHeader fileHeader : fileHeaders) {
+      if (fileHeader.getZip64ExtendedInfo() != null &&
+          fileHeader.getZip64ExtendedInfo().getUncompressedSize() > 0) {
+        totalUncompressedSize += fileHeader.getZip64ExtendedInfo().getUncompressedSize();
+      } else {
+        totalUncompressedSize += fileHeader.getUncompressedSize();
+      }
+    }
+    return totalUncompressedSize;
   }
 
   private static long getOffsetOfEndOfCentralDirectory(ZipModel zipModel) {

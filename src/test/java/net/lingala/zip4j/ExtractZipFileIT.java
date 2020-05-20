@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -446,6 +447,19 @@ public class ExtractZipFileIT extends AbstractIT {
 
     assertThat(outputFiles).hasSize(24);
     assertThat(zipFile.getFileHeaders()).hasSize(19);
+  }
+
+  @Test
+  public void testExtractFileHeaderExtractAllFilesIfFileHeaderIsDirectory() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setIncludeRootFolder(false);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+
+    zipFile.extractFile(zipFile.getFileHeader("öüäöäö/"), outputFolder.getPath());
+    File outputFile = Paths.get(outputFolder.getPath(), "öüäöäö", "asöäööl").toFile();
+    assertThat(outputFile).exists();
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
   }
 
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {

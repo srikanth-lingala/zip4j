@@ -10,6 +10,11 @@ import net.lingala.zip4j.util.UnzipUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.List;
+
+import static net.lingala.zip4j.headers.HeaderUtil.getFileHeadersUnderDirectory;
+import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders;
 
 public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskParameters> {
 
@@ -24,9 +29,17 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   @Override
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
+
+    String newFileName = taskParameters.newFileName;
+    if (taskParameters.fileHeader.isDirectory()) {
+      newFileName = null;
+    }
+
     try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader, taskParameters.charset)) {
-      extractFile(zipInputStream, taskParameters.fileHeader, taskParameters.outputPath, taskParameters.newFileName,
-          progressMonitor);
+      List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
+      for (FileHeader fileHeader : fileHeadersUnderDirectory) {
+        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, newFileName, progressMonitor);
+      }
     } finally {
       if (splitInputStream != null) {
         splitInputStream.close();
@@ -36,10 +49,20 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
 
   @Override
   protected long calculateTotalWork(ExtractFileTaskParameters taskParameters) {
-    return taskParameters.fileHeader.getUncompressedSize();
+    List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
+    return getTotalUncompressedSizeOfAllFileHeaders(fileHeadersUnderDirectory);
   }
 
-  protected ZipInputStream createZipInputStream(FileHeader fileHeader, Charset charset) throws IOException {
+  private List<FileHeader> getFileHeadersToExtract(FileHeader rootFileHeader) {
+    if (!rootFileHeader.isDirectory()) {
+      return Collections.singletonList(rootFileHeader);
+    }
+
+    return getFileHeadersUnderDirectory(
+        getZipModel().getCentralDirectory().getFileHeaders(), rootFileHeader);
+  }
+
+  private ZipInputStream createZipInputStream(FileHeader fileHeader, Charset charset) throws IOException {
     splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
     splitInputStream.prepareExtractionForFileHeader(fileHeader);
     return new ZipInputStream(splitInputStream, password, charset);

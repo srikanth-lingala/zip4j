@@ -453,9 +453,7 @@ public class ZipFile {
    * Extracts a specific file from the zip file to the destination path.
    * If destination path is invalid, then this method throws an exception.
    * <br><br>
-   * If newFileName is not null or empty, newly created file name will be replaced by
-   * the value in newFileName. If this value is null, then the file name will be the
-   * value in FileHeader.getFileName
+   * If fileHeader is a directory, this method extracts all files under this directory
    *
    * @param fileHeader
    * @param destinationPath
@@ -468,6 +466,13 @@ public class ZipFile {
   /**
    * Extracts a specific file from the zip file to the destination path.
    * If destination path is invalid, then this method throws an exception.
+   * <br><br>
+   * If newFileName is not null or empty, newly created file name will be replaced by
+   * the value in newFileName. If this value is null, then the file name will be the
+   * value in FileHeader.getFileName. newFileName is ignored if fileHeader is a directory.
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * In this case, newFileName is ignored.
    *
    * @param fileHeader
    * @param destinationPath
@@ -502,6 +507,8 @@ public class ZipFile {
    * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
    * input file name has to be abc/b.txt
    * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br><br>
    * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
    * Throws an exception if the destination path is invalid.
    *
@@ -524,7 +531,10 @@ public class ZipFile {
    * <br><br>
    * If newFileName is not null or empty, newly created file name will be replaced by
    * the value in newFileName. If this value is null, then the file name will be the
-   * value in FileHeader.getFileName
+   * value in FileHeader.getFileName. newFileName is ignored if fileName is a directory.
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * In this case, newFileName is ignored.
    * <br><br>
    * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
    * Throws an exception if the destination path is invalid.

@@ -11,6 +11,8 @@ import net.lingala.zip4j.util.UnzipUtil;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders;
+
 public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFilesTaskParameters> {
 
   private char[] password;
@@ -45,18 +47,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
   @Override
   protected long calculateTotalWork(ExtractAllFilesTaskParameters taskParameters) {
-    long totalWork = 0;
-
-    for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
-      if (fileHeader.getZip64ExtendedInfo() != null &&
-          fileHeader.getZip64ExtendedInfo().getUncompressedSize() > 0) {
-        totalWork += fileHeader.getZip64ExtendedInfo().getUncompressedSize();
-      } else {
-        totalWork += fileHeader.getUncompressedSize();
-      }
-    }
-
-    return totalWork;
+    return getTotalUncompressedSizeOfAllFileHeaders(getZipModel().getCentralDirectory().getFileHeaders());
   }
 
   private ZipInputStream prepareZipInputStream(Charset charset) throws IOException {
