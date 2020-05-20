@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -621,6 +622,22 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddFolderWithExcludeFileFilter() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<File> filesToExclude = Arrays.asList(
+        TestUtils.getTestFileFromResources("sample.pdf"),
+        TestUtils.getTestFileFromResources("sample_directory/favicon.ico")
+    );
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setIncludeRootFolder(false);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters, filesToExclude::contains);
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 10);
+    verifyZipFileDoesNotContainFiles(generatedZipFile, Arrays.asList("sample.pdf", "sample_directory/favicon.ico"));
+  }
+
+  @Test
   public void testAddStreamToZipThrowsExceptionWhenFileNameIsNull() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     InputStream inputStream = new FileInputStream(TestUtils.getTestFileFromResources("бореиская.txt"));
@@ -847,6 +864,17 @@ public class AddFilesToZipIT extends AbstractIT {
     List<FileHeader> fileHeaders = zipFile.getFileHeaders();
     verifyFileHeadersContainsFiles(fileHeaders, fileNames);
     verifyAllFilesAreOf(fileHeaders, compressionMethod, encryptionMethod, aesKeyStrength, aesVersion);
+  }
+
+  private void verifyZipFileDoesNotContainFiles(File generatedZipFile, List<String> fileNamesNotInZip) throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    for (FileHeader fileHeader : zipFile.getFileHeaders()) {
+      for (String fileNameNotInZip : fileNamesNotInZip) {
+        assertThat(fileHeader.getFileName())
+            .withFailMessage("Expected file " + fileNameNotInZip + " to not be present in zip file")
+            .isNotEqualTo(fileNameNotInZip);
+      }
+    }
   }
 
   private void verifyFoldersInZip(List<FileHeader> fileHeaders, File generatedZipFile, char[] password)

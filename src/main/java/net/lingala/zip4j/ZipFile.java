@@ -22,6 +22,7 @@ import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
@@ -181,6 +182,28 @@ public class ZipFile {
    */
   public void createSplitZipFileFromFolder(File folderToAdd, ZipParameters parameters, boolean splitArchive,
                                       long splitLength) throws ZipException {
+    createSplitZipFileFromFolder(folderToAdd, parameters, splitArchive, splitLength, null);
+  }
+
+  /**
+   * Creates a zip file and adds the files/folders from the specified folder to the zip file.
+   * This method does the same functionality as in addFolder method except that this method
+   * can also create split zip files when adding a folder. To create a split zip file, set the
+   * splitArchive parameter to true and specify the splitLength. Split length has to be more than
+   * or equal to 65536 bytes. Note that this method throws an exception if the zip file already
+   * exists.
+   *
+   * This method excludes any files defined by excludeFileFilter from adding to the zip file
+   *
+   * @param folderToAdd
+   * @param parameters
+   * @param splitArchive
+   * @param splitLength
+   * @param excludeFileFilter filter to use to exclude adding any files to the zip file
+   * @throws ZipException
+   */
+  public void createSplitZipFileFromFolder(File folderToAdd, ZipParameters parameters, boolean splitArchive,
+                                           long splitLength, ExcludeFileFilter excludeFileFilter) throws ZipException {
 
     if (folderToAdd == null) {
       throw new ZipException("folderToAdd is null, cannot create zip file from folder");
@@ -202,7 +225,7 @@ public class ZipFile {
       zipModel.setSplitLength(splitLength);
     }
 
-    addFolder(folderToAdd, parameters, false);
+    addFolder(folderToAdd, parameters, excludeFileFilter, false);
   }
 
   /**
@@ -329,6 +352,20 @@ public class ZipFile {
    * @throws ZipException
    */
   public void addFolder(File folderToAdd, ZipParameters zipParameters) throws ZipException {
+    addFolder(folderToAdd, zipParameters, null);
+  }
+
+  /**
+   * Adds the folder in the given file object to the zip file. If zip file does not exist,
+   * then a new zip file is created. If input folder is invalid then an exception
+   * is thrown. Zip parameters for the files in the folder to be added can be set in
+   * the input parameters
+   *
+   * @param folderToAdd
+   * @param zipParameters
+   * @throws ZipException
+   */
+  public void addFolder(File folderToAdd, ZipParameters zipParameters, ExcludeFileFilter excludeFileFilter) throws ZipException {
     if (folderToAdd == null) {
       throw new ZipException("input path is null, cannot add folder to zip file");
     }
@@ -349,7 +386,7 @@ public class ZipFile {
       throw new ZipException("input parameters are null, cannot add folder to zip file");
     }
 
-    addFolder(folderToAdd, zipParameters, true);
+    addFolder(folderToAdd, zipParameters, excludeFileFilter, true);
   }
 
   /**
@@ -360,7 +397,8 @@ public class ZipFile {
    * @param checkSplitArchive
    * @throws ZipException
    */
-  private void addFolder(File folderToAdd, ZipParameters zipParameters, boolean checkSplitArchive) throws ZipException {
+  private void addFolder(File folderToAdd, ZipParameters zipParameters, ExcludeFileFilter excludeFileFilter,
+                         boolean checkSplitArchive) throws ZipException {
 
     readZipInfo();
 
@@ -375,7 +413,7 @@ public class ZipFile {
     }
 
     new AddFolderToZipTask(zipModel, password, headerWriter, buildAsyncParameters()).execute(
-        new AddFolderToZipTaskParameters(folderToAdd, zipParameters, charset));
+        new AddFolderToZipTaskParameters(folderToAdd, zipParameters, excludeFileFilter, charset));
   }
 
   /**

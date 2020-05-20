@@ -17,6 +17,8 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -112,6 +114,21 @@ public class FileUtilsIT extends AbstractIT {
     Files.createSymbolicLink(linkFile, targetFile);
 
     assertThat(FileUtils.isSymbolicLink(linkFile.toFile()));
+  }
+
+  @Test
+  public void testGetFilesInDirectoryRecursiveWithExcludeFileFilter() throws IOException {
+    File rootFolder = TestUtils.getTestFileFromResources("");
+    List<File> filesToExclude = Arrays.asList(
+        TestUtils.getTestFileFromResources("бореиская.txt"),
+        TestUtils.getTestFileFromResources("sample_directory/favicon.ico")
+    );
+    List<File> allFiles = FileUtils.getFilesInDirectoryRecursive(rootFolder, true, true, filesToExclude::contains);
+
+    assertThat(allFiles).hasSize(10);
+    for (File file : allFiles) {
+      assertThat(filesToExclude).doesNotContain(file);
+    }
   }
 
   private void testInvalidOffsetsScenario(int start, int offset) throws IOException {
