@@ -1,6 +1,7 @@
 package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ExcludeFileHandler;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -89,7 +90,11 @@ public class FileUtils {
     }
   }
 
-  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles, boolean readHiddenFolders)
+  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles, boolean readHiddenFolders) throws ZipException {
+    return getFilesInDirectoryRecursive(path, readHiddenFiles, readHiddenFolders, null);
+  }
+
+  public static List<File> getFilesInDirectoryRecursive(File path, boolean readHiddenFiles, boolean readHiddenFolders, ExcludeFileHandler excludedFiles)
       throws ZipException {
 
     if (path == null) {
@@ -104,6 +109,10 @@ public class FileUtils {
     }
 
     for (File file : filesAndDirs) {
+      if (excludedFiles != null && excludedFiles.isExcluded(file)) {
+        continue;
+      }
+
       if (file.isHidden()) {
         if (file.isDirectory()) {
           if (!readHiddenFolders) {
@@ -115,7 +124,7 @@ public class FileUtils {
       }
       result.add(file);
       if (file.isDirectory()) {
-        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles, readHiddenFolders));
+        result.addAll(getFilesInDirectoryRecursive(file, readHiddenFiles, readHiddenFolders, excludedFiles));
       }
     }
 

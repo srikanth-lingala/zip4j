@@ -64,6 +64,7 @@ public class ZipParameters {
   private String rootFolderNameInZip;
   private String fileComment;
   private SymbolicLinkAction symbolicLinkAction = SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY;
+  private ExcludeFileHandler excludeFileHandler;
 
   /**
    * Create a ZipParameters instance with default values;
@@ -99,6 +100,7 @@ public class ZipParameters {
     this.rootFolderNameInZip = zipParameters.getRootFolderNameInZip();
     this.fileComment = zipParameters.getFileComment();
     this.symbolicLinkAction = zipParameters.getSymbolicLinkAction();
+    this.excludeFileHandler = zipParameters.getExcludeFileHandler();
   }
 
   /**
@@ -379,5 +381,13 @@ public void setEncryptFiles(boolean encryptFiles) {
    */
   public void setSymbolicLinkAction(SymbolicLinkAction symbolicLinkAction) {
     this.symbolicLinkAction = symbolicLinkAction;
+  }
+
+  public ExcludeFileHandler getExcludeFileHandler() {
+    return excludeFileHandler;
+  }
+
+  public void setExcludeFileHandler(ExcludeFileHandler excludeFileHandler) {
+    this.excludeFileHandler = excludeFileHandler;
   }
 }
