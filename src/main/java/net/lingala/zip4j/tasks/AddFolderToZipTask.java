@@ -2,7 +2,6 @@ package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderWriter;
-import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -34,7 +33,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     List<File> filesToAdd = getFilesInDirectoryRecursive(taskParameters.folderToAdd,
         taskParameters.zipParameters.isReadHiddenFiles(),
         taskParameters.zipParameters.isReadHiddenFolders(),
-        taskParameters.excludeFileFilter);
+        taskParameters.zipParameters.getExcludeFileFilter());
 
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
       filesToAdd.add(taskParameters.folderToAdd);
@@ -64,7 +63,7 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
     List<File> filesToAdd = getFilesInDirectoryRecursive(taskParameters.folderToAdd,
         taskParameters.zipParameters.isReadHiddenFiles(),
         taskParameters.zipParameters.isReadHiddenFolders(),
-        taskParameters.excludeFileFilter);
+        taskParameters.zipParameters.getExcludeFileFilter());
 
     if (taskParameters.zipParameters.isIncludeRootFolder()) {
       filesToAdd.add(taskParameters.folderToAdd);
@@ -76,14 +75,11 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   public static class AddFolderToZipTaskParameters extends AbstractZipTaskParameters {
     private File folderToAdd;
     private ZipParameters zipParameters;
-    private ExcludeFileFilter excludeFileFilter;
 
-    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, ExcludeFileFilter excludeFileFilter,
-                                        Charset charset) {
+    public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, Charset charset) {
       super(charset);
       this.folderToAdd = folderToAdd;
       this.zipParameters = zipParameters;
-      this.excludeFileFilter = excludeFileFilter;
     }
   }
 

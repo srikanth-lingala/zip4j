@@ -630,8 +630,9 @@ public class AddFilesToZipIT extends AbstractIT {
     );
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setIncludeRootFolder(false);
+    zipParameters.setExcludeFileFilter(filesToExclude::contains);
 
-    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters, filesToExclude::contains);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 10);
     verifyZipFileDoesNotContainFiles(generatedZipFile, Arrays.asList("sample.pdf", "sample_directory/favicon.ico"));

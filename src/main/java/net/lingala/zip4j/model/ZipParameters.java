@@ -64,6 +64,7 @@ public class ZipParameters {
   private String rootFolderNameInZip;
   private String fileComment;
   private SymbolicLinkAction symbolicLinkAction = SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY;
+  private ExcludeFileFilter excludeFileFilter;
 
   /**
    * Create a ZipParameters instance with default values;
@@ -379,5 +380,21 @@ public void setEncryptFiles(boolean encryptFiles) {
    */
   public void setSymbolicLinkAction(SymbolicLinkAction symbolicLinkAction) {
     this.symbolicLinkAction = symbolicLinkAction;
+  }
+
+  /**
+   * Returns the file exclusion filter that is currently being used when adding files/folders to zip file
+   * @return ExcludeFileFilter
+   */
+  public ExcludeFileFilter getExcludeFileFilter() {
+    return excludeFileFilter;
+  }
+
+  /**
+   * Set a filter to exclude any files from the list of files being added to zip. Mostly used when adding a folder
+   * to a zip, and if certain files have to be excluded from adding to the zip file.
+   */
+  public void setExcludeFileFilter(ExcludeFileFilter excludeFileFilter) {
+    this.excludeFileFilter = excludeFileFilter;
   }
 }
