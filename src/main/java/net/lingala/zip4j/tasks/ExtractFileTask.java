@@ -75,8 +75,13 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
       return newFileName;
     }
 
+    String fileSeparator = InternalZipConstants.ZIP_FILE_SEPARATOR;
+    if (newFileName.endsWith(InternalZipConstants.ZIP_FILE_SEPARATOR)) {
+      fileSeparator = "";
+    }
+
     return fileHeaderBeingExtracted.getFileName().replaceFirst(fileHeaderToExtract.getFileName(),
-        newFileName + InternalZipConstants.ZIP_FILE_SEPARATOR);
+        newFileName + fileSeparator);
   }
 
   public static class ExtractFileTaskParameters extends AbstractZipTaskParameters {
