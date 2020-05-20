@@ -219,17 +219,26 @@ new ZipFile("filename.zip", "password".toCharArray()).extractAll("/destination_d
 new ZipFile("filename.zip").extractFile("fileNameInZip.txt", "/destination_directory");
 ~~~~
 
+### Extracting a folder from zip (since v2.6.0)
+
+~~~~
+new ZipFile("filename.zip").extractFile("folderNameInZip/", "/destination_directory");
+~~~~
+
 ### Extracting a single file from zip which is password protected
 
 ~~~~
 new ZipFile("filename.zip", "password".toCharArray()).extractFile("fileNameInZip.txt", "/destination_directory");
 ~~~~
 
+Since v2.6.0: If the file name represents a directory, zip4j will extract all files in the zip that are part of this directory. 
+
 ### Extracting a single file from zip and giving it a new file name
 
 Below example will extract the file `fileNameInZip.txt` from the zip file to the output directory `/destination_directory` 
 and will give the file a name `newfileName.txt`. Without the third parameter of the new file name, the same name as the
-file in the zip will be used, which in this case is `fileNameInZip.txt`
+file in the zip will be used, which in this case is `fileNameInZip.txt`. If the file being extracted is a directory,
+`newFileName` parameter will be used as the directory name. 
 
 ~~~~
 new ZipFile("filename.zip", "password".toCharArray()).extractFile("fileNameInZip.txt", "/destination_directory", "newfileName.txt");

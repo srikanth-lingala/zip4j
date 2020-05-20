@@ -6,7 +6,9 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.UnzipUtil;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -30,14 +32,10 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
 
-    String newFileName = taskParameters.newFileName;
-    if (taskParameters.fileHeader.isDirectory()) {
-      newFileName = null;
-    }
-
     try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.fileHeader, taskParameters.charset)) {
       List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
       for (FileHeader fileHeader : fileHeadersUnderDirectory) {
+        String newFileName = determineNewFileName(taskParameters.newFileName, taskParameters.fileHeader, fileHeader);
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, newFileName, progressMonitor);
       }
     } finally {
@@ -66,6 +64,19 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
     splitInputStream.prepareExtractionForFileHeader(fileHeader);
     return new ZipInputStream(splitInputStream, password, charset);
+  }
+
+  private String determineNewFileName(String newFileName, FileHeader fileHeaderToExtract, FileHeader fileHeaderBeingExtracted) {
+    if (!Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
+      return newFileName;
+    }
+
+    if (!fileHeaderToExtract.isDirectory()) {
+      return newFileName;
+    }
+
+    return fileHeaderBeingExtracted.getFileName().replaceFirst(fileHeaderToExtract.getFileName(),
+        newFileName + InternalZipConstants.ZIP_FILE_SEPARATOR);
   }
 
   public static class ExtractFileTaskParameters extends AbstractZipTaskParameters {

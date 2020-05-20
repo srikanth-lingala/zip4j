@@ -462,6 +462,19 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
   }
 
+  @Test
+  public void testExtractFileHeaderExtractAllFilesIfFileHeaderIsDirectoryAndRenameFile() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setIncludeRootFolder(false);
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
+
+    zipFile.extractFile(zipFile.getFileHeader("öüäöäö/"), outputFolder.getPath(), "new_folder_name/");
+    File outputFile = Paths.get(outputFolder.getPath(), "new_folder_name", "asöäööl").toFile();
+    assertThat(outputFile).exists();
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);
