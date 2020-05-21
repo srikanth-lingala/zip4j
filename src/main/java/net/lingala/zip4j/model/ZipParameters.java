@@ -65,6 +65,7 @@ public class ZipParameters {
   private String fileComment;
   private SymbolicLinkAction symbolicLinkAction = SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY;
   private ExcludeFileFilter excludeFileFilter;
+  private boolean unixMode;
 
   /**
    * Create a ZipParameters instance with default values;
@@ -396,5 +397,21 @@ public void setEncryptFiles(boolean encryptFiles) {
    */
   public void setExcludeFileFilter(ExcludeFileFilter excludeFileFilter) {
     this.excludeFileFilter = excludeFileFilter;
+  }
+
+  /**
+   * Returns true if zip4j is using unix mode as default. Returns False otherwise.
+   * @return true if zip4j is using unix mode as default, false otherwise
+   */
+  public boolean isUnixMode() {
+    return unixMode;
+  }
+
+  /**
+   * When set to true, zip4j uses unix mode as default when generating file headers.
+   * @param unixMode
+   */
+  public void setUnixMode(boolean unixMode) {
+    this.unixMode = unixMode;
   }
 }

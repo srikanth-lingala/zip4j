@@ -492,6 +492,11 @@ public class FileUtils {
     }
   }
 
+  public static boolean isWindows() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return isWindows(os);
+  }
+
   private static boolean isWindows(String os) {
     return (os.contains("win"));
   }

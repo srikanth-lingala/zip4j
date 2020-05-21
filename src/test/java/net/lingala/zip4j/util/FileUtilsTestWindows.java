@@ -90,6 +90,11 @@ public class FileUtilsTestWindows {
   }
 
   @Test
+  public void testIsWindowsReturnsTrue() {
+    assertThat(FileUtils.isWindows()).isTrue();
+  }
+
+  @Test
   public void testGetFileAttributesReturnsAttributesAsDefined() throws IOException {
     File file = mock(File.class);
     Path path = mock(Path.class);

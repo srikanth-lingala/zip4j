@@ -148,7 +148,7 @@ public class ZipOutputStream extends OutputStream {
 
   private void initializeAndWriteFileHeader(ZipParameters zipParameters) throws IOException {
     fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, countingOutputStream.isSplitZipFile(),
-        countingOutputStream.getCurrentSplitFileCounter(), charset);
+        countingOutputStream.getCurrentSplitFileCounter(), charset, rawIO);
     fileHeader.setOffsetLocalHeader(countingOutputStream.getOffsetForNextEntry());
 
     localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);

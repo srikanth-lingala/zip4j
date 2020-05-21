@@ -14,6 +14,7 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RawIO;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,6 +39,7 @@ public class HeaderReaderIT extends AbstractIT {
   private FileHeaderFactory fileHeaderFactory = new FileHeaderFactory();
   private HeaderReader headerReader = new HeaderReader();
   private HeaderWriter headerWriter = new HeaderWriter();
+  private RawIO rawIO = new RawIO();
 
   @Test
   public void testReadAllHeadersWith10Entries() throws IOException {
@@ -367,7 +369,7 @@ public class HeaderReaderIT extends AbstractIT {
     List<FileHeader> fileHeaders = new ArrayList<>();
     for (int i = 0; i < numberOfEntries; i++) {
       zipParameters.setFileNameInZip(FILE_NAME_PREFIX + i);
-      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8);
+      FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
       fileHeaders.add(fileHeader);
     }
     return fileHeaders;

@@ -90,6 +90,11 @@ public class FileUtilsTestLinuxAndMac {
     testGetFileAttributesGetsAsDefined(true);
   }
 
+  @Test
+  public void testIsWindowsReturnsFalse() {
+    assertThat(FileUtils.isWindows()).isFalse();
+  }
+
   private void testGetFileAttributesGetsAsDefined(boolean isDirectory) throws IOException {
     File file = mock(File.class);
     Path path = mock(Path.class);

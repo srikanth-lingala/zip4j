@@ -16,6 +16,8 @@ import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RawIO;
+import net.lingala.zip4j.util.ZipVersionUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AddFilesToZipIT extends AbstractIT {
 
+  private RawIO rawIO = new RawIO();
+
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -56,6 +60,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample.pdf"), CompressionMethod.DEFLATE, null, null);
+    verifyZipVersions(zipFile.getFileHeaders().get(0), new ZipParameters());
   }
 
   @Test
@@ -83,6 +88,7 @@ public class AddFilesToZipIT extends AbstractIT {
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true, CHARSET_CP_949);
     assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(koreanFileName);
+    verifyZipVersions(zipFile.getFileHeaders().get(0), zipParameters);
   }
 
   @Test
@@ -139,6 +145,7 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1);
     verifyZipFileContainsFiles(generatedZipFile, singletonList("sample_text_large.txt"), CompressionMethod.STORE,
         EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_128);
+    verifyZipVersions(zipFile.getFileHeaders().get(0), zipParameters);
   }
 
   @Test
@@ -1001,5 +1008,13 @@ public class AddFilesToZipIT extends AbstractIT {
     }
 
     return compressionMethod;
+  }
+
+  private void verifyZipVersions(FileHeader fileHeader, ZipParameters zipParameters) {
+    int versionMadeBy = ZipVersionUtils.determineVersionMadeBy(zipParameters, rawIO);
+    int versionNeededToExtract = ZipVersionUtils.determineVersionNeededToExtract(zipParameters).getCode();
+
+    assertThat(fileHeader.getVersionMadeBy()).isEqualTo(versionMadeBy);
+    assertThat(fileHeader.getVersionNeededToExtract()).isEqualTo(versionNeededToExtract);
   }
 }

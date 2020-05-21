@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.Charset;
@@ -17,16 +18,19 @@ import java.nio.charset.Charset;
 import static net.lingala.zip4j.util.BitUtils.setBit;
 import static net.lingala.zip4j.util.BitUtils.unsetBit;
 import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
+import static net.lingala.zip4j.util.ZipVersionUtils.determineVersionMadeBy;
+import static net.lingala.zip4j.util.ZipVersionUtils.determineVersionNeededToExtract;
 
 public class FileHeaderFactory {
 
-  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart, Charset charset)
+  public FileHeader generateFileHeader(ZipParameters zipParameters, boolean isSplitZip, int currentDiskNumberStart,
+                                       Charset charset, RawIO rawIO)
       throws ZipException {
 
     FileHeader fileHeader = new FileHeader();
     fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
-    fileHeader.setVersionMadeBy(20);
-    fileHeader.setVersionNeededToExtract(20);
+    fileHeader.setVersionMadeBy(determineVersionMadeBy(zipParameters, rawIO));
+    fileHeader.setVersionNeededToExtract(determineVersionNeededToExtract(zipParameters).getCode());
 
     if (zipParameters.isEncryptFiles() && zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
       fileHeader.setCompressionMethod(CompressionMethod.AES_INTERNAL_ONLY);
