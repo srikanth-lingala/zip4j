@@ -514,8 +514,7 @@ public class ZipInputStreamExample {
     int readLen;
     byte[] readBuffer = new byte[4096];
 
-    try (FileInputStream fileInputStream = new FileInputStream(zipFile); 
-         ZipInputStream zipInputStream = new ZipInputStream(fileInputStream, password)) {
+    try (ZipInputStream zipInputStream = new ZipInputStream(fileInputStream, password)) {
       while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
         File extractedFile = new File(localFileHeader.getFileName());
         try (OutputStream outputStream = new FileOutputStream(extractedFile)) {
@@ -544,14 +543,22 @@ ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
 
 zipFile.setRunInThread(true);
-zipFile.addFolder("/some/folder");
+zipFile.addFolder(new File("/some/folder"));
 
 while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
   System.out.println("Percentage done: " + progressMonitor.getPercentDone());
   System.out.println("Current file: " + progressMonitor.getFileName());
   System.out.println("Current task: " + progressMonitor.getCurrentTask());
-  
+
   Thread.sleep(100);
+}
+
+if (progressMonitor.getResult().equals(ProgressMonitor.Result.SUCCESS)) {
+  System.out.println("Successfully added folder to zip");
+} else if (progressMonitor.getResult().equals(ProgressMonitor.Result.ERROR)) {
+  System.out.println("Error occurred. Error message: " + progressMonitor.getException().getMessage());
+} else if (progressMonitor.getResult().equals(ProgressMonitor.Result.CANCELLED)) {
+  System.out.println("Task cancelled");
 }
 ~~~
 
