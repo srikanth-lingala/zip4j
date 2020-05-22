@@ -514,7 +514,7 @@ public class ZipInputStreamExample {
     int readLen;
     byte[] readBuffer = new byte[4096];
 
-    InputStream inputStream = new FileInputStream(new File("/path/to/zip_file.zip"));
+    InputStream inputStream = new FileInputStream(zipFile);
     try (ZipInputStream zipInputStream = new ZipInputStream(inputStream, password)) {
       while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
         File extractedFile = new File(localFileHeader.getFileName());
