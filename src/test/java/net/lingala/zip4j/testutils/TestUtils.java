@@ -4,6 +4,7 @@ import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +15,9 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
-import java.util.List;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Random;
 
 public class TestUtils {
 
@@ -108,6 +110,25 @@ public class TestUtils {
         zipOutputStream.closeEntry();
       }
     }
+  }
+
+  public static File generateFileOfSize(TemporaryFolder temporaryFolder, long fileSize) throws IOException {
+    File outputFile = temporaryFolder.newFile();
+    byte[] b = new byte[8 * InternalZipConstants.BUFF_SIZE];
+    Random random = new Random();
+    long bytesWritten = 0;
+    int bufferWriteLength;
+
+    try (OutputStream outputStream = new FileOutputStream(outputFile)) {
+      while (bytesWritten < fileSize) {
+        random.nextBytes(b);
+        bufferWriteLength = bytesWritten + b.length > fileSize ? ((int) (fileSize - bytesWritten)) : b.length;
+        outputStream.write(b, 0, bufferWriteLength);
+        bytesWritten += bufferWriteLength;
+      }
+    }
+
+    return outputFile;
   }
 
   private static OutputStream startNext7ZipSplitStream(File sourceFile, File outputFolder, int index) throws IOException {

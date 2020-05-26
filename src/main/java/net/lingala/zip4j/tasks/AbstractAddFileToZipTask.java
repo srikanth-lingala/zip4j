@@ -1,6 +1,7 @@
 package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
@@ -63,7 +64,6 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
          ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, charset)) {
-
 
       for (File fileToAdd : updatedFilesToAdd) {
         verifyIfTaskIsCancelled();
@@ -162,10 +162,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream, Charset charset) throws IOException {
     if (zipModel.getZipFile().exists()) {
-      if (zipModel.getEndOfCentralDirectoryRecord() == null) {
-        throw new ZipException("invalid end of central directory record");
-      }
-      splitOutputStream.seek(zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
+      splitOutputStream.seek(HeaderUtil.getOffsetStartOfCentralDirectory(zipModel));
     }
 
     return new ZipOutputStream(splitOutputStream, password, charset, zipModel);

@@ -362,6 +362,8 @@ public class HeaderWriter {
         zipModel.setZip64EndOfCentralDirectoryLocator(new Zip64EndOfCentralDirectoryLocator());
       }
 
+      zipModel.getZip64EndOfCentralDirectoryRecord().setOffsetStartCentralDirectoryWRTStartDiskNumber(
+          zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory());
       zipModel.getZip64EndOfCentralDirectoryLocator().setNumberOfDiskStartOfZip64EndOfCentralDirectoryRecord(
           currentSplitFileCounter);
       zipModel.getZip64EndOfCentralDirectoryLocator().setTotalNumberOfDiscs(currentSplitFileCounter + 1);

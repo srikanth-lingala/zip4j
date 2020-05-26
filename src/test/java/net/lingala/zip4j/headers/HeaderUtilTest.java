@@ -2,7 +2,9 @@ package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.CentralDirectory;
+import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.InternalZipConstants;
@@ -306,6 +308,30 @@ public class HeaderUtilTest {
     List<FileHeader> fileHeaders = Arrays.asList(fileHeader1, fileHeader2, fileHeader3);
 
     assertThat(HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders(fileHeaders)).isEqualTo(6000);
+  }
+
+  @Test
+  public void testGetOffsetStartOfCentralDirectoryForZip64Format() {
+    long offsetCentralDirectory = InternalZipConstants.ZIP_64_SIZE_LIMIT + 100;
+    ZipModel zipModel = new ZipModel();
+    zipModel.setZip64Format(true);
+    Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord = new Zip64EndOfCentralDirectoryRecord();
+    zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(offsetCentralDirectory);
+    zipModel.setZip64EndOfCentralDirectoryRecord(zip64EndOfCentralDirectoryRecord);
+
+    assertThat(HeaderUtil.getOffsetStartOfCentralDirectory(zipModel)).isEqualTo(offsetCentralDirectory);
+  }
+
+  @Test
+  public void testGetOffsetStartOfCentralDirectoryForNonZip64Format() {
+    long offsetStartOfCentralDirectory = InternalZipConstants.ZIP_64_SIZE_LIMIT - 100;
+    ZipModel zipModel = new ZipModel();
+    zipModel.setZip64Format(false);
+    EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
+    endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(offsetStartOfCentralDirectory);
+    zipModel.setEndOfCentralDirectoryRecord(endOfCentralDirectoryRecord);
+
+    assertThat(HeaderUtil.getOffsetStartOfCentralDirectory(zipModel)).isEqualTo(offsetStartOfCentralDirectory);
   }
 
   private List<FileHeader> generateFileHeaderWithFileNamesWithEmptyAndNullFileNames(String fileNamePrefix, int numberOfEntriesToAdd) {

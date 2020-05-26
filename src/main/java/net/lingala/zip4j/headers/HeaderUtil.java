@@ -87,10 +87,18 @@ public class HeaderUtil {
 
     List<FileHeader> fileHeaders = zipModel.getCentralDirectory().getFileHeaders();
     if (indexOfFileHeader == fileHeaders.size() - 1) {
-      return getOffsetOfEndOfCentralDirectory(zipModel);
+      return getOffsetStartOfCentralDirectory(zipModel);
     } else {
       return fileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
     }
+  }
+
+  public static long getOffsetStartOfCentralDirectory(ZipModel zipModel) {
+    if (zipModel.isZip64Format()) {
+      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
+    }
+
+    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 
   public static List<FileHeader> getFileHeadersUnderDirectory(List<FileHeader> allFileHeaders, FileHeader rootFileHeader) {
@@ -112,14 +120,6 @@ public class HeaderUtil {
       }
     }
     return totalUncompressedSize;
-  }
-
-  private static long getOffsetOfEndOfCentralDirectory(ZipModel zipModel) {
-    if (zipModel.isZip64Format()) {
-      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
-    }
-
-    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 
   private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {

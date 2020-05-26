@@ -9,11 +9,13 @@ import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.testutils.HeaderVerifier;
 import net.lingala.zip4j.testutils.RandomInputStream;
 import net.lingala.zip4j.testutils.SlowTests;
+import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,6 +135,20 @@ public class ZipFileZip64IT extends AbstractIT {
     zipFile.removeFiles(filesToRemove);
 
     HeaderVerifier.verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
+  }
+
+  @Test
+  public void testZip64WhenAddingFilesWithNewlyInstantiatedZipFile() throws IOException {
+    File testFileToAdd = TestUtils.generateFileOfSize(temporaryFolder, 1073741824); // 1 GB
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+
+    for (int i = 0; i < 6; i++) {
+      zipParameters.setFileNameInZip(Integer.toString(i));
+      new ZipFile(generatedZipFile).addFile(testFileToAdd, zipParameters);
+    }
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 6, false);
   }
 
   private void verifyZip64HeadersPresent() throws IOException {

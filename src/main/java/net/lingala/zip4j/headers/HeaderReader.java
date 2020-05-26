@@ -138,7 +138,7 @@ public class HeaderReader {
     CentralDirectory centralDirectory = new CentralDirectory();
     List<FileHeader> fileHeaders = new ArrayList<>();
 
-    long offSetStartCentralDir = getOffsetCentralDirectory(zipModel);
+    long offSetStartCentralDir = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
     long centralDirEntryCount = getNumberOfEntriesInCentralDirectory(zipModel);
 
     if (zipModel.isZip64Format()) {
@@ -699,14 +699,6 @@ public class HeaderReader {
     }
 
     return null;
-  }
-
-  private long getOffsetCentralDirectory(ZipModel zipModel) {
-    if (zipModel.isZip64Format()) {
-      return zipModel.getZip64EndOfCentralDirectoryRecord().getOffsetStartCentralDirectoryWRTStartDiskNumber();
-    }
-
-    return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 
   private long getNumberOfEntriesInCentralDirectory(ZipModel zipModel) {
