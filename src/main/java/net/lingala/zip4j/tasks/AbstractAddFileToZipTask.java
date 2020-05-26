@@ -1,5 +1,6 @@
 package net.lingala.zip4j.tasks;
 
+import java.nio.file.Files;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
@@ -95,7 +96,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     zipOutputStream.putNextEntry(clonedZipParameters);
 
-    String symLinkTarget = fileToAdd.toPath().toRealPath().toString();
+    String symLinkTarget = Files.readSymbolicLink(fileToAdd.toPath()).toString();
     zipOutputStream.write(symLinkTarget.getBytes());
 
     closeEntry(zipOutputStream, splitOutputStream, fileToAdd, true);

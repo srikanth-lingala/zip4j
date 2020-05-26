@@ -345,8 +345,56 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testAddSymlinkWithLinkOnlyMissingTargetFile() throws IOException {
+    File targetFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "foo").toFile();
+    File symlink = createSymlink(targetFile, temporaryFolder.getRoot());
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+
+    zipFile.addFile(symlink, zipParameters);
+
+    assertThat(zipFile.getFileHeaders()).hasSize(1);
+    assertThat(zipFile.getFileHeaders().get(0).getFileName()).isEqualTo(symlink.getName());
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, false);
+
+    verifyGeneratedSymlink(symlink, targetFile);
+  }
+
+  @Test
   public void testAddSymlinksInAFolderWithLinkOnly() throws IOException {
     File testFolder = createTestFolderWithSymlinks();
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+
+    zipFile.addFolder(testFolder, zipParameters);
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 6, false);
+    verifyFileNamesInZip(zipFile,
+        "test-folder/",
+        "test-folder/symlink.link",
+        "test-folder/sub-folder1/",
+        "test-folder/sub-folder1/symlink.link",
+        "test-folder/sub-folder2/",
+        "test-folder/sub-folder2/symlink.link");
+  }
+
+  @Test
+  public void testAddSymlinksInAFolderWithLinkOnlyMissingTargetFile() throws IOException {
+    Path testFolderPath = temporaryFolder.newFolder("test-folder").toPath();
+    Path subFolder1 = Files.createDirectory(Paths.get(testFolderPath.toString(), "sub-folder1"));
+    Path subFolder2 = Files.createDirectory(Paths.get(testFolderPath.toString(), "sub-folder2"));
+
+    File targetFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "foo").toFile();
+
+    createSymlink(targetFile, testFolderPath.toFile());
+    createSymlink(getTestFileFromResources("file_PDF_1MB.pdf"), subFolder1.toFile());
+    createSymlink(getTestFileFromResources("sample_text_large.txt"), subFolder2.toFile());
+
+    File testFolder = testFolderPath.toFile();
+
     ZipFile zipFile = new ZipFile(generatedZipFile);
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);

@@ -1,5 +1,6 @@
 package net.lingala.zip4j.util;
 
+import java.nio.file.LinkOption;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.ZipModel;
@@ -71,7 +72,7 @@ public class FileUtils {
 
   public static byte[] getFileAttributes(File file) {
     try {
-      if (file == null || !file.exists()) {
+      if (file == null || (!Files.isSymbolicLink(file.toPath()) && !file.exists())) {
         return new byte[4];
       }
 
@@ -269,7 +270,7 @@ public class FileUtils {
     }
 
     if (isSymbolicLink(fileToAdd)) {
-      return fileToAdd.toPath().toRealPath().getFileName().toString();
+      return Files.readSymbolicLink(fileToAdd.toPath()).getFileName().toString();
     }
 
     return fileToAdd.getName();
@@ -329,7 +330,7 @@ public class FileUtils {
 
   public static void assertFilesExist(List<File> files) throws ZipException {
     for (File file : files) {
-      if (!file.exists()) {
+      if (!Files.isSymbolicLink(file.toPath()) && !file.exists()) {
         throw new ZipException("File does not exist: " + file);
       }
     }
@@ -434,7 +435,7 @@ public class FileUtils {
     byte[] fileAttributes = new byte[4];
 
     try {
-      DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class);
+      DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
       DosFileAttributes dosFileAttributes = dosFileAttributeView.readAttributes();
 
       byte windowsAttribute = 0;
@@ -455,7 +456,7 @@ public class FileUtils {
     byte[] fileAttributes = new byte[4];
 
     try {
-      PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+      PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
       Set<PosixFilePermission> posixFilePermissions = posixFileAttributeView.readAttributes().permissions();
 
       fileAttributes[3] = setBitIfApplicable(Files.isRegularFile(file), fileAttributes[3], 7);
