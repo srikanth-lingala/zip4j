@@ -3,6 +3,7 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
+import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
@@ -47,7 +48,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     File temporaryFile = getTemporaryFile(zipModel.getZipFile().getPath());
     boolean successFlag = false;
     try(RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.WRITE.getValue());
-        SplitOutputStream outputStream = new SplitOutputStream(temporaryFile)) {
+        CountingOutputStream outputStream = new CountingOutputStream(new SplitOutputStream(temporaryFile))) {
 
       long currentFileCopyPointer = 0;
 
