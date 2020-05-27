@@ -101,6 +101,7 @@ public class ZipParameters {
     this.rootFolderNameInZip = zipParameters.getRootFolderNameInZip();
     this.fileComment = zipParameters.getFileComment();
     this.symbolicLinkAction = zipParameters.getSymbolicLinkAction();
+    this.excludeFileFilter = zipParameters.getExcludeFileFilter();
     this.unixMode = zipParameters.isUnixMode();
   }
 
