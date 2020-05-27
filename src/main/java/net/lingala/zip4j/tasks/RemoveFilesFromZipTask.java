@@ -103,7 +103,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
   }
 
   private void updateHeaders(FileHeader fileHeaderThatWasRemoved, long offsetToSubtract) throws ZipException {
-    updateOffsetsForAllSubsequentFileHeaders(zipModel, fileHeaderThatWasRemoved, Math.negateExact(offsetToSubtract));
+    updateOffsetsForAllSubsequentFileHeaders(zipModel, fileHeaderThatWasRemoved, negate(offsetToSubtract));
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(
@@ -126,6 +126,14 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
       zipModel.getZip64EndOfCentralDirectoryLocator().setOffsetZip64EndOfCentralDirectoryRecord(
           zipModel.getZip64EndOfCentralDirectoryLocator().getOffsetZip64EndOfCentralDirectoryRecord() - offsetToSubtract);
     }
+  }
+
+  private long negate(long val) {
+    if (val == Long.MIN_VALUE) {
+      throw new ArithmeticException("long overflow");
+    }
+
+    return -val;
   }
 
   @Override
