@@ -148,14 +148,14 @@ public class FileUtilsTestLinuxAndMac {
     );
   }
 
-  private PosixFileAttributeView mockPosixFileAttributeView(Path path, boolean isDirectory)
-      throws IOException {
+  private PosixFileAttributeView mockPosixFileAttributeView(Path path, boolean isDirectory) throws IOException {
     FileSystemProvider fileSystemProvider = mock(FileSystemProvider.class);
     FileSystem fileSystem = mock(FileSystem.class);
     PosixFileAttributeView posixFileAttributeView = mock(PosixFileAttributeView.class);
 
     when(path.getFileSystem()).thenReturn(fileSystem);
-    when(fileSystemProvider.getFileAttributeView(path, PosixFileAttributeView.class))
+    when(fileSystemProvider.getFileAttributeView(path, PosixFileAttributeView.class)).thenReturn(posixFileAttributeView);
+    when(fileSystemProvider.getFileAttributeView(path, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS))
         .thenReturn(posixFileAttributeView);
     when(path.getFileSystem().provider()).thenReturn(fileSystemProvider);
 
