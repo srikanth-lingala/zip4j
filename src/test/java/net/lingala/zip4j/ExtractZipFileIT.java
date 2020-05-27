@@ -476,9 +476,13 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testExtractJarFile() throws IOException {
-    ZipFile zipFile = new ZipFile(TestUtils.getTestArchiveFromResources("zip4j-for-testing.jar"));
-    zipFile.extractAll(outputFolder.getPath());
+  public void testExtractJarFileWithFileHeaderCompressedSize2() throws IOException {
+    extractFile(TestUtils.getTestArchiveFromResources("jar-dir-fh-entry-size-2.jar"));
+  }
+
+  @Test
+  public void testExtractJarFileWithOnlyFileAndLocalFileHeaderCompressedSize2() throws IOException {
+    extractFile(TestUtils.getTestArchiveFromResources("jar-dir-lfh-and-fh-entry-size-2.jar"));
   }
 
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
@@ -556,7 +560,9 @@ public class ExtractZipFileIT extends AbstractIT {
     return file.get();
   }
 
-  private File createZipFileAndSplit(List<File> filesToAddToZip, long splitLength, boolean encrypt, EncryptionMethod encryptionMethod) throws IOException {
+  private File createZipFileAndSplit(List<File> filesToAddToZip, long splitLength, boolean encrypt,
+                                     EncryptionMethod encryptionMethod) throws IOException {
+
     ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encrypt);
@@ -566,4 +572,8 @@ public class ExtractZipFileIT extends AbstractIT {
     return TestUtils.splitFileWith7ZipFormat(zipFile.getFile(), temporaryFolder.getRoot(), splitLength);
   }
 
+  private void extractFile(File fileToExtract) throws IOException {
+    ZipFile zipFile = new ZipFile(fileToExtract);
+    zipFile.extractAll(outputFolder.getPath());
+  }
 }

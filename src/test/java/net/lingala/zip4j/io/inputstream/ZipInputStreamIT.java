@@ -191,7 +191,7 @@ public class ZipInputStreamIT extends AbstractIT {
   @Test
   public void testExtractJarFile() throws IOException {
     byte[] b = new byte[4096];
-    File jarFile = getTestArchiveFromResources("zip4j-for-testing.jar");
+    File jarFile = getTestArchiveFromResources("jar-dir-fh-entry-size-2.jar");
     try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(jarFile))) {
       while (zipInputStream.getNextEntry() != null) {
         zipInputStream.read(b);

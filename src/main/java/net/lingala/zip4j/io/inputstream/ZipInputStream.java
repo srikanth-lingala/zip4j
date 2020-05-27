@@ -93,17 +93,7 @@ public class ZipInputStream extends InputStream {
 
     if (fileHeader != null) {
       localFileHeader.setCrc(fileHeader.getCrc());
-
-      // In case of jar files, directories' compressed size in file header is 2 and local file header is 0.
-      // The actual value of compressed size in file header should be 0.
-      // This is a workaround to ignore the comprressed size from file header if directory and is deflate and
-      // compressed sizes does not match
-      if (!(fileHeader.isDirectory()
-          && fileHeader.getCompressionMethod().equals(CompressionMethod.DEFLATE)
-          && fileHeader.getCompressedSize() != localFileHeader.getCompressedSize())) {
-        localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
-      }
-
+      localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
       localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
       canSkipExtendedLocalFileHeader = true;
     } else {
@@ -310,7 +300,7 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readUntilEndOfEntry() throws IOException {
-    if (localFileHeader.getCompressedSize() == 0) {
+    if (localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0) {
       return;
     }
 
