@@ -37,6 +37,7 @@ import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
 import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
 import static net.lingala.zip4j.util.CrcUtil.computeFileCrc;
+import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
@@ -59,6 +60,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
   void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters, Charset charset)
       throws IOException {
+
+    assertFilesExist(filesToAdd, zipParameters.getSymbolicLinkAction());
 
     List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor, charset);
 
@@ -95,7 +98,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     zipOutputStream.putNextEntry(clonedZipParameters);
 
-    String symLinkTarget = fileToAdd.toPath().toRealPath().toString();
+    String symLinkTarget = FileUtils.readSymbolicLink(fileToAdd);
     zipOutputStream.write(symLinkTarget.getBytes());
 
     closeEntry(zipOutputStream, splitOutputStream, fileToAdd, true);

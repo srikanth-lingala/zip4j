@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.DosFileAttributes;
@@ -269,7 +270,7 @@ public class FileUtils {
     }
 
     if (isSymbolicLink(fileToAdd)) {
-      return fileToAdd.toPath().toRealPath().getFileName().toString();
+      return fileToAdd.toPath().toRealPath(LinkOption.NOFOLLOW_LINKS).getFileName().toString();
     }
 
     return fileToAdd.getName();
@@ -327,10 +328,17 @@ public class FileUtils {
     }
   }
 
-  public static void assertFilesExist(List<File> files) throws ZipException {
+  public static void assertFilesExist(List<File> files, ZipParameters.SymbolicLinkAction symLinkAction) throws ZipException {
     for (File file : files) {
-      if (!file.exists()) {
-        throw new ZipException("File does not exist: " + file);
+      if (isSymbolicLink(file)) {
+        // If symlink is INCLUDE_LINK_ONLY, and if the above condition is true, it means that the link exists and there
+        // will be no need to check for link existence explicitly, check only for target file existence if required
+        if (symLinkAction.equals(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE)
+            || symLinkAction.equals(ZipParameters.SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY)) {
+          assertSymbolicLinkTargetExists(file);
+        }
+      } else {
+        assertFileExists(file);
       }
     }
   }
@@ -380,6 +388,14 @@ public class FileUtils {
     }
   }
 
+  public static String readSymbolicLink(File file) {
+    try {
+      return Files.readSymbolicLink(file.toPath()).toString();
+    } catch (Exception | Error e) {
+      return "";
+    }
+  }
+
   private static String getExtensionZerosPrefix(int index) {
     if (index < 9) {
       return "00";
@@ -396,7 +412,7 @@ public class FileUtils {
       return;
     }
 
-    DosFileAttributeView fileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class);
+    DosFileAttributeView fileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
     try {
       fileAttributeView.setReadOnly(isBitSet(fileAttributes[0], 0));
       fileAttributeView.setHidden(isBitSet(fileAttributes[0], 1));
@@ -434,7 +450,8 @@ public class FileUtils {
     byte[] fileAttributes = new byte[4];
 
     try {
-      DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class);
+      DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class,
+          LinkOption.NOFOLLOW_LINKS);
       DosFileAttributes dosFileAttributes = dosFileAttributeView.readAttributes();
 
       byte windowsAttribute = 0;
@@ -449,6 +466,18 @@ public class FileUtils {
     }
 
     return fileAttributes;
+  }
+
+  private static void assertFileExists(File file) throws ZipException {
+    if (!file.exists()) {
+      throw new ZipException("File does not exist: " + file);
+    }
+  }
+
+  private static void assertSymbolicLinkTargetExists(File file) throws ZipException {
+    if (!file.exists()) {
+      throw new ZipException("Symlink target '" + readSymbolicLink(file) + "' does not exist for link '" + file + "'");
+    }
   }
 
   private static byte[] getPosixFileAttributes(Path file) {

@@ -62,7 +62,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.FileUtils.isNumberedSplitFile;
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF_8;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
@@ -288,8 +287,6 @@ public class ZipFile {
     if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
-
-    assertFilesExist(filesToAdd);
 
     readZipInfo();
 

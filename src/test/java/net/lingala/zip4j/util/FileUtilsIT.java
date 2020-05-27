@@ -2,6 +2,7 @@ package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.testutils.TestUtils;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,6 +131,60 @@ public class FileUtilsIT extends AbstractIT {
     for (File file : allFiles) {
       assertThat(filesToExclude).doesNotContain(file);
     }
+  }
+
+  @Test
+  public void testAssertFilesExistWhenFileExistsDoesNotThrowException() throws IOException {
+    File newFile = temporaryFolder.newFile("new-file");
+    FileUtils.assertFilesExist(Collections.singletonList(newFile), ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+  }
+
+  @Test
+  public void testAssertFilesExistWhenFileDoesNotExistThrowsException() throws IOException {
+    File newFile = Paths.get(temporaryFolder.getRoot().getPath(), "file-which-does-not-exist").toFile();
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("File does not exist: " + newFile);
+
+    FileUtils.assertFilesExist(Collections.singletonList(newFile), ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+  }
+
+  @Test
+  public void testAssertFilesExistForSymLinkWhenTargetDoesNotExistIncludeLinkOnlySuccess() throws IOException {
+    File targetFile = Paths.get(temporaryFolder.getRoot().getPath(), "file-which-does-not-exist").toFile();
+    File symlink = Paths.get(temporaryFolder.getRoot().getPath(), "symlink.link").toFile();
+    Files.createSymbolicLink(symlink.toPath(), targetFile.toPath());
+
+    FileUtils.assertFilesExist(Collections.singletonList(symlink), ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+  }
+
+  @Test
+  public void testAssertFilesExistForSymLinkWhenTargetDoesNotExistIncludeLinkedFileOnlyThrowsException() throws IOException {
+    testAssertFileExistsForSymLinkWhenTargetDoesNotExist(ZipParameters.SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY);
+  }
+
+  @Test
+  public void testAssertFilesExistForSymLinkWhenTargetDoesNotExistIncludeLinkAndLinkedFileThrowsException() throws IOException {
+    testAssertFileExistsForSymLinkWhenTargetDoesNotExist(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE);
+  }
+
+  @Test
+  public void testReadSymbolicLink() throws IOException {
+    File targetFile = temporaryFolder.newFile("target-file");
+    File symlink = Paths.get(temporaryFolder.getRoot().getPath(), "symlink.link").toFile();
+    Files.createSymbolicLink(symlink.toPath(), targetFile.toPath());
+
+    assertThat(FileUtils.readSymbolicLink(symlink)).isEqualTo(targetFile.getPath());
+  }
+
+  private void testAssertFileExistsForSymLinkWhenTargetDoesNotExist(ZipParameters.SymbolicLinkAction symbolicLinkAction) throws IOException {
+    File targetFile = Paths.get(temporaryFolder.getRoot().getPath(), "file-which-does-not-exist").toFile();
+    File symlink = Paths.get(temporaryFolder.getRoot().getPath(), "symlink.link").toFile();
+    Files.createSymbolicLink(symlink.toPath(), targetFile.toPath());
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Symlink target '" + targetFile + "' does not exist for link '" + symlink + "'");
+
+    FileUtils.assertFilesExist(Collections.singletonList(symlink), symbolicLinkAction);
   }
 
   private void testInvalidOffsetsScenario(int start, int offset) throws IOException {
