@@ -7,7 +7,9 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.DosFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
@@ -47,7 +49,7 @@ public class FileUtilsTestWindows {
   @Test
   public void testSetFileAttributesOnWindowsMachineWhenAttributesSet() throws IOException {
     Path mockedPath = mock(Path.class);
-    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(mockedPath, true);
+    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(mockedPath, true, null);
 
     byte attribute = 0;
     attribute = BitUtils.setBit(attribute, 0);
@@ -66,7 +68,7 @@ public class FileUtilsTestWindows {
   @Test
   public void testSetFileAttributesOnWindowsWhenNoAttributesSetDoesNothing() throws IOException {
     Path mockedPath = mock(Path.class);
-    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(mockedPath, true);
+    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(mockedPath, true, null);
 
     FileUtils.setFileAttributes(mockedPath, new byte[]{0, 0, 0, 0});
 
@@ -82,7 +84,11 @@ public class FileUtilsTestWindows {
   @Test
   public void testGetFileAttributesWhenFileDoesNotExistReturnsEmptyBytes() throws IOException {
     File file = mock(File.class);
+    Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
     when(file.exists()).thenReturn(false);
+    DosFileAttributes dosFileAttributes = mock(DosFileAttributes.class);
+    mockDosFileAttributeView(path, true, dosFileAttributes);
 
     byte[] attributes = FileUtils.getFileAttributes(file);
 
@@ -100,8 +106,8 @@ public class FileUtilsTestWindows {
     Path path = mock(Path.class);
     when(file.toPath()).thenReturn(path);
     when(file.exists()).thenReturn(true);
-    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(path, true);
     DosFileAttributes dosFileAttributes = mock(DosFileAttributes.class);
+    DosFileAttributeView dosFileAttributeView = mockDosFileAttributeView(path, true, dosFileAttributes);
     when(dosFileAttributeView.readAttributes()).thenReturn(dosFileAttributes);
     when(dosFileAttributes.isReadOnly()).thenReturn(true);
     when(dosFileAttributes.isHidden()).thenReturn(true);
@@ -116,13 +122,15 @@ public class FileUtilsTestWindows {
     assertThat(isBitSet(attributes[0], 5)).isTrue();
   }
 
-  private DosFileAttributeView mockDosFileAttributeView(Path path, boolean fileExists) throws IOException {
+  private DosFileAttributeView mockDosFileAttributeView(Path path, boolean fileExists, DosFileAttributes dosFileAttributes) throws IOException {
     FileSystemProvider fileSystemProvider = mock(FileSystemProvider.class);
     FileSystem fileSystem = mock(FileSystem.class);
     DosFileAttributeView dosFileAttributeView = mock(DosFileAttributeView.class);
 
+    when(fileSystemProvider.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)).thenReturn(dosFileAttributes);
     when(path.getFileSystem()).thenReturn(fileSystem);
-    when(fileSystemProvider.getFileAttributeView(path, DosFileAttributeView.class)).thenReturn(dosFileAttributeView);
+    when(fileSystemProvider.getFileAttributeView(path, DosFileAttributeView.class, LinkOption.NOFOLLOW_LINKS))
+        .thenReturn(dosFileAttributeView);
     when(path.getFileSystem().provider()).thenReturn(fileSystemProvider);
 
     if (!fileExists) {

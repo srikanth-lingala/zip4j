@@ -72,7 +72,7 @@ public class FileUtils {
 
   public static byte[] getFileAttributes(File file) {
     try {
-      if (file == null || !file.exists()) {
+      if (file == null || (!Files.isSymbolicLink(file.toPath()) && !file.exists())) {
         return new byte[4];
       }
 
@@ -484,7 +484,8 @@ public class FileUtils {
     byte[] fileAttributes = new byte[4];
 
     try {
-      PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+      PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file, PosixFileAttributeView.class,
+          LinkOption.NOFOLLOW_LINKS);
       Set<PosixFilePermission> posixFilePermissions = posixFileAttributeView.readAttributes().permissions();
 
       fileAttributes[3] = setBitIfApplicable(Files.isRegularFile(file), fileAttributes[3], 7);
