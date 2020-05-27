@@ -188,6 +188,17 @@ public class ZipInputStreamIT extends AbstractIT {
     assertThat(filenameSet.contains(expactedFileName)).isTrue();
   }
 
+  @Test
+  public void testExtractJarFile() throws IOException {
+    byte[] b = new byte[4096];
+    File jarFile = getTestArchiveFromResources("zip4j-for-testing.jar");
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(jarFile))) {
+      while (zipInputStream.getNextEntry() != null) {
+        zipInputStream.read(b);
+      }
+    }
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, 4096, AesVersion.TWO);
   }

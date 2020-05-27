@@ -475,6 +475,12 @@ public class ExtractZipFileIT extends AbstractIT {
     ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("öüäöäö/asöäööl"), outputFile);
   }
 
+  @Test
+  public void testExtractJarFile() throws IOException {
+    ZipFile zipFile = new ZipFile(TestUtils.getTestArchiveFromResources("zip4j-for-testing.jar"));
+    zipFile.extractAll(outputFolder.getPath());
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);
