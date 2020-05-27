@@ -5,7 +5,7 @@ import net.lingala.zip4j.exception.ZipException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class CountingOutputStream extends OutputStream {
+public class CountingOutputStream extends OutputStream implements OutputStreamWithSplitZipSupport {
 
   private OutputStream outputStream;
   private long numberOfBytesWritten = 0;
@@ -30,6 +30,7 @@ public class CountingOutputStream extends OutputStream {
     numberOfBytesWritten += len;
   }
 
+  @Override
   public int getCurrentSplitFileCounter() {
     if (isSplitZipFile()) {
       return ((SplitOutputStream) outputStream).getCurrentSplitFileCounter();
@@ -75,6 +76,7 @@ public class CountingOutputStream extends OutputStream {
     return ((SplitOutputStream)outputStream).checkBufferSizeAndStartNextSplitFile(bufferSize);
   }
 
+  @Override
   public long getFilePointer() throws IOException {
     if (outputStream instanceof SplitOutputStream) {
       return ((SplitOutputStream) outputStream).getFilePointer();

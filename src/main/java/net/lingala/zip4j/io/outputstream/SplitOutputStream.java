@@ -30,7 +30,7 @@ import java.io.RandomAccessFile;
 import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExtension;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_SPLIT_LENGTH;
 
-public class SplitOutputStream extends OutputStream {
+public class SplitOutputStream extends OutputStream implements OutputStreamWithSplitZipSupport {
 
   private RandomAccessFile raf;
   private long splitLength;
@@ -192,6 +192,7 @@ public class SplitOutputStream extends OutputStream {
     raf.close();
   }
 
+  @Override
   public long getFilePointer() throws IOException {
     return raf.getFilePointer();
   }
@@ -204,6 +205,7 @@ public class SplitOutputStream extends OutputStream {
     return splitLength;
   }
 
+  @Override
   public int getCurrentSplitFileCounter() {
     return currSplitFileCounter;
   }

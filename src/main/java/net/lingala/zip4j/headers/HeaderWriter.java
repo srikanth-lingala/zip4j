@@ -18,6 +18,7 @@ package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
+import net.lingala.zip4j.io.outputstream.OutputStreamWithSplitZipSupport;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.ExtraDataRecord;
@@ -348,10 +349,10 @@ public class HeaderWriter {
 
   private void processHeaderData(ZipModel zipModel, OutputStream outputStream) throws IOException {
     int currentSplitFileCounter = 0;
-    if (outputStream instanceof CountingOutputStream) {
+    if (outputStream instanceof OutputStreamWithSplitZipSupport) {
       zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(
-          ((CountingOutputStream) outputStream).getFilePointer());
-      currentSplitFileCounter = ((CountingOutputStream) outputStream).getCurrentSplitFileCounter();
+          ((OutputStreamWithSplitZipSupport) outputStream).getFilePointer());
+      currentSplitFileCounter = ((OutputStreamWithSplitZipSupport) outputStream).getCurrentSplitFileCounter();
     }
 
     if (zipModel.isZip64Format()) {
