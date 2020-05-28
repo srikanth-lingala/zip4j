@@ -140,14 +140,7 @@ public class HeaderReader {
 
     long offSetStartCentralDir = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
     long centralDirEntryCount = getNumberOfEntriesInCentralDirectory(zipModel);
-
-    if (zipModel.isZip64Format()) {
-      offSetStartCentralDir = zipModel.getZip64EndOfCentralDirectoryRecord()
-          .getOffsetStartCentralDirectoryWRTStartDiskNumber();
-      centralDirEntryCount = (int) zipModel.getZip64EndOfCentralDirectoryRecord()
-          .getTotalNumberOfEntriesInCentralDirectory();
-    }
-
+    
     zip4jRaf.seek(offSetStartCentralDir);
 
     byte[] shortBuff = new byte[2];
