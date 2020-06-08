@@ -368,7 +368,7 @@ This is the reverse of creating a split zip file, that is, this feature will mer
 several files into a single zip file
 
 ~~~~
-new ZipFile("split_zip_file.zip").mergeZipFile("merged_zip_file.zip");
+new ZipFile("split_zip_file.zip").mergeSplitFiles(new File("merged_zip_file.zip"));
 ~~~~
 
 This method will throw an exception if the split zip file (in this case `split_zip_file.zip`) is not a split zip file
