@@ -1,7 +1,8 @@
+[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
 
 [![Build Status](https://travis-ci.org/srikanth-lingala/zip4j.svg?branch=master)](https://travis-ci.org/srikanth-lingala/zip4j)
 [![Android Build Status](https://circleci.com/gh/srikanth-lingala/zip4j-android-test.svg?style=svg)](https://circleci.com/gh/srikanth-lingala/zip4j-android-test)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
 [![Known Vulnerabilities](https://snyk.io//test/github/srikanth-lingala/zip4j/badge.svg?targetFile=pom.xml)](https://snyk.io//test/github/srikanth-lingala/zip4j?targetFile=pom.xml)
 
 
@@ -32,6 +33,7 @@ having to deal with streams, etc. Apart from usability, another important goal o
 as many zip features as possible, which brings me to:
 
 ## Features
+```
 * Create, Add, Extract, Update, Remove files from a zip file
 * Support for streams (ZipInputStream and ZipOutputStream)
 * Read/Write password protected zip files and streams
@@ -41,6 +43,7 @@ as many zip features as possible, which brings me to:
 * Create or extract files from split zip files (Ex: z01, z02,...zip)
 * Support for Unicode file names and comments in zip
 * Progress Monitor - for integration into apps and user facing applications
+```
 
 ## Background
 
@@ -56,13 +59,13 @@ once again, and makes me support Zip4j as much as I can.
 
 ## Maven
 
-~~~~
+```xml
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
     <version>2.6.1</version>
 </dependency>
-~~~~
+```
 
 Please check the latest version number on [Maven Central][6].
 
@@ -70,41 +73,41 @@ Please check the latest version number on [Maven Central][6].
 
 ### Creating a zip file with single file in it / Adding single file to an existing zip
 
-~~~~
+```java
 new ZipFile("filename.zip").addFile("filename.ext");
-~~~~
+```
 
 &nbsp;&nbsp; Or
 
-~~~~
+```java
 new ZipFile("filename.zip").addFile(new File("filename.ext"));
-~~~~
+```
 
 ### Creating a zip file with multiple files / Adding multiple files to an existing zip
 
-~~~~
+```java
 new ZipFile("filename.zip").addFiles(Arrays.asList(new File("first_file"), new File("second_file")));
-~~~~
+```
 
 ### Creating a zip file by adding a folder to it / Adding a folder to an existing zip
 
-~~~~
+```java
 new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"));
-~~~~
+```
 
 Since v2.6, it is possible to exclude certain files when adding a folder to zip by using an ExcludeFileFilter
 
-~~~~
+```java
 List<File> filesToExclude = Arrays.asList(new File("sample.pdf"), new File("sample_2.txt"));
 ExcludeFileFilter excludeFileFilter = filesToExclude::contains;
 new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"), new ZipParameters(), excludeFileFilter);
-~~~~
+```
 
 ### Creating a zip file from stream / Adding a stream to an existing zip
 
-~~~~
+```java
 new ZipFile("filename.zip").addStream(inputStream, new ZipParameters());
-~~~~
+```
 
 Passing in `new ZipParameters()`, as in the above example, will make Zip4j use default zip parameters. Please look at
 [ZipParameters][7] to see the default configuration. 
@@ -114,12 +117,12 @@ Passing in `new ZipParameters()`, as in the above example, will make Zip4j use d
 By default Zip4j uses Deflate compression algorithm to compress files. However, if you would like to not use any
 compression (called STORE compression), you can do so as shown in the example below: 
 
-~~~~
+```java
 ZipParameters zipParameters = new ZipParameters();
 zipParameters.setCompressionMethod(CompressionMethod.STORE);
 
 new ZipFile("filename.zip").addFile("fileToAdd", zipParameters);
-~~~~
+```
 
 You can similarly pass in zip parameters to all the other examples to create a zip file of STORE compression.
 
@@ -127,7 +130,7 @@ You can similarly pass in zip parameters to all the other examples to create a z
 
 ##### AES encryption
 
-~~~~
+```java
 ZipParameters zipParameters = new ZipParameters();
 zipParameters.setEncryptFiles(true);
 zipParameters.setEncryptionMethod(EncryptionMethod.AES);
@@ -141,7 +144,7 @@ List<File> filesToAdd = Arrays.asList(
 
 ZipFile zipFile = new ZipFile("filename.zip", "password".toCharArray());
 zipFile.addFiles(filesToAdd, zipParameters);
-~~~~
+```
 
 ##### Zip standard encryption
 
@@ -156,7 +159,7 @@ a password protected zip file.
 
 If you want to split the zip file over several files when the size exceeds a particular limit, you can do so like this:
 
-~~~~
+```java
 List<File> filesToAdd = Arrays.asList(
     new File("somefile"), 
     new File("someotherfile")
@@ -164,7 +167,7 @@ List<File> filesToAdd = Arrays.asList(
 
 ZipFile zipFile = new ZipFile("filename.zip");
 zipFile.createSplitZipFile(filesToAdd, new ZipParameters(), true, 10485760); // using 10MB in this example
-~~~~
+```
 
 Passing in `new ZipParameters()`, as in the above example, will make Zip4j use default zip parameters. Please look at
 [ZipParameters][7] to see the default configuration. 
@@ -174,7 +177,7 @@ exception if anything less than this value is specified.
 
 To create a split zip with password protection, pass in appropriate ZipParameters as shown in the example below:
 
-~~~~
+```java
 ZipParameters zipParameters = new ZipParameters();
 zipParameters.setEncryptFiles(true);
 zipParameters.setEncryptionMethod(EncryptionMethod.AES);
@@ -186,7 +189,7 @@ List<File> filesToAdd = Arrays.asList(
 
 ZipFile zipFile = new ZipFile("filename.zip", "password".toCharArray());
 zipFile.createSplitZipFile(filesToAdd, zipParameters, true, 10485760); // using 10MB in this example
-~~~~
+```
 
 ### Zip64 format
 
@@ -201,33 +204,33 @@ crossing this file size limit. You do not have to explicitly specify any flag fo
 
 ### Extracting all files from a zip
 
-~~~~
+```java
 new ZipFile("filename.zip").extractAll("/destination_directory");
-~~~~
+```
 
 ### Extracting all files from a password protected zip
 
-~~~~
+```java
 new ZipFile("filename.zip", "password".toCharArray()).extractAll("/destination_directory");
-~~~~
+```
 
 ### Extracting a single file from zip
 
-~~~~
+```java
 new ZipFile("filename.zip").extractFile("fileNameInZip.txt", "/destination_directory");
-~~~~
+```
 
 ### Extracting a folder from zip (since v2.6.0)
 
-~~~~
+```java
 new ZipFile("filename.zip").extractFile("folderNameInZip/", "/destination_directory");
-~~~~
+```
 
 ### Extracting a single file from zip which is password protected
 
-~~~~
+```java
 new ZipFile("filename.zip", "password".toCharArray()).extractFile("fileNameInZip.txt", "/destination_directory");
-~~~~
+```
 
 Since v2.6.0: If the file name represents a directory, Zip4j will extract all files in the zip that are part of this directory. 
 
@@ -238,17 +241,17 @@ and will give the file the name `newfileName.txt`. Without the third parameter o
 file in the zip will be used, which in this case is `fileNameInZip.txt`. If the file being extracted is a directory,
 `newFileName` parameter will be used as the directory name. 
 
-~~~~
+```java
 new ZipFile("filename.zip", "password".toCharArray()).extractFile("fileNameInZip.txt", "/destination_directory", "newfileName.txt");
-~~~~
+```
 
 ### Get an input stream for an entry in a zip file
 
-~~~~
+```java
 ZipFile zipFile = new ZipFile("filename.zip");
 FileHeader fileHeader = zipFile.getFileHeader("entry_name_in_zip.txt");
 InputStream inputStream = zipFile.getInputStream(fileHeader);
-~~~~
+```
 
 You can now use this input stream to read content from it/write content to an output stream. Please note that the
 entry/file name is relative to the directory it is in. If `entry_name_in_zip.txt` is in a folder called "root_folder" in
@@ -256,9 +259,9 @@ the zip, then you have to use `zipFile.getFileHeader("root_folder/entry_name_in_
 
 ### Remove a file/entry from a zip file
 
-~~~~
+```java
 new ZipFile("filename.zip").removeFile("fileNameInZipToRemove");
-~~~~
+```
 
 If `fileNameInZipToRemove` represents a folder all the files and folders under this folder will be removed as well
 (this is valid since v2.5.0 of Zip4j. All prior versions remove just the single entry even if it is a folder). 
@@ -267,14 +270,14 @@ Please note that the file name is relative the root folder in zip. That is, if t
 folder called "folder1", which in-turn exists in a folder called "root-folder", removing this file from zip has to be done 
 as below:
 
-~~~~
+```java
 new ZipFile("filename.zip").removeFile("root-folder/folder1/fileNameInZipToRemove");
-~~~~
+```
 
 If you want to be sure that the file you want to remove exists in zip file or if you don't want to deal with file names
 as string when using the `removeFile` API, you can use the other overloaded method which takes in a `FileHeader`:
 
-~~~~
+```java
 ZipFile zipFile = new ZipFile("someZip.zip");
 FileHeader fileHeader = zipFile.getFileHeader("fileNameInZipToRemove");
 
@@ -283,17 +286,17 @@ if (fileHeader == null) {
 }
 
 zipFile.removeFile(fileHeader);
-~~~~
+```
 
 Since v2.5.0 of Zip4j, it is possible to remove multiple files and folders from a zip file. You can now pass in a list
 as shown in the code below:
 
-~~~~
+```java
 ZipFile zipFile = new ZipFile("someZip.zip");
 List<String> filesToRemove = Arrays.asList("file1.txt", "file2.txt", "some-folder/", "some-new-folder-1/somefile.pdf");
 
 zipFile.removeFiles(filesToRemove);
-~~~~
+```
 
 The above code will remove `file1.txt`, `file2.txt`, all files and folders under `some-folder` (including `some-folder`)
 and just the entry `somefile.pdf` in folder `some-new-folder-1`. All other files and folders are kept intact in the zip
@@ -304,51 +307,51 @@ file.
 There are three ways to rename an entry in a zip file with Zip4j. One way is to pass in a file header and the new file 
 name:
 
-~~~~
+```java
 ZipFile zipFile = new ZipFile("sample.zip");
 FileHeader fileHeader = zipFile.getFileHeader("entry-to-be-changed.pdf");
 zipFile.renameFile(fileHeader, "new-file-name.pdf");
-~~~~
+```
 
 Second way is to pass in just the file name to be changed (instead of the file header), and the new file name. 
 
-~~~~
+```java
 new ZipFile("filename.zip").renameFile("entry-to-be-changed.pdf", "new-file-name.pdf");
-~~~~
+```
 
 It is also possible to change multiple file names at once. In this case you have to use a map, with the key of the entry 
 in the map being the entry to be changed, and the value of the map being the new file name:
 
-~~~~
+```java
 Map<String, String> fileNamesMap = new HashMap<>();
 fileNamesMap.put("firstFile.txt", "newFileFirst.txt");
 fileNamesMap.put("secondFile.pdf", "newSecondFile.pdf");
 fileNamesMap.put("some-folder/thirdFile.bin", "some-folder/newThirdFile.bin");
 new ZipFile("filename.zip").renameFile("entry-to-be-changed.pdf", "new-file-name.pdf");
-~~~~
+```
 
 To modify an entry name which is inside a folder, the new file name should contain the complete parent path as well.
 For example, if an entry by the name `some-entry.pdf` is in the folder `some-folder/some-sub-folder/`, to modify this 
 entry name to `some-new-entry.pdf`:
 
-~~~~
+```java
 new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "some-folder/some-sub-folder/new-entry.pdf");
-~~~~
+```
 
 If the parent path is missing, then the file will be put at the root of the zip file. In the below example, after
 the file is renamed, `some-new-entry.pdf` will exist at the root of the zip file instead of at `some-folder/some-sub-folder/`:
 
-~~~~
+```java
 new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "some-new-entry.pdf");
-~~~~
+```
 
 This also gives the flexibility to "move" the entry to a different folder. The below example will move the 
 `some-entry.pdf` from `some-folder/some-sub-folder/` to `folder-to-be-moved-to/sub-folder/` and the file will also be 
 renamed to `new-entry.pdf`. To just move the file, use the same file name instead of a new file name.
 
-~~~~
+```java
 new ZipFile("filename.zip").renameFile("some-folder/some-sub-folder/some-entry.pdf", "folder-to-be-moved-to/sub-folder/new-entry.pdf");
-~~~~
+```
 
 If the entry being modified is a directory, all entries that are part of that directory will be renamed so that all of 
 them have the new folder name as parent. In zip format, all entry names under a directory will contain the full name as their file name.
@@ -365,64 +368,64 @@ rename files in a split zip file.
 This is the reverse of creating a split zip file, that is, this feature will merge a zip file which is split across 
 several files into a single zip file:
 
-~~~~
+```java
 new ZipFile("split_zip_file.zip").mergeSplitFiles(new File("merged_zip_file.zip"));
-~~~~
+```
 
 This method will throw an exception if the split zip file (in this case `split_zip_file.zip`) is not a split zip file.
 
 ### List all files in a zip
 
-~~~~
+```java
 List<FileHeader> fileHeaders = new ZipFile("zipfile.zip").getFileHeaders();
 fileHeaders.stream().forEach(fileHeader -> System.out.println(fileHeader.getFileName()));
-~~~~
+```
 
 You can get all other information from the `FileHeader` object corresponding to each file/entry in the zip.
 
 ### Check if a zip file is password protected
 
-~~~~
+```java
 new ZipFile("encrypted_zip_file.zip").isEncrypted();
-~~~~
+```
 
 ### Check if a zip file is a split zip file
 
-~~~~
+```java
 new ZipFile("split_zip_file.zip").isSplitArchive();
-~~~~
+```
 
 ### Set comment for a zip file
 
-~~~~
+```java
 new ZipFile("some_zip_file.zip").setComment("Some comment");
-~~~~
+```
 
 ### Remove comment of a zip file
 
-~~~~
+```java
 new ZipFile("some_zip_file.zip").setComment("");
-~~~~
+```
 
 ### Get comment of a zip file
 
-~~~~
+```java
 new ZipFile("some_zip_file.zip").getComment();
-~~~~
+```
 
 ### Check if a zip file is valid
 
 Note: This will only check for the validity of the headers and not the validity of each entry in the zip file.
 
-~~~~
+```java
 new ZipFile("valid_zip_file.zip").isValidZipFile();
-~~~~
+```
 
 ## Working with streams
 
 ### Adding entries with ZipOutputStream
 
-~~~~
+```java
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -491,11 +494,11 @@ public class ZipOutputStreamExample {
     return zipParameters;
   }
 }
-~~~~
+```
 
 ### Extract files with ZipInputStream
 
-~~~~
+```java
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.LocalFileHeader;
 
@@ -525,9 +528,7 @@ public class ZipInputStreamExample {
     }
   }
 }
-
-
-~~~~
+```
 
 ## Working with Progress Monitor
 
@@ -537,7 +538,7 @@ ProgressMonitor, you have to set `ZipFile.setRunInThread(true)`. This will make 
 to run in a background thread. You can then access ProgressMonitor `Zipfile.getProgressMonitor()` and get details of the
 current action being done along with the percentage work done, etc. Below is an example:
 
-~~~
+```java
 ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
 ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
 
@@ -559,7 +560,7 @@ if (progressMonitor.getResult().equals(ProgressMonitor.Result.SUCCESS)) {
 } else if (progressMonitor.getResult().equals(ProgressMonitor.Result.CANCELLED)) {
   System.out.println("Task cancelled");
 }
-~~~
+```
 
 Note that in the above example, `addFolder()` will almost immediately return back the control to the caller. The client
 code can then perform a loop until the state gets back to "Ready" as shown in the above example.
@@ -616,7 +617,7 @@ I am pretty sure that there are things to be improved), please let me know by op
 [4]: https://stackoverflow.com/questions/18201279/file-compression-library-for-java/18201553
 [5]: https://www.baeldung.com/java-compress-and-uncompress
 [6]: https://mvnrepository.com/artifact/net.lingala.zip4j/zip4j
-[7]: https://github.com/srikanth-lingala/zip4j/blob/master/src/main/java/net/lingala/zip4j/model/ZipParameters.java
+[7]: https://javadoc.io/doc/net.lingala.zip4j/zip4j/latest/net/lingala/zip4j/model/ZipParameters.html#ZipParameters--
 [8]: https://www.baeldung.com/java-storing-passwords
 [9]: https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
 [10]: https://stackoverflow.com/questions/tagged/zip4j
