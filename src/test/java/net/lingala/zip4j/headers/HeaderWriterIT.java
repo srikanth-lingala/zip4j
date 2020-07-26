@@ -4,19 +4,8 @@ import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.CountingOutputStream;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.CentralDirectory;
-import net.lingala.zip4j.model.DataDescriptor;
-import net.lingala.zip4j.model.ExtraDataRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.Zip64ExtendedInfo;
-import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.model.enums.RandomAccessFileMode;
+import net.lingala.zip4j.model.*;
+import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
@@ -24,18 +13,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
+import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HeaderWriterIT extends AbstractIT {
@@ -47,7 +30,7 @@ public class HeaderWriterIT extends AbstractIT {
   private static final long UNCOMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
   private static final int VERSION_MADE_BY = 20;
   private static final int VERSION_NEEDED_TO_EXTRACT = 20;
-  private static final long LAST_MODIFIED_FILE_TIME = javaToDosTime(System.currentTimeMillis());
+  private static final long LAST_MODIFIED_FILE_TIME = epochToExtendedDosTime(System.currentTimeMillis());
   private static final byte[] EXTERNAL_FILE_ATTRIBUTES = new byte[] {23, 43, 0, 0};
   private static final String FILE_COMMENT_PREFIX = "FILE_COMMENT_PREFIX_";
 

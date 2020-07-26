@@ -5,11 +5,7 @@ import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import org.junit.After;
@@ -21,7 +17,7 @@ import org.junit.rules.ExpectedException;
 import java.nio.charset.Charset;
 
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
-import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
+import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileHeaderFactoryTest {
@@ -200,7 +196,7 @@ public class FileHeaderFactoryTest {
 
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
 
-    assertThat(fileHeader.getLastModifiedTime()).isEqualTo(javaToDosTime(zipParameters.getLastModifiedFileTime()));
+    assertThat(fileHeader.getLastModifiedTime()).isEqualTo(epochToExtendedDosTime(zipParameters.getLastModifiedFileTime()));
   }
 
   @Test
@@ -257,7 +253,7 @@ public class FileHeaderFactoryTest {
 
   @Test
   public void testGenerateLocalFileHeader() {
-    long lastModifiedFileTime = javaToDosTime(System.currentTimeMillis());
+    long lastModifiedFileTime = epochToExtendedDosTime(System.currentTimeMillis());
     FileHeader  fileHeader = generateFileHeader(lastModifiedFileTime);
 
     LocalFileHeader localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
@@ -382,7 +378,7 @@ public class FileHeaderFactoryTest {
 
   private void verifyLastModifiedFileTime(FileHeader fileHeader, ZipParameters zipParameters) {
     if (zipParameters.getLastModifiedFileTime() > 0) {
-      assertThat(fileHeader.getLastModifiedTime()).isEqualTo(javaToDosTime(
+      assertThat(fileHeader.getLastModifiedTime()).isEqualTo(epochToExtendedDosTime(
           zipParameters.getLastModifiedFileTime()));
     } else {
       assertThat(fileHeader.getLastModifiedTime()).isGreaterThan(0);

@@ -33,14 +33,12 @@ import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
 import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.ZIP_STANDARD;
-import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
-import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
-import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.*;
 import static net.lingala.zip4j.util.CrcUtil.computeFileCrc;
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
-import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
+import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 
 public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
@@ -200,7 +198,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws IOException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
-    clonedZipParameters.setLastModifiedFileTime(javaToDosTime((fileToAdd.lastModified())));
+    clonedZipParameters.setLastModifiedFileTime(epochToExtendedDosTime((fileToAdd.lastModified())));
 
     if (fileToAdd.isDirectory()) {
       clonedZipParameters.setEntrySize(0);

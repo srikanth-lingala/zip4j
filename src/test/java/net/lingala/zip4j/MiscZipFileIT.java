@@ -13,11 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -515,6 +511,15 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.setRunInThread(true);
     zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"));
     assertThat(zipFile.getExecutorService()).isNotNull();
+  }
+
+  @Test
+  public void testFileHeaderLastModifiedTimeEpoch() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
+    zipFile.addFile(fileToAdd);
+    FileHeader fileHeader = zipFile.getFileHeader("file_PDF_1MB.pdf");
+    assertThat(fileHeader.getLastModifiedTimeEpoch()).isEqualTo(fileToAdd.lastModified());
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {

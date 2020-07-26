@@ -18,10 +18,7 @@ import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class FileUtilsTest {
 
@@ -58,7 +55,7 @@ public class FileUtilsTest {
     long currentTime = System.currentTimeMillis();
     FileUtils.setFileLastModifiedTime(path, currentTime);
 
-    verify(basicFileAttributeView).setTimes(FileTime.fromMillis(Zip4jUtil.dosToJavaTme(currentTime)), null, null);
+    verify(basicFileAttributeView).setTimes(FileTime.fromMillis(Zip4jUtil.dosToExtendedEpochTme(currentTime)), null, null);
   }
 
   @Test
@@ -79,7 +76,7 @@ public class FileUtilsTest {
 
     FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
 
-    verify(file).setLastModified(Zip4jUtil.dosToJavaTme(currentTime));
+    verify(file).setLastModified(Zip4jUtil.dosToExtendedEpochTme(currentTime));
   }
 
   @Test
