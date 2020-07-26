@@ -92,15 +92,16 @@ new ZipFile("filename.zip").addFiles(Arrays.asList(new File("first_file"), new F
 ### Creating a zip file by adding a folder to it / Adding a folder to an existing zip
 
 ```java
-new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"));
+new ZipFile("filename.zip").addFolder(new File("/users/some_user/folder_to_add"));
 ```
 
 Since v2.6, it is possible to exclude certain files when adding a folder to zip by using an ExcludeFileFilter
 
 ```java
-List<File> filesToExclude = Arrays.asList(new File("sample.pdf"), new File("sample_2.txt"));
 ExcludeFileFilter excludeFileFilter = filesToExclude::contains;
-new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"), new ZipParameters, excludeFileFilter);
+ZipParameters zipParameters = new ZipParameters();
+zipParameters.setExcludeFileFilter(excludeFileFilter);
+new ZipFile("filename.zip").addFolder(new File("/users/some_user/folder_to_add"), zipParameters);
 ```
 
 ### Creating a zip file from stream / Adding a stream to an existing zip
