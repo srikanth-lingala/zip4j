@@ -30,7 +30,7 @@ public class HeaderWriterIT extends AbstractIT {
   private static final long UNCOMPRESSED_SIZE_ZIP64 = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
   private static final int VERSION_MADE_BY = 20;
   private static final int VERSION_NEEDED_TO_EXTRACT = 20;
-  private static final long LAST_MODIFIED_FILE_TIME = epochToExtendedDosTime(System.currentTimeMillis());
+  private static final long LAST_MODIFIED_FILE_TIME = epochToExtendedDosTime((System.currentTimeMillis() / 1000) * 1000);
   private static final byte[] EXTERNAL_FILE_ATTRIBUTES = new byte[] {23, 43, 0, 0};
   private static final String FILE_COMMENT_PREFIX = "FILE_COMMENT_PREFIX_";
 
