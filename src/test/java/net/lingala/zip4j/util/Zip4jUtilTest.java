@@ -97,7 +97,7 @@ public class Zip4jUtilTest {
   public void testJavaToDosTime() {
     TimeZone defaultTimeZone = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
-    assertThat(Zip4jUtil.epochToExtendedDosTime(1560526564503L)).isEqualTo(1322159234);
+    assertThat(Zip4jUtil.epochToExtendedDosTime(1560526564000L)).isEqualTo(1322159234);
     TimeZone.setDefault(defaultTimeZone);
   }
 
@@ -105,7 +105,7 @@ public class Zip4jUtilTest {
   public void testDosToJavaTime() {
     TimeZone defaultTimeZone = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
-    assertThat(Zip4jUtil.dosToExtendedEpochTme(1322159234)).isEqualTo((1560526564503L / 1000) * 1000);
+    assertThat(Zip4jUtil.dosToExtendedEpochTme(1322159234)).isEqualTo(1560526564000L);
     TimeZone.setDefault(defaultTimeZone);
   }
 
