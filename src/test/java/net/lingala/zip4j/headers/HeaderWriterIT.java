@@ -9,7 +9,6 @@ import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -33,6 +32,7 @@ public class HeaderWriterIT extends AbstractIT {
   private static final int VERSION_NEEDED_TO_EXTRACT = 20;
   private static final byte[] EXTERNAL_FILE_ATTRIBUTES = new byte[] {23, 43, 0, 0};
   private static final String FILE_COMMENT_PREFIX = "FILE_COMMENT_PREFIX_";
+  private static final long LAST_MODIFIED_FILE_TIME = epochToExtendedDosTime(System.currentTimeMillis() / 1000);
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -40,12 +40,6 @@ public class HeaderWriterIT extends AbstractIT {
   private RawIO rawIO = new RawIO();
   private HeaderWriter headerWriter = new HeaderWriter();
   private HeaderReader headerReader = new HeaderReader();
-  private long lastModifiedFileTime;
-
-  @Before
-  public void beforeTest() {
-    lastModifiedFileTime = epochToExtendedDosTime((System.currentTimeMillis() / 1000) * 1000);
-  }
 
   @Test
   public void testWriteLocalFileHeaderSimpleLocalFileHeaderSuccessScenario() throws IOException {
@@ -612,7 +606,7 @@ public class HeaderWriterIT extends AbstractIT {
     assertThat(localFileHeader.getCompressedSize()).isEqualTo(compressedSize);
     assertThat(localFileHeader.getUncompressedSize()).isEqualTo(uncompressedSize);
     assertThat(localFileHeader.getCompressionMethod()).isEqualTo(CompressionMethod.DEFLATE);
-    assertThat(localFileHeader.getLastModifiedTime()).isEqualTo(lastModifiedFileTime);
+    assertThat(localFileHeader.getLastModifiedTime()).isEqualTo(LAST_MODIFIED_FILE_TIME);
   }
 
   private void verifyZip64ExtendedInfo(Zip64ExtendedInfo zip64ExtendedInfo, long compressedSize, long uncompressedSize,
@@ -633,7 +627,7 @@ public class HeaderWriterIT extends AbstractIT {
     localFileHeader.setUncompressedSize(uncompressedSize);
     localFileHeader.setGeneralPurposeFlag(generateGeneralPurposeBytes(useUtf8));
     localFileHeader.setCompressionMethod(CompressionMethod.DEFLATE);
-    localFileHeader.setLastModifiedTime(lastModifiedFileTime);
+    localFileHeader.setLastModifiedTime(LAST_MODIFIED_FILE_TIME);
     return localFileHeader;
   }
 
