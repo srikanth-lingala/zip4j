@@ -201,4 +201,31 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
     verifyFileHeadersDoesNotExist(zipFile, filesToRemove);
   }
+
+  @Test
+  public void testRemoveFirstEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/zero_byte_file.txt");
+  }
+
+  @Test
+  public void testRemoveLastEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/бореиская.txt");
+  }
+
+  @Test
+  public void testRemoveMiddleEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/file_PDF_1MB.pdf");
+  }
+
+  private void testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries(
+      String fileNameToRemove) throws IOException {
+    TestUtils.copyFile(TestUtils.getTestArchiveFromResources("cen_dir_entries_diff_order_as_local_entries.zip"),
+        generatedZipFile);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.removeFile(fileNameToRemove);
+
+    zipFile = new ZipFile(generatedZipFile);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
+    verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList(fileNameToRemove));
+  }
 }

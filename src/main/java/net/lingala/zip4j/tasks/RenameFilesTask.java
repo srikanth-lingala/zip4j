@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,19 +49,21 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
         SplitOutputStream outputStream = new SplitOutputStream(temporaryFile)) {
 
       long currentFileCopyPointer = 0;
+      long offsetOfCentralDirectoryBeforeModification = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
 
       // Maintain a different list to iterate, so that when the file name is changed in the central directory
       // we still have access to the original file names. If iterating on the original list from central directory,
       // it might be that a file name has changed because of other file name, ex: if a directory name has to be changed
       // and the file is part of that directory, by the time the file has to be changed, its name might have changed
       // when changing the name of the directory. There is some overhead with this approach, but is safer.
-      List<FileHeader> allUnchangedFileHeaders = new ArrayList<>(zipModel.getCentralDirectory().getFileHeaders());
+      List<FileHeader> sortedFileHeaders = cloneAndSortFileHeadersByOffset(zipModel.getCentralDirectory().getFileHeaders());
 
-      for (FileHeader fileHeader : allUnchangedFileHeaders) {
+      for (FileHeader fileHeader : sortedFileHeaders) {
         Map.Entry<String, String> fileNameMapForThisEntry = getCorrespondingEntryFromMap(fileHeader, fileNamesMap);
         progressMonitor.setFileName(fileHeader.getFileName());
 
-        long lengthToCopy = HeaderUtil.getOffsetOfNextEntry(zipModel, fileHeader) - outputStream.getFilePointer();
+        long lengthToCopy = getOffsetOfNextEntry(sortedFileHeaders, fileHeader,
+            offsetOfCentralDirectoryBeforeModification) - outputStream.getFilePointer();
         if (fileNameMapForThisEntry == null) {
           // copy complete entry without any changes
           currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
@@ -74,7 +75,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
           currentFileCopyPointer = copyEntryAndChangeFileName(newFileNameBytes, fileHeader, currentFileCopyPointer, lengthToCopy,
               inputStream, outputStream, progressMonitor);
 
-          updateHeadersInZipModel(fileHeader, newFileName, newFileNameBytes, headersOffset);
+          updateHeadersInZipModel(sortedFileHeaders, fileHeader, newFileName, newFileNameBytes, headersOffset);
         }
 
         verifyIfTaskIsCancelled();
@@ -133,8 +134,8 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     return null;
   }
 
-  private void updateHeadersInZipModel(FileHeader fileHeader, String newFileName, byte[] newFileNameBytes,
-                                       int headersOffset) throws ZipException {
+  private void updateHeadersInZipModel(List<FileHeader> sortedFileHeaders, FileHeader fileHeader, String newFileName,
+                                       byte[] newFileNameBytes, int headersOffset) throws ZipException {
 
     FileHeader fileHeaderToBeChanged = HeaderUtil.getFileHeader(zipModel, fileHeader.getFileName());
 
@@ -147,7 +148,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
     fileHeaderToBeChanged.setFileName(newFileName);
     fileHeaderToBeChanged.setFileNameLength(newFileNameBytes.length);
 
-    updateOffsetsForAllSubsequentFileHeaders(zipModel, fileHeaderToBeChanged, headersOffset);
+    updateOffsetsForAllSubsequentFileHeaders(sortedFileHeaders, zipModel, fileHeaderToBeChanged, headersOffset);
 
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(
         zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory() + headersOffset);

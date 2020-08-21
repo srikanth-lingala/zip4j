@@ -32,39 +32,6 @@ public class HeaderUtil {
     return fileHeader;
   }
 
-  public static int getIndexOfFileHeader(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
-
-    if (zipModel == null || fileHeader == null) {
-      throw new ZipException("input parameters is null, cannot determine index of file header");
-    }
-
-    if (zipModel.getCentralDirectory() == null
-        || zipModel.getCentralDirectory().getFileHeaders() == null
-        || zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
-      return -1;
-    }
-
-    String fileName = fileHeader.getFileName();
-
-    if (!isStringNotNullAndNotEmpty(fileName)) {
-      throw new ZipException("file name in file header is empty or null, cannot determine index of file header");
-    }
-
-    List<FileHeader> fileHeadersFromCentralDir = zipModel.getCentralDirectory().getFileHeaders();
-    for (int i = 0; i < fileHeadersFromCentralDir.size(); i++) {
-      FileHeader fileHeaderFromCentralDir = fileHeadersFromCentralDir.get(i);
-      String fileNameForHdr = fileHeaderFromCentralDir.getFileName();
-      if (!isStringNotNullAndNotEmpty(fileNameForHdr)) {
-        continue;
-      }
-
-      if (fileName.equalsIgnoreCase(fileNameForHdr)) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
   public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, Charset charset) {
     if (InternalZipConstants.CHARSET_UTF_8.equals(charset) && !isUtf8Encoded) {
       try {
@@ -79,18 +46,6 @@ public class HeaderUtil {
     }
 
     return new String(data, InternalZipConstants.CHARSET_UTF_8);
-  }
-
-
-  public static long getOffsetOfNextEntry(ZipModel zipModel, FileHeader fileHeader) throws ZipException {
-    int indexOfFileHeader = getIndexOfFileHeader(zipModel, fileHeader);
-
-    List<FileHeader> fileHeaders = zipModel.getCentralDirectory().getFileHeaders();
-    if (indexOfFileHeader == fileHeaders.size() - 1) {
-      return getOffsetStartOfCentralDirectory(zipModel);
-    } else {
-      return fileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
-    }
   }
 
   public static long getOffsetStartOfCentralDirectory(ZipModel zipModel) {

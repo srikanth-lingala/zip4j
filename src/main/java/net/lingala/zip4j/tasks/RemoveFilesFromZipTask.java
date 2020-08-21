@@ -44,17 +44,19 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
 
     File temporaryZipFile = getTemporaryFile(zipModel.getZipFile().getPath());
     boolean successFlag = false;
+    long offsetOfCentralDirectoryBeforeModification = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
 
     try (SplitOutputStream outputStream = new SplitOutputStream(temporaryZipFile);
          RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.READ.getValue())){
 
       long currentFileCopyPointer = 0;
-      List<FileHeader> allUnchangedFileHeaders = new ArrayList<>(zipModel.getCentralDirectory().getFileHeaders());
+      List<FileHeader> sortedFileHeaders = cloneAndSortFileHeadersByOffset(zipModel.getCentralDirectory().getFileHeaders());
 
-      for (FileHeader fileHeader : allUnchangedFileHeaders) {
-        long lengthOfCurrentEntry = HeaderUtil.getOffsetOfNextEntry(zipModel, fileHeader) - outputStream.getFilePointer();
+      for (FileHeader fileHeader : sortedFileHeaders) {
+        long lengthOfCurrentEntry = getOffsetOfNextEntry(sortedFileHeaders, fileHeader,
+            offsetOfCentralDirectoryBeforeModification) - outputStream.getFilePointer();
         if (shouldEntryBeRemoved(fileHeader, entriesToRemove)) {
-          updateHeaders(fileHeader, lengthOfCurrentEntry);
+          updateHeaders(sortedFileHeaders, fileHeader, lengthOfCurrentEntry);
 
           if (!zipModel.getCentralDirectory().getFileHeaders().remove(fileHeader)) {
             throw new ZipException("Could not remove entry from list of central directory headers");
@@ -102,8 +104,8 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
     return false;
   }
 
-  private void updateHeaders(FileHeader fileHeaderThatWasRemoved, long offsetToSubtract) throws ZipException {
-    updateOffsetsForAllSubsequentFileHeaders(zipModel, fileHeaderThatWasRemoved, negate(offsetToSubtract));
+  private void updateHeaders(List<FileHeader> sortedFileHeaders, FileHeader fileHeaderThatWasRemoved, long offsetToSubtract) throws ZipException {
+    updateOffsetsForAllSubsequentFileHeaders(sortedFileHeaders, zipModel, fileHeaderThatWasRemoved, negate(offsetToSubtract));
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = zipModel.getEndOfCentralDirectoryRecord();
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(
