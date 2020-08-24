@@ -1,6 +1,7 @@
 package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -84,11 +85,11 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
   }
 
   long getOffsetOfNextEntry(List<FileHeader> sortedFileHeaders, FileHeader fileHeader,
-                                   long offsetStartOfCentralDirectory) throws ZipException {
+                                   ZipModel zipModel) throws ZipException {
     int indexOfFileHeader = getIndexOfFileHeader(sortedFileHeaders, fileHeader);
 
     if (indexOfFileHeader == sortedFileHeaders.size() - 1) {
-      return offsetStartOfCentralDirectory;
+      return HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
     } else {
       return sortedFileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
     }

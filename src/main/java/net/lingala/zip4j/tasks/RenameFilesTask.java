@@ -49,7 +49,6 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
         SplitOutputStream outputStream = new SplitOutputStream(temporaryFile)) {
 
       long currentFileCopyPointer = 0;
-      long offsetOfCentralDirectoryBeforeModification = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
 
       // Maintain a different list to iterate, so that when the file name is changed in the central directory
       // we still have access to the original file names. If iterating on the original list from central directory,
@@ -62,8 +61,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
         Map.Entry<String, String> fileNameMapForThisEntry = getCorrespondingEntryFromMap(fileHeader, fileNamesMap);
         progressMonitor.setFileName(fileHeader.getFileName());
 
-        long lengthToCopy = getOffsetOfNextEntry(sortedFileHeaders, fileHeader,
-            offsetOfCentralDirectoryBeforeModification) - outputStream.getFilePointer();
+        long lengthToCopy = getOffsetOfNextEntry(sortedFileHeaders, fileHeader, zipModel) - outputStream.getFilePointer();
         if (fileNameMapForThisEntry == null) {
           // copy complete entry without any changes
           currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);

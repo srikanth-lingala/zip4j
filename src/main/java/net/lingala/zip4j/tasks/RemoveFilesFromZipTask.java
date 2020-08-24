@@ -44,7 +44,6 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
 
     File temporaryZipFile = getTemporaryFile(zipModel.getZipFile().getPath());
     boolean successFlag = false;
-    long offsetOfCentralDirectoryBeforeModification = HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
 
     try (SplitOutputStream outputStream = new SplitOutputStream(temporaryZipFile);
          RandomAccessFile inputStream = new RandomAccessFile(zipModel.getZipFile(), RandomAccessFileMode.READ.getValue())){
@@ -53,8 +52,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
       List<FileHeader> sortedFileHeaders = cloneAndSortFileHeadersByOffset(zipModel.getCentralDirectory().getFileHeaders());
 
       for (FileHeader fileHeader : sortedFileHeaders) {
-        long lengthOfCurrentEntry = getOffsetOfNextEntry(sortedFileHeaders, fileHeader,
-            offsetOfCentralDirectoryBeforeModification) - outputStream.getFilePointer();
+        long lengthOfCurrentEntry = getOffsetOfNextEntry(sortedFileHeaders, fileHeader, zipModel) - outputStream.getFilePointer();
         if (shouldEntryBeRemoved(fileHeader, entriesToRemove)) {
           updateHeaders(sortedFileHeaders, fileHeader, lengthOfCurrentEntry);
 
