@@ -13,25 +13,46 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.*;
-import java.util.*;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.DosFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
-import static net.lingala.zip4j.util.InternalZipConstants.*;
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class FileUtils {
+
+  public static final byte[] DEFAULT_POSIX_FILE_ATTRIBUTES = new byte[] {0, 0, -128, -127}; //-rw-------
+  public static final byte[] DEFAULT_POSIX_FOLDER_ATTRIBUTES = new byte[] {0, 0, -128, 65}; //drw-------
+  private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase();
 
   public static void setFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes == null || fileAttributes.length == 0) {
       return;
     }
 
-    String os = System.getProperty("os.name").toLowerCase();
-    if (isWindows(os)) {
+    if (isWindows()) {
       applyWindowsFileAttributes(file, fileAttributes);
-    } else if (isMac(os) || isUnix(os)) {
+    } else if (isMac() || isUnix()) {
       applyPosixFileAttributes(file, fileAttributes);
     }
   }
@@ -60,10 +81,9 @@ public class FileUtils {
 
       Path path = file.toPath();
 
-      String os = System.getProperty("os.name").toLowerCase();
-      if (isWindows(os)) {
+      if (isWindows()) {
         return getWindowsFileAttributes(path);
-      } else if (isMac(os) || isUnix(os)) {
+      } else if (isMac() || isUnix()) {
         return getPosixFileAttributes(path);
       } else {
         return new byte[4];
@@ -378,6 +398,30 @@ public class FileUtils {
     }
   }
 
+  public static byte[] getDefaultFileAttributes(boolean isDirectory) {
+    byte[] permissions = new byte[4];
+    if (isUnix() || isMac()) {
+      if (isDirectory) {
+        System.arraycopy(DEFAULT_POSIX_FOLDER_ATTRIBUTES, 0, permissions, 0, permissions.length);
+      } else {
+        System.arraycopy(DEFAULT_POSIX_FILE_ATTRIBUTES, 0, permissions, 0, permissions.length);
+      }
+    }
+    return permissions;
+  }
+
+  public static boolean isWindows() {
+    return (OPERATING_SYSTEM_NAME.contains("win"));
+  }
+
+  public static boolean isMac() {
+    return (OPERATING_SYSTEM_NAME.contains("mac"));
+  }
+
+  public static boolean isUnix() {
+    return (OPERATING_SYSTEM_NAME.contains("nux"));
+  }
+
   private static String getExtensionZerosPrefix(int index) {
     if (index < 9) {
       return "00";
@@ -503,22 +547,4 @@ public class FileUtils {
       posixFilePermissions.add(posixFilePermissionToAdd);
     }
   }
-
-  public static boolean isWindows() {
-    String os = System.getProperty("os.name").toLowerCase();
-    return isWindows(os);
-  }
-
-  private static boolean isWindows(String os) {
-    return (os.contains("win"));
-  }
-
-  private static boolean isMac(String os) {
-    return (os.contains("mac"));
-  }
-
-  private static boolean isUnix(String os) {
-    return (os.contains("nux"));
-  }
-
 }

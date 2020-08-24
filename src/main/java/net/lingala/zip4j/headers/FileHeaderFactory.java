@@ -9,6 +9,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
@@ -60,9 +61,9 @@ public class FileHeaderFactory {
       fileHeader.setLastModifiedTime(Zip4jUtil.epochToExtendedDosTime(System.currentTimeMillis()));
     }
 
-    //For files added by this library, this attribute will be set after closeEntry is done
-    fileHeader.setExternalFileAttributes(new byte[4]);
-    fileHeader.setDirectory(isZipEntryDirectory(fileName));
+    boolean isDirectory = isZipEntryDirectory(fileName);
+    fileHeader.setDirectory(isDirectory);
+    fileHeader.setExternalFileAttributes(FileUtils.getDefaultFileAttributes(isDirectory));
 
     if (zipParameters.isWriteExtendedLocalFileHeader() && zipParameters.getEntrySize() == -1) {
       fileHeader.setUncompressedSize(0);
