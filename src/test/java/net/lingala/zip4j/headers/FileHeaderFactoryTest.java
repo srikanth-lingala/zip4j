@@ -5,7 +5,12 @@ import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.*;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import org.junit.After;
@@ -262,13 +267,13 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testVersionMadeByWindowsWithUnixModeOff() throws ZipException {
+  public void testVersionMadeByWindowsWithUnixModeOff() {
     changeOsSystemPropertyToWindows();
     testVersionMadeBy(generateZipParameters(), 51);
   }
 
   @Test
-  public void testVersionMadeByWindowsWithUnixModeOn() throws ZipException {
+  public void testVersionMadeByWindowsWithUnixModeOn() {
     changeOsSystemPropertyToWindows();
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setUnixMode(true);
@@ -276,13 +281,13 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testVersionMadeByUnix() throws ZipException {
+  public void testVersionMadeByUnix() {
     changeOsSystemPropertyToUnix();
     testVersionMadeBy(generateZipParameters(), 819);
   }
 
   @Test
-  public void testVersionMadeByMac() throws ZipException {
+  public void testVersionMadeByMac() {
     changeOsSystemPropertyToMac();
     testVersionMadeBy(generateZipParameters(), 819);
   }
@@ -336,7 +341,7 @@ public class FileHeaderFactoryTest {
     verifyGeneralPurposeBytes(fileHeader.getGeneralPurposeFlag(), zipParameters);
     assertThat(fileHeader.getDiskNumberStart()).isEqualTo(isSplitZip ? diskNumberStart : 0);
     verifyLastModifiedFileTime(fileHeader, zipParameters);
-    assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
+    verifyExternalFileAttributes(fileHeader);
     assertThat(fileHeader.isDirectory()).isEqualTo(false);
 
     if (zipParameters.isWriteExtendedLocalFileHeader()) {
@@ -366,6 +371,22 @@ public class FileHeaderFactoryTest {
     assertThat(localFileHeader.getGeneralPurposeFlag()).containsExactly(2, 28);
     assertThat(localFileHeader.isDataDescriptorExists()).isTrue();
     assertThat(localFileHeader.getExtraFieldLength()).isEqualTo(190);
+  }
+
+  private void verifyExternalFileAttributes(FileHeader fileHeader) {
+    if (FileUtils.isUnix() || FileUtils.isMac()) {
+      if (FileUtils.isZipEntryDirectory(fileHeader.getFileName())) {
+        assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FOLDER_ATTRIBUTES);
+      } else {
+        assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FILE_ATTRIBUTES);
+      }
+    } else {
+      assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
+    }
+
+
+
+
   }
 
   private void verifyCompressionMethod(FileHeader fileHeader, ZipParameters zipParameters) {

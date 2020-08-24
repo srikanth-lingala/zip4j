@@ -43,7 +43,6 @@ public class FileUtils {
 
   public static final byte[] DEFAULT_POSIX_FILE_ATTRIBUTES = new byte[] {0, 0, -128, -127}; //-rw-------
   public static final byte[] DEFAULT_POSIX_FOLDER_ATTRIBUTES = new byte[] {0, 0, -128, 65}; //drw-------
-  private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase();
 
   public static void setFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes == null || fileAttributes.length == 0) {
@@ -411,15 +410,18 @@ public class FileUtils {
   }
 
   public static boolean isWindows() {
-    return (OPERATING_SYSTEM_NAME.contains("win"));
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("win"));
   }
 
   public static boolean isMac() {
-    return (OPERATING_SYSTEM_NAME.contains("mac"));
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("mac"));
   }
 
   public static boolean isUnix() {
-    return (OPERATING_SYSTEM_NAME.contains("nux"));
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("nux"));
   }
 
   private static String getExtensionZerosPrefix(int index) {
