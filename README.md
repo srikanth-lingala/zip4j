@@ -33,7 +33,7 @@ having to deal with streams, etc. Apart from usability, another important goal o
 as many zip features as possible, which brings me to:
 
 ## Features
-```
+
 * Create, Add, Extract, Update, Remove files from a zip file
 * Support for streams (ZipInputStream and ZipOutputStream)
 * Read/Write password protected zip files and streams
@@ -43,7 +43,6 @@ as many zip features as possible, which brings me to:
 * Create or extract files from split zip files (Ex: z01, z02,...zip)
 * Support for Unicode file names and comments in zip
 * Progress Monitor - for integration into apps and user facing applications
-```
 
 ## Background
 
