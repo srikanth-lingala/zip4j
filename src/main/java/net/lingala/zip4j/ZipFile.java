@@ -27,24 +27,15 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.tasks.AddFilesToZipTask;
+import net.lingala.zip4j.tasks.*;
 import net.lingala.zip4j.tasks.AddFilesToZipTask.AddFilesToZipTaskParameters;
-import net.lingala.zip4j.tasks.AddFolderToZipTask;
 import net.lingala.zip4j.tasks.AddFolderToZipTask.AddFolderToZipTaskParameters;
-import net.lingala.zip4j.tasks.AddStreamToZipTask;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
-import net.lingala.zip4j.tasks.AsyncZipTask;
-import net.lingala.zip4j.tasks.ExtractAllFilesTask;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
-import net.lingala.zip4j.tasks.ExtractFileTask;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
-import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
-import net.lingala.zip4j.tasks.RemoveFilesFromZipTask;
 import net.lingala.zip4j.tasks.RemoveFilesFromZipTask.RemoveFilesFromZipTaskParameters;
-import net.lingala.zip4j.tasks.RenameFilesTask;
 import net.lingala.zip4j.tasks.RenameFilesTask.RenameFilesTaskParameters;
-import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.RawIO;
@@ -904,9 +895,14 @@ public class ZipFile {
   /**
    * Checks to see if the input zip file is a valid zip file. This method
    * will try to read zip headers. If headers are read successfully, this
-   * method returns true else false
+   * method returns true else false.
    *
-   * @return boolean
+   * Since v2.7.0: if the zip file is a split zip file, this method also checks to see if
+   * all the split files of the zip exists.
+   *
+   * @return boolean - true if a valid zip file, i.e, zip4j is able to read the
+   * zip headers, and in case of a split zip file, all split files of the zip exists; false otherwise
+   *
    * @since 1.2.3
    */
   public boolean isValidZipFile() {
@@ -916,6 +912,11 @@ public class ZipFile {
 
     try {
       readZipInfo();
+
+      if (zipModel.isSplitArchive() && !verifyAllSplitFilesOfZipExists(getSplitZipFiles())) {
+        return false;
+      }
+
       return true;
     } catch (Exception e) {
       return false;
@@ -1007,6 +1008,15 @@ public class ZipFile {
     }
 
     return new AsyncZipTask.AsyncTaskParameters(executorService, runInThread, progressMonitor);
+  }
+
+  private boolean verifyAllSplitFilesOfZipExists(List<File> allSplitFiles) {
+    for (File splitFile : allSplitFiles) {
+      if (!splitFile.exists()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public ProgressMonitor getProgressMonitor() {

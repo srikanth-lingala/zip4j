@@ -27,6 +27,7 @@ import java.util.Calendar;
 
 public class Zip4jUtil {
 
+  private static final long DOSTIME_BEFORE_1980 = (1 << 21) | (1 << 16);
   private static final int MAX_RAW_READ_FULLY_RETRY_ATTEMPTS = 15;
 
   public static boolean isStringNotNullAndNotEmpty(String str) {
@@ -51,22 +52,37 @@ public class Zip4jUtil {
     return true;
   }
 
-  public static long javaToDosTime(long time) {
+  public static long epochToExtendedDosTime(long time) {
+    if (time < 0) {
+      return DOSTIME_BEFORE_1980;
+    }
+    long dostime = epochToDosTime(time);
+    return (dostime != DOSTIME_BEFORE_1980)
+            ? dostime + ((time % 2000) << 32)
+            : DOSTIME_BEFORE_1980;
+  }
 
+  private static long epochToDosTime(long time) {
     Calendar cal = Calendar.getInstance();
     cal.setTimeInMillis(time);
 
     int year = cal.get(Calendar.YEAR);
+
     if (year < 1980) {
-      return (1 << 21) | (1 << 16);
+      return DOSTIME_BEFORE_1980;
     }
     return (year - 1980) << 25 | (cal.get(Calendar.MONTH) + 1) << 21 |
-        cal.get(Calendar.DATE) << 16 | cal.get(Calendar.HOUR_OF_DAY) << 11 | cal.get(Calendar.MINUTE) << 5 |
-        cal.get(Calendar.SECOND) >> 1;
+            cal.get(Calendar.DATE) << 16 | cal.get(Calendar.HOUR_OF_DAY) << 11 | cal.get(Calendar.MINUTE) << 5 |
+            cal.get(Calendar.SECOND) >> 1;
   }
 
-  public static long dosToJavaTme(long dosTime) {
-    int sec = (int) (2 * (dosTime & 0x1f));
+  public static long dosToExtendedEpochTme(long dosTime) {
+    long time = dosToEpochTime(dosTime);
+    return time + (dosTime >> 32);
+  }
+
+  private static long dosToEpochTime(long dosTime) {
+    int sec = (int) ((dosTime << 1) & 0x3e);
     int min = (int) ((dosTime >> 5) & 0x3f);
     int hrs = (int) ((dosTime >> 11) & 0x1f);
     int day = (int) ((dosTime >> 16) & 0x1f);

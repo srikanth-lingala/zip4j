@@ -41,15 +41,17 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class FileUtils {
 
+  public static final byte[] DEFAULT_POSIX_FILE_ATTRIBUTES = new byte[] {0, 0, -128, -127}; //-rw-------
+  public static final byte[] DEFAULT_POSIX_FOLDER_ATTRIBUTES = new byte[] {0, 0, -128, 65}; //drw-------
+
   public static void setFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes == null || fileAttributes.length == 0) {
       return;
     }
 
-    String os = System.getProperty("os.name").toLowerCase();
-    if (isWindows(os)) {
+    if (isWindows()) {
       applyWindowsFileAttributes(file, fileAttributes);
-    } else if (isMac(os) || isUnix(os)) {
+    } else if (isMac() || isUnix()) {
       applyPosixFileAttributes(file, fileAttributes);
     }
   }
@@ -60,14 +62,14 @@ public class FileUtils {
     }
 
     try {
-      Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToJavaTme(lastModifiedTime)));
+      Files.setLastModifiedTime(file, FileTime.fromMillis(Zip4jUtil.dosToExtendedEpochTme(lastModifiedTime)));
     } catch (Exception e) {
       // Ignore
     }
   }
 
   public static void setFileLastModifiedTimeWithoutNio(File file, long lastModifiedTime) {
-    file.setLastModified(Zip4jUtil.dosToJavaTme(lastModifiedTime));
+    file.setLastModified(Zip4jUtil.dosToExtendedEpochTme(lastModifiedTime));
   }
 
   public static byte[] getFileAttributes(File file) {
@@ -78,10 +80,9 @@ public class FileUtils {
 
       Path path = file.toPath();
 
-      String os = System.getProperty("os.name").toLowerCase();
-      if (isWindows(os)) {
+      if (isWindows()) {
         return getWindowsFileAttributes(path);
-      } else if (isMac(os) || isUnix(os)) {
+      } else if (isMac() || isUnix()) {
         return getPosixFileAttributes(path);
       } else {
         return new byte[4];
@@ -396,6 +397,33 @@ public class FileUtils {
     }
   }
 
+  public static byte[] getDefaultFileAttributes(boolean isDirectory) {
+    byte[] permissions = new byte[4];
+    if (isUnix() || isMac()) {
+      if (isDirectory) {
+        System.arraycopy(DEFAULT_POSIX_FOLDER_ATTRIBUTES, 0, permissions, 0, permissions.length);
+      } else {
+        System.arraycopy(DEFAULT_POSIX_FILE_ATTRIBUTES, 0, permissions, 0, permissions.length);
+      }
+    }
+    return permissions;
+  }
+
+  public static boolean isWindows() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("win"));
+  }
+
+  public static boolean isMac() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("mac"));
+  }
+
+  public static boolean isUnix() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return (os.contains("nux"));
+  }
+
   private static String getExtensionZerosPrefix(int index) {
     if (index < 9) {
       return "00";
@@ -521,22 +549,4 @@ public class FileUtils {
       posixFilePermissions.add(posixFilePermissionToAdd);
     }
   }
-
-  public static boolean isWindows() {
-    String os = System.getProperty("os.name").toLowerCase();
-    return isWindows(os);
-  }
-
-  private static boolean isWindows(String os) {
-    return (os.contains("win"));
-  }
-
-  private static boolean isMac(String os) {
-    return (os.contains("mac"));
-  }
-
-  private static boolean isUnix(String os) {
-    return (os.contains("nux"));
-  }
-
 }

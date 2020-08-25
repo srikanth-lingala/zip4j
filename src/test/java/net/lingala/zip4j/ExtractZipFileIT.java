@@ -485,6 +485,16 @@ public class ExtractZipFileIT extends AbstractIT {
     extractFile(TestUtils.getTestArchiveFromResources("jar-dir-lfh-and-fh-entry-size-2.jar"));
   }
 
+  @Test
+  public void testExtractZipStrongEncryptionThrowsException() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("strong_encrypted.zip"), "12345678".toCharArray());
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Entry with name test.txt is encrypted with Strong Encryption. " +
+        "Zip4j does not support Strong Encryption, as this is patented.");
+
+    zipFile.extractAll(outputFolder.getPath());
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

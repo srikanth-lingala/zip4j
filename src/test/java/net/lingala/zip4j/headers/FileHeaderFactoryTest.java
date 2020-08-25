@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import org.junit.After;
@@ -21,7 +22,7 @@ import org.junit.rules.ExpectedException;
 import java.nio.charset.Charset;
 
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
-import static net.lingala.zip4j.util.Zip4jUtil.javaToDosTime;
+import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileHeaderFactoryTest {
@@ -200,7 +201,7 @@ public class FileHeaderFactoryTest {
 
     FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
 
-    assertThat(fileHeader.getLastModifiedTime()).isEqualTo(javaToDosTime(zipParameters.getLastModifiedFileTime()));
+    assertThat(fileHeader.getLastModifiedTime()).isEqualTo(epochToExtendedDosTime(zipParameters.getLastModifiedFileTime()));
   }
 
   @Test
@@ -257,7 +258,7 @@ public class FileHeaderFactoryTest {
 
   @Test
   public void testGenerateLocalFileHeader() {
-    long lastModifiedFileTime = javaToDosTime(System.currentTimeMillis());
+    long lastModifiedFileTime = epochToExtendedDosTime(System.currentTimeMillis());
     FileHeader  fileHeader = generateFileHeader(lastModifiedFileTime);
 
     LocalFileHeader localFileHeader = fileHeaderFactory.generateLocalFileHeader(fileHeader);
@@ -266,13 +267,13 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testVersionMadeByWindowsWithUnixModeOff() throws ZipException {
+  public void testVersionMadeByWindowsWithUnixModeOff() {
     changeOsSystemPropertyToWindows();
     testVersionMadeBy(generateZipParameters(), 51);
   }
 
   @Test
-  public void testVersionMadeByWindowsWithUnixModeOn() throws ZipException {
+  public void testVersionMadeByWindowsWithUnixModeOn() {
     changeOsSystemPropertyToWindows();
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setUnixMode(true);
@@ -280,13 +281,13 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testVersionMadeByUnix() throws ZipException {
+  public void testVersionMadeByUnix() {
     changeOsSystemPropertyToUnix();
     testVersionMadeBy(generateZipParameters(), 819);
   }
 
   @Test
-  public void testVersionMadeByMac() throws ZipException {
+  public void testVersionMadeByMac() {
     changeOsSystemPropertyToMac();
     testVersionMadeBy(generateZipParameters(), 819);
   }
@@ -340,7 +341,7 @@ public class FileHeaderFactoryTest {
     verifyGeneralPurposeBytes(fileHeader.getGeneralPurposeFlag(), zipParameters);
     assertThat(fileHeader.getDiskNumberStart()).isEqualTo(isSplitZip ? diskNumberStart : 0);
     verifyLastModifiedFileTime(fileHeader, zipParameters);
-    assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
+    verifyExternalFileAttributes(fileHeader);
     assertThat(fileHeader.isDirectory()).isEqualTo(false);
 
     if (zipParameters.isWriteExtendedLocalFileHeader()) {
@@ -372,6 +373,22 @@ public class FileHeaderFactoryTest {
     assertThat(localFileHeader.getExtraFieldLength()).isEqualTo(190);
   }
 
+  private void verifyExternalFileAttributes(FileHeader fileHeader) {
+    if (FileUtils.isUnix() || FileUtils.isMac()) {
+      if (FileUtils.isZipEntryDirectory(fileHeader.getFileName())) {
+        assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FOLDER_ATTRIBUTES);
+      } else {
+        assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FILE_ATTRIBUTES);
+      }
+    } else {
+      assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
+    }
+
+
+
+
+  }
+
   private void verifyCompressionMethod(FileHeader fileHeader, ZipParameters zipParameters) {
     if (fileHeader.isEncrypted() && fileHeader.getEncryptionMethod().equals(EncryptionMethod.AES)) {
       assertThat(fileHeader.getCompressionMethod()).isEqualTo(CompressionMethod.AES_INTERNAL_ONLY);
@@ -382,7 +399,7 @@ public class FileHeaderFactoryTest {
 
   private void verifyLastModifiedFileTime(FileHeader fileHeader, ZipParameters zipParameters) {
     if (zipParameters.getLastModifiedFileTime() > 0) {
-      assertThat(fileHeader.getLastModifiedTime()).isEqualTo(javaToDosTime(
+      assertThat(fileHeader.getLastModifiedTime()).isEqualTo(epochToExtendedDosTime(
           zipParameters.getLastModifiedFileTime()));
     } else {
       assertThat(fileHeader.getLastModifiedTime()).isGreaterThan(0);

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -31,17 +32,16 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
     return tmpFile;
   }
 
-  void updateOffsetsForAllSubsequentFileHeaders(ZipModel zipModel, FileHeader fileHeaderModified, long offsetToAdd) throws ZipException {
-    int indexOfFileHeader = HeaderUtil.getIndexOfFileHeader(zipModel, fileHeaderModified);
+  void updateOffsetsForAllSubsequentFileHeaders(List<FileHeader> sortedFileHeaders, ZipModel zipModel,
+                                                FileHeader fileHeaderModified, long offsetToAdd) throws ZipException {
+    int indexOfFileHeader = getIndexOfFileHeader(sortedFileHeaders, fileHeaderModified);
 
     if (indexOfFileHeader == -1) {
       throw new ZipException("Could not locate modified file header in zipModel");
     }
 
-    List<FileHeader> allFileHeaders = zipModel.getCentralDirectory().getFileHeaders();
-
-    for (int i = indexOfFileHeader + 1; i < allFileHeaders.size(); i++) {
-      FileHeader fileHeaderToUpdate = allFileHeaders.get(i);
+    for (int i = indexOfFileHeader + 1; i < sortedFileHeaders.size(); i++) {
+      FileHeader fileHeaderToUpdate = sortedFileHeaders.get(i);
       fileHeaderToUpdate.setOffsetLocalHeader(fileHeaderToUpdate.getOffsetLocalHeader() + offsetToAdd);
 
       if (zipModel.isZip64Format()
@@ -71,6 +71,30 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
     return length;
   }
 
+  List<FileHeader> cloneAndSortFileHeadersByOffset(List<FileHeader> allFileHeaders) {
+    List<FileHeader> clonedFileHeaders = new ArrayList<>(allFileHeaders);
+    clonedFileHeaders.sort((o1, o2) -> {
+      if (o1.getFileName().equals(o2.getFileName())) {
+        return 0;
+      }
+
+      return o1.getOffsetLocalHeader() < o2.getOffsetLocalHeader() ? -1 : 1;
+    });
+
+    return clonedFileHeaders;
+  }
+
+  long getOffsetOfNextEntry(List<FileHeader> sortedFileHeaders, FileHeader fileHeader,
+                                   ZipModel zipModel) throws ZipException {
+    int indexOfFileHeader = getIndexOfFileHeader(sortedFileHeaders, fileHeader);
+
+    if (indexOfFileHeader == sortedFileHeaders.size() - 1) {
+      return HeaderUtil.getOffsetStartOfCentralDirectory(zipModel);
+    } else {
+      return sortedFileHeaders.get(indexOfFileHeader + 1).getOffsetLocalHeader();
+    }
+  }
+
   private void restoreFileName(File zipFile, File temporaryZipFile) throws ZipException {
     if (zipFile.delete()) {
       if (!temporaryZipFile.renameTo(zipFile)) {
@@ -79,5 +103,16 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
     } else {
       throw new ZipException("cannot delete old zip file");
     }
+  }
+
+  private int getIndexOfFileHeader(List<FileHeader> allFileHeaders, FileHeader fileHeaderForIndex) throws ZipException {
+    for (int i = 0; i < allFileHeaders.size(); i++) {
+      FileHeader fileHeader = allFileHeaders.get(i);
+      if (fileHeader.equals(fileHeaderForIndex)) {
+        return i;
+      }
+    }
+
+    throw new ZipException("Could not find file header in list of central directory file headers");
   }
 }

@@ -39,7 +39,7 @@ class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter
 
   private long getEncryptionKey(ZipParameters zipParameters) {
     if (zipParameters.isWriteExtendedLocalFileHeader()) {
-      long dosTime = Zip4jUtil.javaToDosTime(zipParameters.getLastModifiedFileTime());
+      long dosTime = Zip4jUtil.epochToExtendedDosTime(zipParameters.getLastModifiedFileTime());
       return (dosTime & 0x0000ffff) << 16;
     }
 

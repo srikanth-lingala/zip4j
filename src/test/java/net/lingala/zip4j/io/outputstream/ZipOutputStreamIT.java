@@ -9,7 +9,9 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +29,8 @@ import java.util.List;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
+import static net.lingala.zip4j.util.FileUtils.isMac;
+import static net.lingala.zip4j.util.FileUtils.isUnix;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipOutputStreamIT extends AbstractIT {
@@ -165,6 +169,38 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
     zos.close();
     zos.setComment("SOME_COMMENT");
+  }
+
+  @Test
+  public void testDefaultFileAttributes() throws IOException {
+    List<File> filesToAdd = new ArrayList<>(FILES_TO_ADD);
+    filesToAdd.add(TestUtils.getTestFileFromResources("/"));
+    byte[] buff = new byte[4096];
+    int readLen;
+    ZipParameters zipParameters = new ZipParameters();
+
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      for (File fileToAdd : filesToAdd) {
+        if (fileToAdd.isDirectory()) {
+          zipParameters.setFileNameInZip(fileToAdd.getName() + "/");
+          zipOutputStream.putNextEntry(zipParameters);
+          zipOutputStream.closeEntry();
+          continue;
+        }
+
+        zipParameters.setFileNameInZip(fileToAdd.getName());
+        zipOutputStream.putNextEntry(zipParameters);
+        InputStream inputStream = new FileInputStream(fileToAdd);
+        while ((readLen = inputStream.read(buff)) != -1) {
+          zipOutputStream.write(buff, 0, readLen);
+        }
+
+        inputStream.close();
+        zipOutputStream.closeEntry();
+      }
+    }
+
+    verifyDefaultFileAttributes();
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
@@ -330,6 +366,25 @@ public class ZipOutputStreamIT extends AbstractIT {
   private void verifyZipComment(String expectedComment, Charset charset) throws IOException {
     ZipFile zipFile = initializeZipFileWithCharset(charset);
     assertThat(zipFile.getComment()).isEqualTo(expectedComment);
+  }
+
+  private void verifyDefaultFileAttributes() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    byte[] emptyAttributes = new byte[4];
+
+    for (FileHeader fileHeader : fileHeaders) {
+      if (isUnix() || isMac()) {
+        if (fileHeader.isDirectory()) {
+          assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FOLDER_ATTRIBUTES);
+        } else {
+          assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FILE_ATTRIBUTES);
+        }
+      } else {
+        assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(emptyAttributes);
+      }
+
+    }
   }
 
   private ZipFile initializeZipFileWithCharset(Charset charset) {

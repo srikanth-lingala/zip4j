@@ -13,17 +13,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -515,6 +513,52 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.setRunInThread(true);
     zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"));
     assertThat(zipFile.getExecutorService()).isNotNull();
+  }
+
+  @Test
+  public void testFileHeaderLastModifiedTimeEpoch() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    File fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf");
+    zipFile.addFile(fileToAdd);
+    FileHeader fileHeader = zipFile.getFileHeader("file_PDF_1MB.pdf");
+    assertThat(fileHeader.getLastModifiedTimeEpoch()).isEqualTo(fileToAdd.lastModified());
+  }
+
+  @Test
+  public void testVerifyZipFileForNonSplitZipFileReturnsTrue() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"));
+
+    assertThat(zipFile.isValidZipFile()).isTrue();
+  }
+
+  @Test
+  public void testVerifyZipFileForNonZipFileReturnsFalse() throws IOException {
+    ZipFile zipFile = new ZipFile(TestUtils.getTestFileFromResources("sample.pdf"));
+    assertThat(zipFile.isValidZipFile()).isFalse();
+  }
+
+  @Test
+  public void testVerifyZipFileForSplitZipFileReturnsTrueWhenAllSplitFilesExists() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.createSplitZipFile(singletonList(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf")), new ZipParameters(),
+            true, InternalZipConstants.MIN_SPLIT_LENGTH);
+
+    assertThat(zipFile.isValidZipFile()).isTrue();
+  }
+
+  @Test
+  public void testVerifyZipFileForSplitZipFileReturnsFalseWhenOneSplitFileDoesNotExist() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.createSplitZipFile(singletonList(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf")), new ZipParameters(),
+            true, InternalZipConstants.MIN_SPLIT_LENGTH);
+    String firstSplitFileName = zipFile.getFile().getName().replace(".zip", ".z02");
+    File firstSplitFile = Paths.get(zipFile.getFile().getParentFile().getPath(), firstSplitFileName).toFile();
+    if (!firstSplitFile.delete()) {
+      throw new RuntimeException("Unable to delete a split file of zip which is a requirement to run this test");
+    }
+
+    assertThat(zipFile.isValidZipFile()).isFalse();
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {

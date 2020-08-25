@@ -128,6 +128,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   private void verifyNextEntry(ZipInputStream zipInputStream, FileHeader fileHeader) throws IOException {
+    if (BitUtils.isBitSet(fileHeader.getGeneralPurposeFlag()[0], 6)) {
+      throw new ZipException("Entry with name " + fileHeader.getFileName() + " is encrypted with Strong Encryption. " +
+          "Zip4j does not support Strong Encryption, as this is patented.");
+    }
+
     LocalFileHeader localFileHeader = zipInputStream.getNextEntry(fileHeader);
 
     if (localFileHeader == null) {

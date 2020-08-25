@@ -57,6 +57,15 @@ as, guess what, a zip file :). And unfortunately, after a year or two after the 
 not able to support Zip4j as much as I wanted to. But the overwhelming encouragement I got over the years made me start working on Zip4j
 once again, and makes me support Zip4j as much as I can.
 
+## Requirements
+
+JDK 7 or later<sup>*</sup>
+
+* zip4j is written on JDK 8, as some of the features (NIO) that zip4j supports require some features available only in 
+JDK 8. However, considering the fact that zip4j is widely used in Android, and to support older versions of Android,
+zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is missing, zip4j falls back to the features
+only available in JDK 7. In other words, when running on JDK 7, not all features might be supported.
+
 ## Maven
 
 ```xml
@@ -92,15 +101,16 @@ new ZipFile("filename.zip").addFiles(Arrays.asList(new File("first_file"), new F
 ### Creating a zip file by adding a folder to it / Adding a folder to an existing zip
 
 ```java
-new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"));
+new ZipFile("filename.zip").addFolder(new File("/users/some_user/folder_to_add"));
 ```
 
 Since v2.6, it is possible to exclude certain files when adding a folder to zip by using an ExcludeFileFilter
 
 ```java
-List<File> filesToExclude = Arrays.asList(new File("sample.pdf"), new File("sample_2.txt"));
 ExcludeFileFilter excludeFileFilter = filesToExclude::contains;
-new ZipFile("filename.zip").addFolder(new File("/user/myuser/folder_to_add"), new ZipParameters(), excludeFileFilter);
+ZipParameters zipParameters = new ZipParameters();
+zipParameters.setExcludeFileFilter(excludeFileFilter);
+new ZipFile("filename.zip").addFolder(new File("/users/some_user/folder_to_add"), zipParameters);
 ```
 
 ### Creating a zip file from stream / Adding a stream to an existing zip

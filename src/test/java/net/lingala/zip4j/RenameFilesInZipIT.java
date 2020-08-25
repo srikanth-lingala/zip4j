@@ -260,6 +260,33 @@ public class RenameFilesInZipIT extends AbstractIT {
     verifyFileNamesChanged(zipFile, fileNamesMap, false);
   }
 
+  @Test
+  public void testRenameFirstEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRenameEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/zero_byte_file.txt");
+  }
+
+  @Test
+  public void testRenameLastEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRenameEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/бореиская.txt");
+  }
+
+  @Test
+  public void testRenameMiddleEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries() throws IOException {
+    testRenameEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/file_PDF_1MB.pdf");
+  }
+
+  private void testRenameEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries(
+      String fileNameToRename) throws IOException {
+    TestUtils.copyFile(TestUtils.getTestArchiveFromResources("cen_dir_entries_diff_order_as_local_entries.zip"),
+        generatedZipFile);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.renameFile(fileNameToRename, "somename.txt");
+
+    zipFile = new ZipFile(generatedZipFile);
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13, false);
+    verifyFileNamesChanged(zipFile, Collections.singletonMap(fileNameToRename, "somename.txt"), false);
+  }
+
   private void verifyFileNamesChanged(ZipFile zipFile, Map<String, String> fileNamesMap) throws IOException {
     verifyFileNamesChanged(zipFile, fileNamesMap, true);
   }

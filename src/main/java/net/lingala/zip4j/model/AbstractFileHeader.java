@@ -2,6 +2,7 @@ package net.lingala.zip4j.model;
 
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.util.List;
 
@@ -57,6 +58,10 @@ public abstract class AbstractFileHeader extends ZipHeader {
 
   public void setLastModifiedTime(long lastModifiedTime) {
     this.lastModifiedTime = lastModifiedTime;
+  }
+
+  public long getLastModifiedTimeEpoch() {
+    return Zip4jUtil.dosToExtendedEpochTme(lastModifiedTime);
   }
 
   public long getCrc() {

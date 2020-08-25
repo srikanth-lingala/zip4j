@@ -32,6 +32,8 @@ public abstract class AsyncZipTask<T> {
           performTaskWithErrorHandling(taskParameters, progressMonitor);
         } catch (ZipException e) {
           //Do nothing. Exception will be passed through progress monitor
+        } finally {
+          executorService.shutdown();
         }
       });
     } else {
