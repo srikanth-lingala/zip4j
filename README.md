@@ -71,7 +71,7 @@ only available in JDK 7. In other words, when running on JDK 7, not all features
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
-    <version>2.6.1</version>
+    <version>2.6.2</version>
 </dependency>
 ```
 
