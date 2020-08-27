@@ -60,10 +60,10 @@ once again, and makes me support Zip4j as much as I can.
 
 JDK 7 or later<sup>*</sup>
 
-* zip4j is written on JDK 8, as some of the features (NIO) that zip4j supports require some features available only in 
-JDK 8. However, considering the fact that zip4j is widely used in Android, and to support older versions of Android,
-zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is missing, zip4j falls back to the features
-only available in JDK 7. In other words, when running on JDK 7, not all features might be supported.
+<sup>*</sup> Zip4j is written on JDK 8, as some of the features (NIO) that Zip4j supports requires features available only in 
+JDK 8. However, considering the fact that Zip4j is widely used in Android, and to support older versions of Android,
+Zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is missing, Zip4j falls back to the features
+ available in JDK 7. In other words, when running on JDK 7, not all features will be supported.
 
 ## Maven
 
