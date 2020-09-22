@@ -36,7 +36,7 @@ public class AESEncrpyter implements Encrypter {
   private AesKeyStrength aesKeyStrength;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
-  private SecureRandom random;
+  private SecureRandom random = new SecureRandom();
 
   private boolean finished;
 

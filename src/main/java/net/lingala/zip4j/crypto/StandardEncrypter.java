@@ -84,9 +84,9 @@ public class StandardEncrypter implements Encrypter {
     }
 
     byte[] buff = new byte[size];
-    SecureRandom rand = new SecureRandom();
+    SecureRandom random = new SecureRandom();
     for (int i = 0; i < buff.length; i++) {
-      buff[i] = encryptByte((byte) rand.nextInt(256));
+      buff[i] = encryptByte((byte) random.nextInt(256));
     }
 
     return buff;
