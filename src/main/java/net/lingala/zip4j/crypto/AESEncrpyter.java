@@ -23,7 +23,7 @@ import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 import static net.lingala.zip4j.crypto.AesCipherUtil.prepareBuffAESIVBytes;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
@@ -36,6 +36,7 @@ public class AESEncrpyter implements Encrypter {
   private AesKeyStrength aesKeyStrength;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
+  private SecureRandom random;
 
   private boolean finished;
 
@@ -94,8 +95,7 @@ public class AESEncrpyter implements Encrypter {
       PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1",
           salt, 1000);
       PBKDF2Engine e = new PBKDF2Engine(p);
-      byte[] derivedKey = e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
-      return derivedKey;
+      return e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
     } catch (Exception e) {
       throw new ZipException(e);
     }
@@ -140,7 +140,7 @@ public class AESEncrpyter implements Encrypter {
     return len;
   }
 
-  private static byte[] generateSalt(int size) throws ZipException {
+  private byte[] generateSalt(int size) throws ZipException {
 
     if (size != 8 && size != 16) {
       throw new ZipException("invalid salt size, cannot generate salt");
@@ -148,15 +148,15 @@ public class AESEncrpyter implements Encrypter {
 
     int rounds = 0;
 
-    if (size == 8)
+    if (size == 8) {
       rounds = 2;
-    if (size == 16)
+    } else if (size == 16) {
       rounds = 4;
+    }
 
     byte[] salt = new byte[size];
     for (int j = 0; j < rounds; j++) {
-      Random rand = new Random();
-      int i = rand.nextInt();
+      int i = random.nextInt();
       salt[0 + j * 4] = (byte) (i >> 24);
       salt[1 + j * 4] = (byte) (i >> 16);
       salt[2 + j * 4] = (byte) (i >> 8);

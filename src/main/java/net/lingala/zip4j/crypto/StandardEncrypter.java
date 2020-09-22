@@ -19,7 +19,7 @@ package net.lingala.zip4j.crypto;
 import net.lingala.zip4j.crypto.engine.ZipCryptoEngine;
 import net.lingala.zip4j.exception.ZipException;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 import static net.lingala.zip4j.util.InternalZipConstants.STD_DEC_HDR_SIZE;
 
@@ -79,19 +79,16 @@ public class StandardEncrypter implements Encrypter {
   }
 
   protected byte[] generateRandomBytes(int size) throws ZipException {
-
     if (size <= 0) {
       throw new ZipException("size is either 0 or less than 0, cannot generate header for standard encryptor");
     }
 
     byte[] buff = new byte[size];
-
-    Random rand = new Random();
-
+    SecureRandom rand = new SecureRandom();
     for (int i = 0; i < buff.length; i++) {
-      // Encrypted to get less predictability for poorly implemented rand functions.
       buff[i] = encryptByte((byte) rand.nextInt(256));
     }
+
     return buff;
   }
 
