@@ -107,7 +107,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
     zipOutputStream.putNextEntry(zipParameters);
 
-    if (!fileToAdd.isDirectory()) {
+    if (fileToAdd.exists() && !fileToAdd.isDirectory()) {
       try (InputStream inputStream = new FileInputStream(fileToAdd)) {
         while ((readLen = inputStream.read(readBuff)) != -1) {
           zipOutputStream.write(readBuff, 0, readLen);
