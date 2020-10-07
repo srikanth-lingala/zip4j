@@ -2,6 +2,7 @@ package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -9,7 +10,9 @@ import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.InternalZipConstants;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +29,9 @@ import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyFileContent;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipInputStreamIT extends AbstractIT {
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Test
   public void testExtractStoreWithoutEncryption() throws IOException {
@@ -196,6 +202,17 @@ public class ZipInputStreamIT extends AbstractIT {
       while (zipInputStream.getNextEntry() != null) {
         zipInputStream.read(b);
       }
+    }
+  }
+
+  @Test
+  public void testExtractZipStrongEncryptionThrowsException() throws IOException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Entry [test.txt] Strong Encryption not supported");
+
+    File strongEncryptionFile = getTestArchiveFromResources("strong_encrypted.zip");
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(strongEncryptionFile))) {
+      zipInputStream.getNextEntry();
     }
   }
 
