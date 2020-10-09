@@ -17,8 +17,6 @@
 package net.lingala.zip4j.crypto;
 
 import net.lingala.zip4j.crypto.PBKDF2.MacBasedPRF;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Engine;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
 import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -28,9 +26,10 @@ import java.security.SecureRandom;
 import static net.lingala.zip4j.crypto.AesCipherUtil.prepareBuffAESIVBytes;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
-public class AESEncrpyter implements Encrypter {
-
-  private static final int PASSWORD_VERIFIER_LENGTH = 2;
+/**
+ * AES Encrypter supports AE-1 and AE-2 encryption using AES-CTR with either 128 or 256 Key Strength
+ */
+public class AESEncrypter implements Encrypter {
 
   private char[] password;
   private AesKeyStrength aesKeyStrength;
@@ -48,7 +47,7 @@ public class AESEncrpyter implements Encrypter {
   private byte[] derivedPasswordVerifier;
   private byte[] saltBytes;
 
-  public AESEncrpyter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
+  public AESEncrypter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
     if (password == null || password.length == 0) {
       throw new ZipException("input password is empty or null");
     }
@@ -66,45 +65,16 @@ public class AESEncrpyter implements Encrypter {
   }
 
   private void init() throws ZipException {
-    int keyLength = aesKeyStrength.getKeyLength();
-    int macLength = aesKeyStrength.getMacLength();
-    int saltLength = aesKeyStrength.getSaltLength();
-
-    saltBytes = generateSalt(saltLength);
-    byte[] keyBytes = deriveKey(saltBytes, password, keyLength, macLength);
-
-    if (keyBytes == null || keyBytes.length != (keyLength + macLength + PASSWORD_VERIFIER_LENGTH)) {
-      throw new ZipException("invalid key generated, cannot decrypt file");
-    }
-
-    byte[] aesKey = new byte[keyLength];
-    byte[] macKey = new byte[macLength];
-    derivedPasswordVerifier = new byte[PASSWORD_VERIFIER_LENGTH];
-
-    System.arraycopy(keyBytes, 0, aesKey, 0, keyLength);
-    System.arraycopy(keyBytes, keyLength, macKey, 0, macLength);
-    System.arraycopy(keyBytes, keyLength + macLength, derivedPasswordVerifier, 0, PASSWORD_VERIFIER_LENGTH);
-
-    aesEngine = new AESEngine(aesKey);
-    mac = new MacBasedPRF("HmacSHA1");
-    mac.init(macKey);
-  }
-
-  private byte[] deriveKey(byte[] salt, char[] password, int keyLength, int macLength) throws ZipException {
-    try {
-      PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1",
-          salt, 1000);
-      PBKDF2Engine e = new PBKDF2Engine(p);
-      return e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
-    } catch (Exception e) {
-      throw new ZipException(e);
-    }
+    saltBytes = generateSalt(aesKeyStrength.getSaltLength());
+    byte[] derivedKey = AesCipherUtil.derivePasswordBasedKey(saltBytes, password, aesKeyStrength);
+    derivedPasswordVerifier = AesCipherUtil.derivePasswordVerifier(derivedKey, aesKeyStrength);
+    aesEngine = AesCipherUtil.getAESEngine(derivedKey, aesKeyStrength);
+    mac = AesCipherUtil.getMacBasedPRF(derivedKey, aesKeyStrength);
   }
 
   public int encryptData(byte[] buff) throws ZipException {
-
     if (buff == null) {
-      throw new ZipException("input bytes are null, cannot perform AES encrpytion");
+      throw new ZipException("input bytes are null, cannot perform AES encryption");
     }
     return encryptData(buff, 0, buff.length);
   }

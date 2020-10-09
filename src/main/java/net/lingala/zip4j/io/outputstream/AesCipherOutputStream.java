@@ -1,6 +1,6 @@
 package net.lingala.zip4j.io.outputstream;
 
-import net.lingala.zip4j.crypto.AESEncrpyter;
+import net.lingala.zip4j.crypto.AESEncrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 
@@ -9,7 +9,7 @@ import java.io.OutputStream;
 
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
-class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
+class AesCipherOutputStream extends CipherOutputStream<AESEncrypter> {
 
   private byte[] pendingBuffer = new byte[AES_BLOCK_SIZE];
   private int pendingBufferLength = 0;
@@ -19,13 +19,13 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrpyter> {
   }
 
   @Override
-  protected AESEncrpyter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
-    AESEncrpyter encrypter = new AESEncrpyter(password, zipParameters.getAesKeyStrength());
+  protected AESEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password) throws IOException, ZipException {
+    AESEncrypter encrypter = new AESEncrypter(password, zipParameters.getAesKeyStrength());
     writeAesEncryptionHeaderData(encrypter);
     return encrypter;
   }
 
-  private void writeAesEncryptionHeaderData(AESEncrpyter encrypter) throws IOException {
+  private void writeAesEncryptionHeaderData(AESEncrypter encrypter) throws IOException {
     writeHeaders(encrypter.getSaltBytes());
     writeHeaders(encrypter.getDerivedPasswordVerifier());
   }

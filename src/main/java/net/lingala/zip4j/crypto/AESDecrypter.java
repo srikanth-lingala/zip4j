@@ -17,8 +17,6 @@
 package net.lingala.zip4j.crypto;
 
 import net.lingala.zip4j.crypto.PBKDF2.MacBasedPRF;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Engine;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
 import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.AESExtraDataRecord;
@@ -29,9 +27,10 @@ import java.util.Arrays;
 import static net.lingala.zip4j.crypto.AesCipherUtil.prepareBuffAESIVBytes;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
+/**
+ * AES Decrypter supports AE-1 and AE-2 decryption for AES-CTR with 128, 192, or 256 Key Strength
+ */
 public class AESDecrypter implements Decrypter {
-
-  public static final int PASSWORD_VERIFIER_LENGTH = 2;
 
   private AESExtraDataRecord aesExtraDataRecord;
   private char[] password;
@@ -51,34 +50,19 @@ public class AESDecrypter implements Decrypter {
   }
 
   private void init(byte[] salt, byte[] passwordVerifier) throws ZipException {
-    AesKeyStrength aesKeyStrength = aesExtraDataRecord.getAesKeyStrength();
-
     if (password == null || password.length <= 0) {
-      throw new ZipException("empty or null password provided for AES Decryptor");
+      throw new ZipException("empty or null password provided for AES decryption");
     }
 
-    byte[] derivedKey = deriveKey(salt, password, aesKeyStrength.getKeyLength(), aesKeyStrength.getMacLength());
-    if (derivedKey == null || derivedKey.length != (aesKeyStrength.getKeyLength() + aesKeyStrength.getMacLength()
-        + PASSWORD_VERIFIER_LENGTH)) {
-      throw new ZipException("invalid derived key");
-    }
-
-    byte[] aesKey = new byte[aesKeyStrength.getKeyLength()];
-    byte[] macKey = new byte[aesKeyStrength.getMacLength()];
-    byte[] derivedPasswordVerifier = new byte[PASSWORD_VERIFIER_LENGTH];
-
-    System.arraycopy(derivedKey, 0, aesKey, 0, aesKeyStrength.getKeyLength());
-    System.arraycopy(derivedKey, aesKeyStrength.getKeyLength(), macKey, 0, aesKeyStrength.getMacLength());
-    System.arraycopy(derivedKey, aesKeyStrength.getKeyLength() + aesKeyStrength.getMacLength(), derivedPasswordVerifier,
-        0, PASSWORD_VERIFIER_LENGTH);
-
+    final AesKeyStrength aesKeyStrength = aesExtraDataRecord.getAesKeyStrength();
+    final byte[] derivedKey = AesCipherUtil.derivePasswordBasedKey(salt, password, aesKeyStrength);
+    final byte[] derivedPasswordVerifier = AesCipherUtil.derivePasswordVerifier(derivedKey, aesKeyStrength);
     if (!Arrays.equals(passwordVerifier, derivedPasswordVerifier)) {
       throw new ZipException("Wrong Password", ZipException.Type.WRONG_PASSWORD);
     }
 
-    aesEngine = new AESEngine(aesKey);
-    mac = new MacBasedPRF("HmacSHA1");
-    mac.init(macKey);
+    aesEngine = AesCipherUtil.getAESEngine(derivedKey, aesKeyStrength);
+    mac = AesCipherUtil.getMacBasedPRF(derivedKey, aesKeyStrength);
   }
 
   @Override
@@ -100,12 +84,6 @@ public class AESDecrypter implements Decrypter {
     }
 
     return len;
-  }
-
-  private byte[] deriveKey(byte[] salt, char[] password, int keyLength, int macLength) {
-    PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "ISO-8859-1", salt, 1000);
-    PBKDF2Engine e = new PBKDF2Engine(p);
-    return e.deriveKey(password, keyLength + macLength + PASSWORD_VERIFIER_LENGTH);
   }
 
   public byte[] getCalculatedAuthenticationBytes() {

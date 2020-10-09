@@ -32,6 +32,10 @@ public final class InternalZipConstants {
   public static final int AES_AUTH_LENGTH = 10;
   public static final int AES_BLOCK_SIZE = 16;
   public static final int AES_EXTRA_DATA_RECORD_SIZE = 11;
+  public static final String AES_MAC_ALGORITHM = "HmacSHA1";
+  public static final String AES_HASH_CHARSET = "ISO-8859-1";
+  public static final int AES_HASH_ITERATIONS = 1000;
+  public static final int AES_PASSWORD_VERIFIER_LENGTH = 2;
 
   public static final int MIN_SPLIT_LENGTH = 65536;
   public static final long ZIP_64_SIZE_LIMIT = 4294967295L;
