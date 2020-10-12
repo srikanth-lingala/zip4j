@@ -194,8 +194,11 @@ public class ZipInputStream extends InputStream {
 
     if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
       return new AesCipherInputStream(zipEntryInputStream, localFileHeader, password);
-    } else {
+    } else if (localFileHeader.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
       return new ZipStandardCipherInputStream(zipEntryInputStream, localFileHeader, password);
+    } else {
+      final String message = String.format("Entry [%s] Strong Encryption not supported", localFileHeader.getFileName());
+      throw new ZipException(message, ZipException.Type.UNSUPPORTED_ENCRYPTION);
     }
   }
 
