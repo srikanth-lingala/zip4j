@@ -293,7 +293,7 @@ public class ZipInputStream extends InputStream {
     }
 
     if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.AES)) {
-      return InternalZipConstants.AES_AUTH_LENGTH + AESDecrypter.PASSWORD_VERIFIER_LENGTH
+      return InternalZipConstants.AES_AUTH_LENGTH + InternalZipConstants.AES_PASSWORD_VERIFIER_LENGTH
           + localFileHeader.getAesExtraDataRecord().getAesKeyStrength().getSaltLength();
     } else if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.ZIP_STANDARD)) {
       return InternalZipConstants.STD_DEC_HDR_SIZE;
