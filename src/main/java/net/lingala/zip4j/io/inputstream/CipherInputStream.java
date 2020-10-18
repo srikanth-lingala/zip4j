@@ -5,6 +5,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +25,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     this.decrypter = initializeDecrypter(localFileHeader, password);
     this.localFileHeader = localFileHeader;
 
-    if (getCompressionMethod(localFileHeader) == CompressionMethod.DEFLATE) {
+    if (Zip4jUtil.getCompressionMethod(localFileHeader).equals(CompressionMethod.DEFLATE)) {
       lastReadRawDataCache = new byte[InternalZipConstants.BUFF_SIZE];
     }
   }
@@ -74,18 +75,6 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     if (lastReadRawDataCache != null) {
       System.arraycopy(b, 0, lastReadRawDataCache, 0, len);
     }
-  }
-
-  private CompressionMethod getCompressionMethod(LocalFileHeader localFileHeader) throws ZipException {
-    if (localFileHeader.getCompressionMethod() != CompressionMethod.AES_INTERNAL_ONLY) {
-      return localFileHeader.getCompressionMethod();
-    }
-
-    if (localFileHeader.getAesExtraDataRecord() == null) {
-      throw new ZipException("AesExtraDataRecord not present in localheader for aes encrypted data");
-    }
-
-    return localFileHeader.getAesExtraDataRecord().getCompressionMethod();
   }
 
   public T getDecrypter() {
