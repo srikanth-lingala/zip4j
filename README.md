@@ -71,7 +71,7 @@ Zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is mis
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
-    <version>2.6.3</version>
+    <version>2.6.4</version>
 </dependency>
 ```
 
