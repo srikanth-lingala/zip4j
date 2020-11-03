@@ -18,7 +18,7 @@ public abstract class AsyncZipTask<T> {
     this.executorService = asyncTaskParameters.executorService;
   }
 
-  public void execute(T taskParameters) throws ZipException {
+  public void execute(final T taskParameters) throws ZipException {
     progressMonitor.fullReset();
     progressMonitor.setState(ProgressMonitor.State.BUSY);
     progressMonitor.setCurrentTask(getTask());
@@ -27,13 +27,16 @@ public abstract class AsyncZipTask<T> {
       long totalWorkToBeDone = calculateTotalWork(taskParameters);
       progressMonitor.setTotalWork(totalWorkToBeDone);
 
-      executorService.execute(() -> {
-        try {
-          performTaskWithErrorHandling(taskParameters, progressMonitor);
-        } catch (ZipException e) {
-          //Do nothing. Exception will be passed through progress monitor
-        } finally {
-          executorService.shutdown();
+      executorService.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AsyncZipTask.this.performTaskWithErrorHandling(taskParameters, progressMonitor);
+          } catch (ZipException e) {
+            //Do nothing. Exception will be passed through progress monitor
+          } finally {
+            executorService.shutdown();
+          }
         }
       });
     } else {
