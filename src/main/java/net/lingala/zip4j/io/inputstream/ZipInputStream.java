@@ -302,10 +302,8 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readUntilEndOfEntry() throws IOException {
-    // If data descriptor exists, proceed to reading the entry, or else skip if the entry is directory
-    // or compressed size is 0
-    if (!localFileHeader.isDataDescriptorExists()
-        && (localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0)) {
+    if (localFileHeader.isDirectory()
+        || (localFileHeader.getCompressedSize() == 0 && !localFileHeader.isDataDescriptorExists())) {
       return;
     }
 
