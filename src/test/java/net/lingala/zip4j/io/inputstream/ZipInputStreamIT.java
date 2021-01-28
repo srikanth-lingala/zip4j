@@ -20,9 +20,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyFileContent;
@@ -216,6 +220,26 @@ public class ZipInputStreamIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testReadingZipBySkippingDataCreatedWithJDKZipReadsAllEntries() throws IOException {
+    List<File> filesToAdd = new ArrayList<>();
+    // Add a directory first, then a few files, then a directory, and then a file to test all possibilities
+    filesToAdd.add(getTestFileFromResources("sample_directory"));
+    filesToAdd.addAll(FILES_TO_ADD);
+    filesToAdd.add(getTestFileFromResources("öüäöäö"));
+    filesToAdd.add(getTestFileFromResources("file_PDF_1MB.pdf"));
+    File generatedZipFile = createZipFileWithJdkZip(filesToAdd, getTestFileFromResources(""));
+
+    int totalNumberOfEntriesRead = 0;
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(generatedZipFile))) {
+      while (zipInputStream.getNextEntry() != null) {
+        totalNumberOfEntriesRead++;
+      }
+    }
+
+    assertThat(totalNumberOfEntriesRead).isEqualTo(6);
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, 4096, AesVersion.TWO);
   }
@@ -294,5 +318,26 @@ public class ZipInputStreamIT extends AbstractIT {
         throw new RuntimeException("Could not delete an existing zip file");
       }
     }
+  }
+
+  private File createZipFileWithJdkZip(List<File> filesToAdd, File rootFolder) throws IOException {
+    int readLen;
+    byte[] readBuffer = new byte[InternalZipConstants.BUFF_SIZE];
+    try(ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      for (File fileToAdd : filesToAdd) {
+        String path = rootFolder.toPath().relativize(fileToAdd.toPath()).toString().replaceAll("\\\\", "/");
+        ZipEntry entry = new ZipEntry(path);
+        zipOutputStream.putNextEntry(entry);
+        if (!fileToAdd.isDirectory()) {
+          try (InputStream fis = new FileInputStream(fileToAdd)) {
+            while ((readLen = fis.read(readBuffer)) != -1) {
+              zipOutputStream.write(readBuffer, 0, readLen);
+            }
+          }
+        }
+        zipOutputStream.closeEntry();
+      }
+    }
+    return generatedZipFile;
   }
 }

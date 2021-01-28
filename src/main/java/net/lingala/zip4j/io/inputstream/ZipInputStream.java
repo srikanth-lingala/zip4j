@@ -16,7 +16,6 @@
 
 package net.lingala.zip4j.io.inputstream;
 
-import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
@@ -303,7 +302,10 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readUntilEndOfEntry() throws IOException {
-    if (localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0) {
+    // If data descriptor exists, proceed to reading the entry, or else skip if the entry is directory
+    // or compressed size is 0
+    if (!localFileHeader.isDataDescriptorExists()
+        && (localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0)) {
       return;
     }
 
