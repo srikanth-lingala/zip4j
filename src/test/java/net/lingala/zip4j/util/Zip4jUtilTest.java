@@ -128,6 +128,25 @@ public class Zip4jUtilTest {
   }
 
   @Test
+  public void testConvertCharArrayToByteArrayChineseChars() {
+    char[] charArray = "你好".toCharArray();
+
+    byte[] byteArray = Zip4jUtil.convertCharArrayToByteArray(charArray);
+
+    try {
+      // Make sure that StandardCharsets exists on the classpath
+      Class.forName("java.nio.charset.StandardCharsets");
+      assertThat(byteArray.length).isEqualTo(6);
+      assertThat(byteArray).isEqualTo(new byte[]{-28, -67, -96, -27, -91, -67});
+    } catch (ClassNotFoundException e) {
+      // In some test environments (old Android SDK), StandardCharset class does not exist, in this case
+      // the method under test falls back to converting char to its byte representation
+      assertThat(byteArray.length).isEqualTo(2);
+      assertThat(byteArray).isEqualTo(new byte[]{96, 125});
+    }
+  }
+
+  @Test
   public void testGetCompressionMethodForNonAesReturnsAsIs() {
     LocalFileHeader localFileHeader = new LocalFileHeader();
     localFileHeader.setCompressionMethod(CompressionMethod.DEFLATE);

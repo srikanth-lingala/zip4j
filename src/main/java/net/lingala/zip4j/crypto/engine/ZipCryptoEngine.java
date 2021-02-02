@@ -16,9 +16,11 @@
 
 package net.lingala.zip4j.crypto.engine;
 
+import static net.lingala.zip4j.util.Zip4jUtil.convertCharArrayToByteArray;
+
 public class ZipCryptoEngine {
 
-  private final int keys[] = new int[3];
+  private final int[] keys = new int[3];
   private static final int[] CRC_TABLE = new int[256];
 
   static {
@@ -39,8 +41,9 @@ public class ZipCryptoEngine {
     keys[0] = 305419896;
     keys[1] = 591751049;
     keys[2] = 878082192;
-    for (int i = 0; i < password.length; i++) {
-      updateKeys((byte) (password[i] & 0xff));
+    byte[] bytes = convertCharArrayToByteArray(password);
+    for (byte b : bytes) {
+      updateKeys((byte) (b & 0xff));
     }
   }
 

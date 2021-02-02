@@ -23,6 +23,9 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 
 public class Zip4jUtil {
@@ -96,11 +99,18 @@ public class Zip4jUtil {
   }
 
   public static byte[] convertCharArrayToByteArray(char[] charArray) {
-    byte[] bytes = new byte[charArray.length];
-    for (int i = 0; i < charArray.length; i++) {
-      bytes[i] = (byte) charArray[i];
+    try {
+      ByteBuffer buf = StandardCharsets.UTF_8.encode(CharBuffer.wrap(charArray));
+      byte[] bytes = new byte[buf.limit()];
+      buf.get(bytes);
+      return bytes;
+    } catch (Exception e) {
+      byte[] bytes = new byte[charArray.length];
+      for (int i = 0; i < charArray.length; i++) {
+        bytes[i] = (byte) charArray[i];
+      }
+      return bytes;
     }
-    return bytes;
   }
 
   public static CompressionMethod getCompressionMethod(LocalFileHeader localFileHeader) {
