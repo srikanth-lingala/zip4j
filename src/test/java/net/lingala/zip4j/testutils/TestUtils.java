@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
@@ -129,6 +130,12 @@ public class TestUtils {
     }
 
     return outputFile;
+  }
+
+  public static File createSymlink(File targetFile, File rootFolder) throws IOException {
+    Path link = Paths.get(rootFolder.getAbsolutePath(), "symlink.link");
+    Files.createSymbolicLink(link, targetFile.toPath());
+    return link.toFile();
   }
 
   private static OutputStream startNext7ZipSplitStream(File sourceFile, File outputFolder, int index) throws IOException {

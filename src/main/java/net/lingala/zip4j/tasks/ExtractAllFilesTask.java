@@ -3,6 +3,7 @@ package net.lingala.zip4j.tasks;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
@@ -18,8 +19,9 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   private char[] password;
   private SplitInputStream splitInputStream;
 
-  public ExtractAllFilesTask(ZipModel zipModel, char[] password, AsyncTaskParameters asyncTaskParameters) {
-    super(zipModel, asyncTaskParameters);
+  public ExtractAllFilesTask(ZipModel zipModel, char[] password, UnzipParameters unzipParameters,
+                             AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, unzipParameters, asyncTaskParameters);
     this.password = password;
   }
 

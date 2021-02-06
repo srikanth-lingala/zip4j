@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.lingala.zip4j.testutils.TestUtils.createSymlink;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -600,12 +601,6 @@ public class CreateZipFileIT extends AbstractIT {
     assertThat(actualSymlink.length()).isEqualTo(extractedSymlink.length());
     File generatedTarget = Files.readSymbolicLink(extractedSymlink.toPath()).toFile();
     assertThat(generatedTarget).isEqualTo(targetFile);
-  }
-
-  private File createSymlink(File targetFile, File rootFolder) throws IOException {
-    Path link = Paths.get(rootFolder.getAbsolutePath(), "symlink.link");
-    Files.createSymbolicLink(link, targetFile.toPath());
-    return link.toFile();
   }
 
   private File createTestFolderWithSymlinks() throws IOException {

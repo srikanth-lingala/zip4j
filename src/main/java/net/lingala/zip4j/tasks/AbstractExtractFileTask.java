@@ -4,6 +4,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.BitUtils;
@@ -25,15 +26,23 @@ import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
   private ZipModel zipModel;
+  private UnzipParameters unzipParameters;
   private byte[] buff = new byte[BUFF_SIZE];
 
-  public AbstractExtractFileTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
+  public AbstractExtractFileTask(ZipModel zipModel, UnzipParameters unzipParameters,
+                                 AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);
     this.zipModel = zipModel;
+    this.unzipParameters = unzipParameters;
   }
 
   protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outputPath,
                              String newFileName, ProgressMonitor progressMonitor) throws IOException {
+
+    boolean isSymbolicLink = isSymbolicLink(fileHeader);
+    if (isSymbolicLink && !unzipParameters.isExtractSymbolicLinks()) {
+      return;
+    }
 
     if (!outputPath.endsWith(FILE_SEPARATOR)) {
       outputPath += FILE_SEPARATOR;

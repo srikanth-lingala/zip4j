@@ -23,19 +23,29 @@ import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.tasks.*;
+import net.lingala.zip4j.tasks.AddFilesToZipTask;
 import net.lingala.zip4j.tasks.AddFilesToZipTask.AddFilesToZipTaskParameters;
+import net.lingala.zip4j.tasks.AddFolderToZipTask;
 import net.lingala.zip4j.tasks.AddFolderToZipTask.AddFolderToZipTaskParameters;
+import net.lingala.zip4j.tasks.AddStreamToZipTask;
 import net.lingala.zip4j.tasks.AddStreamToZipTask.AddStreamToZipTaskParameters;
+import net.lingala.zip4j.tasks.AsyncZipTask;
+import net.lingala.zip4j.tasks.ExtractAllFilesTask;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
+import net.lingala.zip4j.tasks.ExtractFileTask;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
+import net.lingala.zip4j.tasks.MergeSplitZipFileTask;
 import net.lingala.zip4j.tasks.MergeSplitZipFileTask.MergeSplitZipFileTaskParameters;
+import net.lingala.zip4j.tasks.RemoveFilesFromZipTask;
 import net.lingala.zip4j.tasks.RemoveFilesFromZipTask.RemoveFilesFromZipTaskParameters;
+import net.lingala.zip4j.tasks.RenameFilesTask;
 import net.lingala.zip4j.tasks.RenameFilesTask.RenameFilesTaskParameters;
+import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.RawIO;
@@ -407,11 +417,22 @@ public class ZipFile {
    * If zip file does not exist or destination path is invalid then an
    * exception is thrown.
    *
-   * @param destinationPath
-   * @throws ZipException
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @throws ZipException when an issue occurs during extraction
    */
   public void extractAll(String destinationPath) throws ZipException {
+    extractAll(destinationPath, new UnzipParameters());
+  }
 
+  /**
+   * Extracts all entries in the zip file to the destination path considering the options defined in
+   * UnzipParameters
+   *
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param unzipParameters parameters to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractAll(String destinationPath, UnzipParameters unzipParameters) throws ZipException {
     if (!isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("output path is null or invalid");
     }
@@ -433,7 +454,7 @@ public class ZipFile {
       throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
-    new ExtractAllFilesTask(zipModel, password, buildAsyncParameters()).execute(
+    new ExtractAllFilesTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
         new ExtractAllFilesTaskParameters(destinationPath, charset));
   }
 
@@ -443,12 +464,104 @@ public class ZipFile {
    * <br><br>
    * If fileHeader is a directory, this method extracts all files under this directory
    *
-   * @param fileHeader
-   * @param destinationPath
-   * @throws ZipException
+   * @param fileHeader file header corresponding to the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @throws ZipException when an issue occurs during extraction
    */
   public void extractFile(FileHeader fileHeader, String destinationPath) throws ZipException {
-    extractFile(fileHeader, destinationPath, null);
+    extractFile(fileHeader, destinationPath, null, new UnzipParameters());
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
+   * If destination path is invalid, then this method throws an exception.
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory
+   *
+   * @param fileHeader file header corresponding to the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param unzipParameters any parameters that have to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(FileHeader fileHeader, String destinationPath, UnzipParameters unzipParameters)
+      throws ZipException {
+    extractFile(fileHeader, destinationPath, null, unzipParameters);
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
+   * This method first finds the necessary file header from the input file name.
+   * <br><br>
+   * File name is relative file name in the zip file. For example if a zip file contains
+   * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
+   * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
+   * input file name has to be abc/b.txt
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br><br>
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * Throws an exception if the destination path is invalid.
+   *
+   * @param fileName name of the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(String fileName, String destinationPath) throws ZipException {
+    extractFile(fileName, destinationPath, null, new UnzipParameters());
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
+   * This method first finds the necessary file header from the input file name.
+   * <br><br>
+   * File name is relative file name in the zip file. For example if a zip file contains
+   * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
+   * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
+   * input file name has to be abc/b.txt
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br><br>
+   * Any parameters that have to be considered during extraction can be passed in through unzipParameters
+   * <br/><br/>
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * Throws an exception if the destination path is invalid.
+   *
+   * @param fileName name of the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param unzipParameters any parameters that have to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(String fileName, String destinationPath, UnzipParameters unzipParameters)
+      throws ZipException {
+    extractFile(fileName, destinationPath, null, unzipParameters);
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
+   * This method first finds the necessary file header from the input file name.
+   * <br><br>
+   * File name is relative file name in the zip file. For example if a zip file contains
+   * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
+   * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
+   * input file name has to be abc/b.txt
+   * <br><br>
+   * If newFileName is not null or empty, newly created file name will be replaced by
+   * the value in newFileName. If this value is null, then the file name will be the
+   * value in FileHeader.getFileName. If file being extract is a directory, the directory name
+   * will be replaced with the newFileName
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br><br>
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * Throws an exception if the destination path is invalid.
+   *
+   * @param fileName name of the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileName if not null, this will be the name given to the file upon extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(String fileName, String destinationPath, String newFileName) throws ZipException {
+    extractFile(fileName, destinationPath, newFileName, new UnzipParameters());
   }
 
   /**
@@ -462,77 +575,45 @@ public class ZipFile {
    * <br><br>
    * If fileHeader is a directory, this method extracts all files under this directory.
    *
-   * @param fileHeader
-   * @param destinationPath
-   * @param newFileName
-   * @throws ZipException
+   * @param fileHeader file header corresponding to the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileName if not null, this will be the name given to the file upon extraction
+   * @throws ZipException when an issue occurs during extraction
    */
   public void extractFile(FileHeader fileHeader, String destinationPath, String newFileName) throws ZipException {
-    if (fileHeader == null) {
-      throw new ZipException("input file header is null, cannot extract file");
-    }
-
-    if (!isStringNotNullAndNotEmpty(destinationPath)) {
-      throw new ZipException("destination path is empty or null, cannot extract file");
-    }
-
-    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
-      throw new ZipException("invalid operation - Zip4j is in busy state");
-    }
-
-    readZipInfo();
-
-    new ExtractFileTask(zipModel, password, buildAsyncParameters()).execute(
-        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, charset));
+    extractFile(fileHeader, destinationPath, newFileName, new UnzipParameters());
   }
 
   /**
    * Extracts a specific file from the zip file to the destination path.
    * This method first finds the necessary file header from the input file name.
-   * <br><br>
+   * <br/><br/>
    * File name is relative file name in the zip file. For example if a zip file contains
    * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
    * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
    * input file name has to be abc/b.txt
-   * <br><br>
-   * If fileHeader is a directory, this method extracts all files under this directory.
-   * <br><br>
-   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
-   * Throws an exception if the destination path is invalid.
-   *
-   * @param fileName
-   * @param destinationPath
-   * @throws ZipException
-   */
-  public void extractFile(String fileName, String destinationPath) throws ZipException {
-    extractFile(fileName, destinationPath, null);
-  }
-
-  /**
-   * Extracts a specific file from the zip file to the destination path.
-   * This method first finds the necessary file header from the input file name.
-   * <br><br>
-   * File name is relative file name in the zip file. For example if a zip file contains
-   * a file "a.txt", then to extract this file, input file name has to be "a.txt". Another
-   * example is if there is a file "b.txt" in a folder "abc" in the zip file, then the
-   * input file name has to be abc/b.txt
-   * <br><br>
+   * <br/><br/>
    * If newFileName is not null or empty, newly created file name will be replaced by
    * the value in newFileName. If this value is null, then the file name will be the
    * value in FileHeader.getFileName. If file being extract is a directory, the directory name
    * will be replaced with the newFileName
-   * <br><br>
+   * <br/><br/>
    * If fileHeader is a directory, this method extracts all files under this directory.
-   * <br><br>
-   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the given file name.
+   * <br/><br/>
+   * Any parameters that have to be considered during extraction can be passed in through unzipParameters
+   * <br/><br/>
+   * Throws an exception of type {@link ZipException.Type#FILE_NOT_FOUND} if file header could not be found for the
+   * given file name.
    * Throws an exception if the destination path is invalid.
    *
-   * @param fileName
-   * @param destinationPath
-   * @param newFileName
-   * @throws ZipException
+   * @param fileName name of the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileName if not null, this will be the name given to the file upon extraction
+   * @param unzipParameters any parameters that have to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
    */
-  public void extractFile(String fileName, String destinationPath, String newFileName) throws ZipException {
+  public void extractFile(String fileName, String destinationPath, String newFileName, UnzipParameters unzipParameters)
+      throws ZipException {
 
     if (!isStringNotNullAndNotEmpty(fileName)) {
       throw new ZipException("file to extract is null or empty, cannot extract file");
@@ -546,7 +627,50 @@ public class ZipFile {
       throw new ZipException("No file found with name " + fileName + " in zip file", ZipException.Type.FILE_NOT_FOUND);
     }
 
-    extractFile(fileHeader, destinationPath, newFileName);
+    extractFile(fileHeader, destinationPath, newFileName, unzipParameters);
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
+   * If destination path is invalid, then this method throws an exception.
+   * <br><br>
+   * If newFileName is not null or empty, newly created file name will be replaced by
+   * the value in newFileName. If this value is null, then the file name will be the
+   * value in FileHeader.getFileName. If file being extract is a directory, the directory name
+   * will be replaced with the newFileName
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br/><br/>
+   * Any parameters that have to be considered during extraction can be passed in through unzipParameters
+   *
+   * @param fileHeader file header corresponding to the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileName if not null, this will be the name given to the file upon extraction
+   * @param unzipParameters any parameters that have to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(FileHeader fileHeader, String destinationPath, String newFileName,
+                          UnzipParameters unzipParameters) throws ZipException {
+    if (fileHeader == null) {
+      throw new ZipException("input file header is null, cannot extract file");
+    }
+
+    if (!isStringNotNullAndNotEmpty(destinationPath)) {
+      throw new ZipException("destination path is empty or null, cannot extract file");
+    }
+
+    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
+      throw new ZipException("invalid operation - Zip4j is in busy state");
+    }
+
+    if (unzipParameters == null) {
+      unzipParameters = new UnzipParameters();
+    }
+
+    readZipInfo();
+
+    new ExtractFileTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
+        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, charset));
   }
 
   /**

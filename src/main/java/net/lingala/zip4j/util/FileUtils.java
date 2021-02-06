@@ -262,6 +262,12 @@ public class FileUtils {
       fileName = rootFolderNameInZip + fileName;
     }
 
+    if (!isStringNotNullAndNotEmpty(fileName)) {
+      throw new ZipException("fileName to add to zip is empty or null. fileName: '" + fileName
+          + "'. DefaultFolderPath: '" + zipParameters.getDefaultFolderPath() + "'. "
+          + "isSymlink: " + isSymbolicLink(fileToAdd));
+    }
+
     return fileName;
   }
 
