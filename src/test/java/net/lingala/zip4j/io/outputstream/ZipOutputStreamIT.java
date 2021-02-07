@@ -31,6 +31,7 @@ import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static net.lingala.zip4j.util.FileUtils.isMac;
 import static net.lingala.zip4j.util.FileUtils.isUnix;
+import static net.lingala.zip4j.util.FileUtils.isWindows;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipOutputStreamIT extends AbstractIT {
@@ -214,12 +215,14 @@ public class ZipOutputStreamIT extends AbstractIT {
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion, boolean setLastModifiedTime)
           throws IOException {
-    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, true, FILES_TO_ADD, InternalZipConstants.CHARSET_UTF_8);
+    testZipOutputStream(compressionMethod, encrypt, encryptionMethod, aesKeyStrength, aesVersion, setLastModifiedTime,
+        FILES_TO_ADD, InternalZipConstants.CHARSET_UTF_8);
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
-                                   AesVersion aesVersion, boolean setLastModifiedTime, List<File> filesToAdd, Charset charset)
+                                   AesVersion aesVersion, boolean setLastModifiedTime, List<File> filesToAdd,
+                                   Charset charset)
       throws IOException {
 
     ZipParameters zipParameters = buildZipParameters(compressionMethod, encrypt, encryptionMethod, aesKeyStrength);
@@ -380,10 +383,11 @@ public class ZipOutputStreamIT extends AbstractIT {
         } else {
           assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(FileUtils.DEFAULT_POSIX_FILE_ATTRIBUTES);
         }
+      } else if (isWindows() && fileHeader.isDirectory()) {
+        assertThat(BitUtils.isBitSet(fileHeader.getExternalFileAttributes()[0], 4)).isTrue();
       } else {
         assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(emptyAttributes);
       }
-
     }
   }
 

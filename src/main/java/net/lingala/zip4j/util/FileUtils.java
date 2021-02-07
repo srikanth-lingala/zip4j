@@ -34,6 +34,7 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
+import static net.lingala.zip4j.util.BitUtils.setBit;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
@@ -41,8 +42,8 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class FileUtils {
 
-  public static final byte[] DEFAULT_POSIX_FILE_ATTRIBUTES = new byte[] {0, 0, -128, -127}; //-rw-------
-  public static final byte[] DEFAULT_POSIX_FOLDER_ATTRIBUTES = new byte[] {0, 0, -128, 65}; //drw-------
+  public static final byte[] DEFAULT_POSIX_FILE_ATTRIBUTES = new byte[] {0, 0, -92, -127}; //-rw-r--r--
+  public static final byte[] DEFAULT_POSIX_FOLDER_ATTRIBUTES = new byte[] {0, 0, -19, 65}; //drwxr-xr-x
 
   public static void setFileAttributes(Path file, byte[] fileAttributes) {
     if (fileAttributes == null || fileAttributes.length == 0) {
@@ -411,6 +412,8 @@ public class FileUtils {
       } else {
         System.arraycopy(DEFAULT_POSIX_FILE_ATTRIBUTES, 0, permissions, 0, permissions.length);
       }
+    } else if (isWindows() && isDirectory) {
+      permissions[0] = setBit(permissions[0], 4);
     }
     return permissions;
   }
