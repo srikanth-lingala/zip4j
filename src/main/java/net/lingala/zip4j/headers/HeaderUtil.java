@@ -11,7 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET_NAME;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class HeaderUtil {
@@ -33,19 +34,27 @@ public class HeaderUtil {
   }
 
   public static String decodeStringWithCharset(byte[] data, boolean isUtf8Encoded, Charset charset) {
-    if (InternalZipConstants.CHARSET_UTF_8.equals(charset) && !isUtf8Encoded) {
-      try {
-        return new String(data, ZIP_STANDARD_CHARSET);
-      } catch (UnsupportedEncodingException e) {
-        return new String(data);
-      }
-    }
-
-    if(charset != null) {
+    if (charset != null) {
       return new String(data, charset);
     }
 
-    return new String(data, InternalZipConstants.CHARSET_UTF_8);
+    if (isUtf8Encoded) {
+      return new String(data, InternalZipConstants.CHARSET_UTF_8);
+    }
+
+    try {
+      return new String(data, ZIP_STANDARD_CHARSET_NAME);
+    } catch (UnsupportedEncodingException e) {
+      return new String(data);
+    }
+  }
+
+  public static byte[] getBytesFromString(String string, Charset charset) {
+    if (charset == null) {
+      return string.getBytes(ZIP4J_DEFAULT_CHARSET);
+    }
+
+    return string.getBytes(charset);
   }
 
   public static long getOffsetStartOfCentralDirectory(ZipModel zipModel) {

@@ -51,7 +51,7 @@ public class ZipInputStream extends InputStream {
   private Charset charset;
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null, InternalZipConstants.CHARSET_UTF_8);
+    this(inputStream, null, null);
   }
 
   public ZipInputStream(InputStream inputStream, Charset charset) {
@@ -59,14 +59,10 @@ public class ZipInputStream extends InputStream {
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
-    this(inputStream, password, InternalZipConstants.CHARSET_UTF_8);
+    this(inputStream, password, null);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
-    if(charset == null) {
-      charset = InternalZipConstants.CHARSET_UTF_8;
-    }
-
     this.inputStream = new PushbackInputStream(inputStream, InternalZipConstants.BUFF_SIZE);
     this.password = password;
     this.charset = charset;

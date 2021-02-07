@@ -12,8 +12,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,16 +147,16 @@ public class HeaderUtilTest {
     byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(InternalZipConstants.CHARSET_UTF_8);
 
     assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, true, null)).isEqualTo(utf8StringToEncode);
-
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithUtf8ForUtf8String() {
-    String utf8StringToEncode = "asdäüöö";
-    byte[] utf8EncodedBytes = utf8StringToEncode.getBytes(InternalZipConstants.CHARSET_UTF_8);
+  public void testDecodeStringWithCharsetWithCharsetGBKForChineseString() {
+    String chineseStringToEncode = "写記立要";
+    byte[] gbkEncodedBytes = chineseStringToEncode.getBytes(Charset.forName("GBK"));
 
-    assertThat(HeaderUtil.decodeStringWithCharset(utf8EncodedBytes, false, InternalZipConstants.CHARSET_UTF_8)).isNotEqualTo(utf8StringToEncode);
+    String decodedString = HeaderUtil.decodeStringWithCharset(gbkEncodedBytes, false, Charset.forName("GBK"));
 
+    assertThat(decodedString).isEqualTo(chineseStringToEncode);
   }
 
   @Test
@@ -165,15 +165,14 @@ public class HeaderUtilTest {
     byte[] plainEncodedBytes = plainString.getBytes();
 
     assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, null)).isEqualTo(plainString);
-
   }
 
   @Test
-  public void testDecodeStringWithCharsetWithISO8859AndFinnishChars() throws UnsupportedEncodingException {
+  public void testDecodeStringWithCharsetWithISO8859AndFinnishChars() {
     String finnishString = "asdäüöö";
-    byte[] plainEncodedBytes = finnishString.getBytes("ISO-8859-1");
+    byte[] plainEncodedBytes = finnishString.getBytes(StandardCharsets.ISO_8859_1);
 
-    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, Charset.forName("ISO-8859-1"))).isEqualTo(finnishString);
+    assertThat(HeaderUtil.decodeStringWithCharset(plainEncodedBytes, false, StandardCharsets.ISO_8859_1)).isEqualTo(finnishString);
   }
 
   @Test

@@ -11,7 +11,6 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
@@ -36,7 +35,7 @@ public class ZipOutputStream extends OutputStream {
   private boolean streamClosed;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
-    this(outputStream, null, InternalZipConstants.CHARSET_UTF_8);
+    this(outputStream, null, null);
   }
 
   public ZipOutputStream(OutputStream outputStream, Charset charset) throws IOException {
@@ -44,7 +43,7 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password) throws IOException {
-    this(outputStream, password, InternalZipConstants.CHARSET_UTF_8);
+    this(outputStream, password, null);
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset) throws IOException {
@@ -52,10 +51,6 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset, ZipModel zipModel) throws IOException {
-    if(charset == null) {
-      charset = InternalZipConstants.CHARSET_UTF_8;
-    }
-
     this.countingOutputStream = new CountingOutputStream(outputStream);
     this.password = password;
     this.charset = charset;

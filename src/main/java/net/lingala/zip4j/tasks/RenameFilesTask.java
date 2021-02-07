@@ -67,7 +67,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
           currentFileCopyPointer += copyFile(inputStream, outputStream, currentFileCopyPointer, lengthToCopy, progressMonitor);
         } else {
           String newFileName = getNewFileName(fileNameMapForThisEntry.getValue(), fileNameMapForThisEntry.getKey(), fileHeader.getFileName());
-          byte[] newFileNameBytes = newFileName.getBytes(charset);
+          byte[] newFileNameBytes = HeaderUtil.getBytesFromString(newFileName, charset);
           int headersOffset = newFileNameBytes.length - fileHeader.getFileNameLength();
 
           currentFileCopyPointer = copyEntryAndChangeFileName(newFileNameBytes, fileHeader, currentFileCopyPointer, lengthToCopy,

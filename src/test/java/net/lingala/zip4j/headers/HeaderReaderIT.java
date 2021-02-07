@@ -153,9 +153,15 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithoutUtf8FlagDecodesWithoutCharsetFlagForJapaneseCharactersDoesNotMatch()
+  public void testReadAllWithoutUtf8FlagDecodesWithoutCharsetFlagForJapaneseCharactersMatches()
       throws IOException {
-    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", false, true, InternalZipConstants.CHARSET_UTF_8);
+    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", true, true, InternalZipConstants.CHARSET_UTF_8);
+  }
+
+  @Test
+  public void testReadAllWithoutUtf8FlagAndWithoutCharsetForJapaneseCharactersDoesNotMatch()
+      throws IOException {
+    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", false, true, null);
   }
 
   @Test

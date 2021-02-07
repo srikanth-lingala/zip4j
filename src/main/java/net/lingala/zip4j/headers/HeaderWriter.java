@@ -37,6 +37,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getBytesFromString;
 import static net.lingala.zip4j.util.FileUtils.getZipFileNameWithoutExtension;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
@@ -92,7 +93,7 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(localFileHeader.getFileName())) {
-        fileNameBytes = localFileHeader.getFileName().getBytes(charset);
+        fileNameBytes = getBytesFromString(localFileHeader.getFileName(), charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
 
@@ -336,7 +337,9 @@ public class HeaderWriter {
     return ((CountingOutputStream) outputStream).getCurrentSplitFileCounter();
   }
 
-  private void writeZipHeaderBytes(ZipModel zipModel, OutputStream outputStream, byte[] buff, Charset charset) throws IOException {
+  private void writeZipHeaderBytes(ZipModel zipModel, OutputStream outputStream, byte[] buff, Charset charset)
+      throws IOException {
+
     if (buff == null) {
       throw new ZipException("invalid buff to write as zip headers");
     }
@@ -377,8 +380,8 @@ public class HeaderWriter {
     zipModel.getEndOfCentralDirectoryRecord().setNumberOfThisDiskStartOfCentralDir(currentSplitFileCounter);
   }
 
-  private void writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO, Charset charset)
-      throws ZipException {
+  private void writeCentralDirectory(ZipModel zipModel, ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO,
+                                     Charset charset) throws ZipException {
 
     if (zipModel.getCentralDirectory() == null || zipModel.getCentralDirectory().getFileHeaders() == null
         || zipModel.getCentralDirectory().getFileHeaders().size() <= 0) {
@@ -426,7 +429,7 @@ public class HeaderWriter {
 
       byte[] fileNameBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileHeader.getFileName())) {
-        fileNameBytes = fileHeader.getFileName().getBytes(charset);
+        fileNameBytes = getBytesFromString(fileHeader.getFileName(), charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
 
@@ -447,7 +450,7 @@ public class HeaderWriter {
       String fileComment = fileHeader.getFileComment();
       byte[] fileCommentBytes = new byte[0];
       if (isStringNotNullAndNotEmpty(fileComment)) {
-        fileCommentBytes = fileComment.getBytes(charset);
+        fileCommentBytes = getBytesFromString(fileComment, charset);
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, fileCommentBytes.length);
 
@@ -509,7 +512,7 @@ public class HeaderWriter {
     }
   }
 
-  private int calculateExtraDataRecordsSize(FileHeader fileHeader, boolean writeZip64ExtendedInfo) throws IOException {
+  private int calculateExtraDataRecordsSize(FileHeader fileHeader, boolean writeZip64ExtendedInfo) {
     int extraFieldLength = 0;
 
     if (writeZip64ExtendedInfo) {
@@ -534,7 +537,8 @@ public class HeaderWriter {
     return extraFieldLength;
   }
 
-  private void writeRemainingExtraDataRecordsIfPresent(FileHeader fileHeader, OutputStream outputStream) throws IOException {
+  private void writeRemainingExtraDataRecordsIfPresent(FileHeader fileHeader, OutputStream outputStream)
+      throws IOException {
     if (fileHeader.getExtraDataRecords() == null || fileHeader.getExtraDataRecords().size() == 0) {
       return;
     }
@@ -582,7 +586,8 @@ public class HeaderWriter {
   }
 
   private void writeEndOfCentralDirectoryRecord(ZipModel zipModel, int sizeOfCentralDir, long offsetCentralDir,
-                                                ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO, Charset charset)
+                                                ByteArrayOutputStream byteArrayOutputStream, RawIO rawIO,
+                                                Charset charset)
       throws IOException {
 
     byte[] longByte = new byte[8];
@@ -620,7 +625,7 @@ public class HeaderWriter {
 
     String comment = zipModel.getEndOfCentralDirectoryRecord().getComment();
     if (isStringNotNullAndNotEmpty(comment)) {
-      byte[] commentBytes = comment.getBytes(charset);
+      byte[] commentBytes = getBytesFromString(comment, charset);
       rawIO.writeShortLittleEndian(byteArrayOutputStream, commentBytes.length);
       byteArrayOutputStream.write(commentBytes);
     } else {

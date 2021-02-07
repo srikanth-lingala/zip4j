@@ -52,15 +52,18 @@ public final class InternalZipConstants {
 
   public static final int UPDATE_LFH_UNCOMP_SIZE = 22;
 
-  public static final String ZIP_STANDARD_CHARSET = "Cp437";
-
   public static final String FILE_SEPARATOR = File.separator;
 
   public static final String ZIP_FILE_SEPARATOR = "/";
 
   public static final int MAX_ALLOWED_ZIP_COMMENT_LENGTH = 0xFFFF;
 
+  public static final String ZIP_STANDARD_CHARSET_NAME = "Cp437";
+
+  // StandardCharset.UTF-8 could have been used below but StandardCharset does not exist in older versions of Android
   public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
+
+  public static final Charset ZIP4J_DEFAULT_CHARSET = CHARSET_UTF_8;
 
   public static final String SEVEN_ZIP_SPLIT_FILE_EXTENSION_PATTERN = ".zip.001";
 }

@@ -89,7 +89,7 @@ public class ZipFile {
   private boolean runInThread;
   private char[] password;
   private HeaderWriter headerWriter = new HeaderWriter();
-  private Charset charset = CHARSET_UTF_8;
+  private Charset charset = null;
   private ThreadFactory threadFactory;
   private ExecutorService executorService;
 
@@ -1159,10 +1159,25 @@ public class ZipFile {
     return zipFile;
   }
 
+  /**
+   * Returns user defined charset that was set by setCharset() method. If no charset was explicitly defined
+   * (by calling setCharset()), this method returns the default charset which zip4j uses, which is utf-8.
+   *
+   * @return user-defined charset or utf-8 if no charset explicitly set
+   */
   public Charset getCharset() {
+    if (charset == null) {
+      return CHARSET_UTF_8;
+    }
     return charset;
   }
 
+  /**
+   * Sets the charset to be used for encoding file names and comments
+   *
+   * @param charset charset to use to encode file names and comments
+   * @throws IllegalArgumentException if charset is null
+   */
   public void setCharset(Charset charset) throws IllegalArgumentException {
     if(charset == null) {
       throw new IllegalArgumentException("charset cannot be null");

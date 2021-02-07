@@ -49,6 +49,7 @@ import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
 import static net.lingala.zip4j.util.Zip4jUtil.readFully;
@@ -744,7 +745,7 @@ public class HeaderReader {
     try {
       byte[] commentBuf = new byte[commentLength];
       raf.readFully(commentBuf);
-      return new String(commentBuf, charset);
+      return decodeStringWithCharset(commentBuf, false, charset != null ? charset : ZIP4J_DEFAULT_CHARSET);
     } catch (IOException e) {
       // Ignore any exception and set comment to null if comment cannot be read
       return null;
