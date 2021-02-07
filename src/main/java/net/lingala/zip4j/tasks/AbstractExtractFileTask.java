@@ -70,8 +70,10 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
     } else {
       checkOutputDirectoryStructure(outputFile);
-      unzipFile(zipInputStream, fileHeader, outputFile, progressMonitor);
+      unzipFile(zipInputStream, outputFile, progressMonitor);
     }
+
+    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
   }
 
   private boolean isSymbolicLink(FileHeader fileHeader) {
@@ -84,8 +86,9 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     return BitUtils.isBitSet(externalFileAttributes[3], 5);
   }
 
-  private void unzipFile(ZipInputStream inputStream, FileHeader fileHeader, File outputFile,
-                         ProgressMonitor progressMonitor) throws IOException {
+  private void unzipFile(ZipInputStream inputStream, File outputFile, ProgressMonitor progressMonitor)
+      throws IOException {
+
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {
       while ((readLength = inputStream.read(buff)) != -1) {
@@ -99,8 +102,6 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       }
       throw  e;
     }
-
-    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
   }
 
   private void createSymLink(ZipInputStream zipInputStream, FileHeader fileHeader, File outputFile,
@@ -115,7 +116,6 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     try {
       Path linkTarget = Paths.get(symLinkPath);
       Files.createSymbolicLink(outputFile.toPath(), linkTarget);
-      UnzipUtil.applyFileAttributes(fileHeader, outputFile);
     } catch (NoSuchMethodError error) {
       try (OutputStream outputStream = new FileOutputStream(outputFile)) {
         outputStream.write(symLinkPath.getBytes());
@@ -165,7 +165,8 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
       outputFileName = newFileName;
     } else {
-      outputFileName = getFileNameWithSystemFileSeparators(fileHeader.getFileName()); // replace all slashes with file separator
+      // replace all slashes with file separator
+      outputFileName = getFileNameWithSystemFileSeparators(fileHeader.getFileName());
     }
 
     return new File(outputPath + FILE_SEPARATOR + outputFileName);
