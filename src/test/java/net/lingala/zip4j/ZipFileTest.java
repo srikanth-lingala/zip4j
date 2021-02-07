@@ -35,6 +35,22 @@ public class ZipFileTest {
   }
 
   @Test
+  public void testZipFileConstructorThrowsIllegalArgumentExceptionWhenFileParameterIsNull() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("input zip file parameter is null");
+
+    new ZipFile((File) null);
+  }
+
+  @Test
+  public void testZipFileConstructorWithPasswordThrowsIllegalArgumentExceptionWhenFileParameterIsNull() {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("input zip file parameter is null");
+
+    new ZipFile((File) null, "password".toCharArray());
+  }
+
+  @Test
   public void testCreateZipFileThrowsExceptionWhenZipFileExists() throws ZipException {
     reset(sourceZipFile);
     when(sourceZipFile.exists()).thenReturn(true);

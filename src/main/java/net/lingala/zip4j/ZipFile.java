@@ -118,13 +118,26 @@ public class ZipFile {
    * Creates a new Zip File Object with the input file.
    * If the zip file does not exist, it is not created at this point.
    *
-   * @param zipFile
+   * @param zipFile file reference to the zip file
+   * @throws IllegalArgumentException when zip file parameter is null
    */
   public ZipFile(File zipFile) {
     this(zipFile, null);
   }
 
+  /**
+   * Creates a new Zip File Object with the input file.
+   * If the zip file does not exist, it is not created at this point.
+   *
+   * @param zipFile file reference to the zip file
+   * @param password password to use for the zip file
+   * @throws IllegalArgumentException when zip file parameter is null
+   */
   public ZipFile(File zipFile, char[] password) {
+    if (zipFile == null) {
+      throw new IllegalArgumentException("input zip file parameter is null");
+    }
+
     this.zipFile = zipFile;
     this.password = password;
     this.runInThread = false;
