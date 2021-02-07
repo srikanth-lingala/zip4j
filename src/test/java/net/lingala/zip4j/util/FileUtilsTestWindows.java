@@ -102,6 +102,15 @@ public class FileUtilsTestWindows {
 
   @Test
   public void testGetFileAttributesReturnsAttributesAsDefined() throws IOException {
+    testGetFileAttributes(false);
+  }
+
+  @Test
+  public void testGetFileAttributesForDirectory() throws IOException {
+    testGetFileAttributes(true);
+  }
+
+  private void testGetFileAttributes(boolean isDirectory) throws IOException {
     File file = mock(File.class);
     Path path = mock(Path.class);
     when(file.toPath()).thenReturn(path);
@@ -113,12 +122,17 @@ public class FileUtilsTestWindows {
     when(dosFileAttributes.isHidden()).thenReturn(true);
     when(dosFileAttributes.isSystem()).thenReturn(true);
     when(dosFileAttributes.isArchive()).thenReturn(true);
+    if (isDirectory) {
+      when(dosFileAttributes.isDirectory()).thenReturn(isDirectory);
+    }
+
 
     byte[] attributes = FileUtils.getFileAttributes(file);
 
     assertThat(isBitSet(attributes[0], 0)).isTrue();
     assertThat(isBitSet(attributes[0], 1)).isTrue();
     assertThat(isBitSet(attributes[0], 2)).isTrue();
+    assertThat(isBitSet(attributes[0], 4)).isEqualTo(isDirectory);
     assertThat(isBitSet(attributes[0], 5)).isTrue();
   }
 

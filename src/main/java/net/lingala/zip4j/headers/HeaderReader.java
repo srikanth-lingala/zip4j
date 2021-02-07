@@ -202,11 +202,11 @@ public class HeaderReader {
         }
 
         fileHeader.setFileName(fileName);
-        fileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
       } else {
         fileHeader.setFileName(null);
       }
 
+      fileHeader.setDirectory(isDirectory(fileHeader.getExternalFileAttributes(), fileHeader.getFileName()));
       readExtraDataRecords(zip4jRaf, fileHeader);
       readZip64ExtendedInfo(fileHeader, rawIO);
       readAesExtraDataRecord(fileHeader, rawIO);
@@ -749,5 +749,18 @@ public class HeaderReader {
       // Ignore any exception and set comment to null if comment cannot be read
       return null;
     }
+  }
+
+  public boolean isDirectory(byte[] externalFileAttributes, String fileName) {
+    // first check if DOS attributes are set (lower order bytes from external attributes). If yes, check if the 4th bit
+    // which represents a directory is set. If UNIX attributes are set (higher order two bytes), check for the 6th bit
+    // in 4th byte which  represents a directory flag.
+    if (externalFileAttributes[0] != 0 && isBitSet(externalFileAttributes[0], 4)) {
+      return true;
+    } else if (externalFileAttributes[3] != 0 && isBitSet(externalFileAttributes[3], 6))  {
+      return true;
+    }
+
+    return fileName != null && (fileName.endsWith("/") || fileName.endsWith("\\"));
   }
 }

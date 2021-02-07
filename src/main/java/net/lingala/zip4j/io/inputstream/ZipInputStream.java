@@ -94,6 +94,10 @@ public class ZipInputStream extends InputStream {
       localFileHeader.setCrc(fileHeader.getCrc());
       localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
       localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
+      // file header's directory flag is more reliable than local file header's directory flag as file header has
+      // additional external file attributes which has a directory flag defined. In local file header, the only way
+      // to determine if an entry is directory is to check if the file name has a trailing forward slash "/"
+      localFileHeader.setDirectory(fileHeader.isDirectory());
       canSkipExtendedLocalFileHeader = true;
     } else {
       canSkipExtendedLocalFileHeader = false;

@@ -232,11 +232,11 @@ public class FileUtils {
         File tmpFile = new File(fileCanonicalPath);
 
         if (tmpFile.isDirectory()) {
-          tmpFileName = tmpFileName.replaceAll("\\\\", "/");
+          tmpFileName = tmpFileName.replaceAll("\\\\", ZIP_FILE_SEPARATOR);
           tmpFileName += ZIP_FILE_SEPARATOR;
         } else {
           String bkFileName = tmpFileName.substring(0, tmpFileName.lastIndexOf(tmpFile.getName()));
-          bkFileName = bkFileName.replaceAll("\\\\", "/");
+          bkFileName = bkFileName.replaceAll("\\\\", ZIP_FILE_SEPARATOR);
           tmpFileName = bkFileName + getNameOfFileInZip(tmpFile, zipParameters.getFileNameInZip());
         }
 
@@ -493,6 +493,7 @@ public class FileUtils {
       windowsAttribute = setBitIfApplicable(dosFileAttributes.isReadOnly(), windowsAttribute, 0);
       windowsAttribute = setBitIfApplicable(dosFileAttributes.isHidden(), windowsAttribute, 1);
       windowsAttribute = setBitIfApplicable(dosFileAttributes.isSystem(), windowsAttribute, 2);
+      windowsAttribute = setBitIfApplicable(dosFileAttributes.isDirectory(), windowsAttribute, 4);
       windowsAttribute = setBitIfApplicable(dosFileAttributes.isArchive(), windowsAttribute, 5);
       fileAttributes[0] = windowsAttribute;
     } catch (IOException e) {
