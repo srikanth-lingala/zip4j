@@ -34,7 +34,6 @@ import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
-import java.util.zip.DataFormatException;
 
 import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
 
@@ -136,24 +135,15 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
-    try {
-      int readLen = decompressedInputStream.read(b, off, len);
+    int readLen = decompressedInputStream.read(b, off, len);
 
-      if (readLen == -1) {
-        endOfCompressedDataReached();
-      } else {
-        crc32.update(b, off, readLen);
-      }
-
-      return readLen;
-    } catch (IOException e) {
-      if (e.getCause() != null && e.getCause() instanceof DataFormatException
-          && isEncryptionMethodZipStandard(localFileHeader)) {
-        throw new ZipException(e.getMessage(), e.getCause(), ZipException.Type.WRONG_PASSWORD);
-      }
-
-      throw e;
+    if (readLen == -1) {
+      endOfCompressedDataReached();
+    } else {
+      crc32.update(b, off, readLen);
     }
+
+    return readLen;
   }
 
   @Override
@@ -254,14 +244,8 @@ public class ZipInputStream extends InputStream {
     }
 
     if (localFileHeader.getCrc() != crc32.getValue()) {
-      ZipException.Type exceptionType = ZipException.Type.CHECKSUM_MISMATCH;
-
-      if (isEncryptionMethodZipStandard(localFileHeader)) {
-        exceptionType = ZipException.Type.WRONG_PASSWORD;
-      }
-
       throw new ZipException("Reached end of entry, but crc verification failed for " + localFileHeader.getFileName(),
-          exceptionType);
+          ZipException.Type.CHECKSUM_MISMATCH);
     }
   }
 

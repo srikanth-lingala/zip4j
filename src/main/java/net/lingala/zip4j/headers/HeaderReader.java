@@ -169,7 +169,6 @@ public class HeaderReader {
 
       zip4jRaf.readFully(intBuff);
       fileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
-      fileHeader.setCrcRawData(intBuff);
 
       fileHeader.setCompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
       fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
@@ -549,7 +548,6 @@ public class HeaderReader {
 
     readFully(inputStream, intBuff);
     localFileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
-    localFileHeader.setCrcRawData(intBuff.clone());
 
     localFileHeader.setCompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
     localFileHeader.setUncompressedSize(rawIO.readLongLittleEndian(inputStream, 4));
@@ -562,9 +560,6 @@ public class HeaderReader {
     if (fileNameLength > 0) {
       byte[] fileNameBuf = new byte[fileNameLength];
       readFully(inputStream, fileNameBuf);
-      // Modified after user reported an issue http://www.lingala.net/zip4j/forum/index.php?topic=2.0
-//				String fileName = new String(fileNameBuf, "Cp850");
-//				String fileName = Zip4jUtil.getCp850EncodedString(fileNameBuf);
       String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
 
       if (fileName == null) {
