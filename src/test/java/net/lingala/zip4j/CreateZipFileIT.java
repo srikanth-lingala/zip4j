@@ -483,6 +483,19 @@ public class CreateZipFileIT extends AbstractIT {
         "test-folder/sub-folder2/symlink.link");
   }
 
+  @Test
+  public void testEncryptWithZipStrongEncryptionThrowsException() throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG);
+    zipParameters.setEncryptFiles(true);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("ZIP_STANDARD_VARIANT_STRONG encryption method is not supported");
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+  }
+
   private void testAddSymlinkThrowsExceptionForMissingTarget(ZipParameters.SymbolicLinkAction symbolicLinkAction)
       throws IOException {
     File targetFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "foo").toFile();

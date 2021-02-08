@@ -39,7 +39,6 @@ import net.lingala.zip4j.util.RawIO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -585,7 +584,7 @@ public class HeaderReader {
       if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
         //Do nothing
       } else {
-        if (BigInteger.valueOf(localFileHeader.getGeneralPurposeFlag()[0]).testBit(6)) {
+        if (isBitSet(localFileHeader.getGeneralPurposeFlag()[0], 6)) {
           localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG);
         } else {
           localFileHeader.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);

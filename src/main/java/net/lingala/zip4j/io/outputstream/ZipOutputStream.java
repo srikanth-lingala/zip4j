@@ -184,6 +184,8 @@ public class ZipOutputStream extends OutputStream {
       return new AesCipherOutputStream(zipEntryOutputStream, zipParameters, password);
     } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
       return new ZipStandardCipherOutputStream(zipEntryOutputStream, zipParameters, password);
+    } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG) {
+      throw new ZipException(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG + " encryption method is not supported");
     } else {
       throw new ZipException("Invalid encryption method");
     }
