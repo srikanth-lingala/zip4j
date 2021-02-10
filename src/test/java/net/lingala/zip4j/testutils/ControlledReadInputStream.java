@@ -32,7 +32,7 @@ public class ControlledReadInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    int toRead = len > readLimit ? readLimit : len;
+    int toRead = Math.min(len, readLimit);
     return inputStream.read(b, off, toRead);
   }
 }

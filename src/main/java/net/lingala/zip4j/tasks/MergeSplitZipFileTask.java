@@ -5,6 +5,7 @@ import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ZipModel;
@@ -68,14 +69,15 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
             end = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
           }
 
-          copyFile(randomAccessFile, outputStream, start, end, progressMonitor);
+          copyFile(randomAccessFile, outputStream, start, end, progressMonitor, taskParameters.zip4jConfig.getBufferSize());
           totalBytesWritten += (end - start);
           updateFileHeaderOffsetsForIndex(zipModel.getCentralDirectory().getFileHeaders(),
               i == 0 ? 0 : totalBytesWritten, i, splitSignatureOverhead);
           verifyIfTaskIsCancelled();
         }
       }
-      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream, taskParameters.charset);
+      updateHeadersForMergeSplitFileAction(zipModel, totalBytesWritten, outputStream,
+          taskParameters.zip4jConfig.getCharset());
       progressMonitor.endProgressMonitor();
     } catch (CloneNotSupportedException e) {
       throw new ZipException(e);
@@ -192,8 +194,8 @@ public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskPar
   public static class MergeSplitZipFileTaskParameters extends AbstractZipTaskParameters {
     private File outputZipFile;
 
-    public MergeSplitZipFileTaskParameters(File outputZipFile, Charset charset) {
-      super(charset);
+    public MergeSplitZipFileTaskParameters(File outputZipFile, Zip4jConfig zip4jConfig) {
+      super(zip4jConfig);
       this.outputZipFile = outputZipFile;
     }
   }

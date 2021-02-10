@@ -47,7 +47,7 @@ public class HeaderReaderIT extends AbstractIT {
     ZipModel actualZipModel = generateZipHeadersFile(numberOfEntries, EncryptionMethod.NONE);
 
     try(RandomAccessFile randomAccessFile = initializeRandomAccessFile(actualZipModel.getZipFile())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       verifyZipModel(readZipModel, 10, false);
       assertThat(readZipModel.getEndOfCentralDirectoryRecord().getComment()).isEmpty();
     }
@@ -61,7 +61,7 @@ public class HeaderReaderIT extends AbstractIT {
     actualZipModel.setZipFile(headersFile);
 
     try(RandomAccessFile randomAccessFile = initializeRandomAccessFile(actualZipModel.getZipFile())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, InternalZipConstants.CHARSET_UTF_8);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       verifyZipModel(readZipModel, 1, false);
 
       EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = readZipModel.getEndOfCentralDirectoryRecord();
@@ -77,7 +77,7 @@ public class HeaderReaderIT extends AbstractIT {
       randomAccessFile.seek(4000);
       randomAccessFile.write(1);
 
-      headerReader.readAllHeaders(randomAccessFile, null);
+      headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e.getMessage()).isEqualTo("Zip headers not found. Probably not a zip file");
@@ -92,7 +92,7 @@ public class HeaderReaderIT extends AbstractIT {
       randomAccessFile.seek(1000);
       randomAccessFile.write(1);
 
-      headerReader.readAllHeaders(randomAccessFile, null);
+      headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e.getMessage()).isEqualTo("Zip headers not found. Probably not a zip file");
@@ -109,7 +109,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      headerReader.readAllHeaders(randomAccessFile, null);
+      headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       fail("Should throw an exception");
     } catch (ZipException e) {
       assertThat(e.getMessage()).isEqualTo("Expected central directory entry not found (#2)");
@@ -126,7 +126,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(0);
       assertThat(fileHeader.getFileName()).isEqualTo("test.txt");
     }
@@ -141,7 +141,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(0);
       assertThat(fileHeader.getFileName()).isNull();
     }
@@ -176,7 +176,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
         assertThat(fileHeader.getAesExtraDataRecord()).isNotNull();
         assertThat(fileHeader.getAesExtraDataRecord().getAesKeyStrength()).isEqualTo(AesKeyStrength.KEY_STRENGTH_256);
@@ -190,7 +190,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       for (FileHeader fileHeader : readZipModel.getCentralDirectory().getFileHeaders()) {
         assertThat(fileHeader.isEncrypted()).isTrue();
         assertThat(fileHeader.getEncryptionMethod()).isEqualTo(EncryptionMethod.ZIP_STANDARD);
@@ -210,7 +210,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, null);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
       assertThat(readZipModel.isZip64Format()).isTrue();
       assertThat(readZipModel.getZip64EndOfCentralDirectoryRecord()).isNotNull();
       assertThat(readZipModel.getZip64EndOfCentralDirectoryLocator()).isNotNull();
@@ -278,7 +278,7 @@ public class HeaderReaderIT extends AbstractIT {
 
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, charsetToUseForReading);
+      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildConfig(charsetToUseForReading));
       FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(1);
       if (shouldFileNamesMatch) {
         assertThat(fileHeader.getFileName()).isEqualTo(fileName);

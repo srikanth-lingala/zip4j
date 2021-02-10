@@ -6,6 +6,7 @@ import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -21,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,11 +33,12 @@ import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
 import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.ZIP_STANDARD;
-import static net.lingala.zip4j.progress.ProgressMonitor.Task.*;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.ADD_ENTRY;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.CALCULATE_CRC;
+import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
 import static net.lingala.zip4j.util.CrcUtil.computeFileCrc;
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
-import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 
 public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
@@ -45,8 +46,6 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipModel zipModel;
   private char[] password;
   private HeaderWriter headerWriter;
-  private byte[] readBuff = new byte[BUFF_SIZE];
-  private int readLen = -1;
 
   AbstractAddFileToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter,
                            AsyncTaskParameters asyncTaskParameters) {
@@ -54,17 +53,19 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     this.zipModel = zipModel;
     this.password = password;
     this.headerWriter = headerWriter;
+
   }
 
-  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters, Charset charset)
-      throws IOException {
+  void addFilesToZip(List<File> filesToAdd, ProgressMonitor progressMonitor, ZipParameters zipParameters,
+                     Zip4jConfig zip4jConfig) throws IOException {
 
     assertFilesExist(filesToAdd, zipParameters.getSymbolicLinkAction());
 
-    List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor, charset);
+    byte[] readBuff = new byte[zip4jConfig.getBufferSize()];
+    List<File> updatedFilesToAdd = removeFilesIfExists(filesToAdd, zipParameters, progressMonitor, zip4jConfig);
 
     try (SplitOutputStream splitOutputStream = new SplitOutputStream(zipModel.getZipFile(), zipModel.getSplitLength());
-         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, charset)) {
+         ZipOutputStream zipOutputStream = initializeOutputStream(splitOutputStream, zip4jConfig)) {
 
       for (File fileToAdd : updatedFilesToAdd) {
         verifyIfTaskIsCancelled();
@@ -81,7 +82,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
           }
         }
 
-        addFileToZip(fileToAdd, zipOutputStream, clonedZipParameters, splitOutputStream, progressMonitor);
+        addFileToZip(fileToAdd, zipOutputStream, clonedZipParameters, splitOutputStream, progressMonitor, readBuff);
       }
     }
   }
@@ -103,10 +104,11 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   }
 
   private void addFileToZip(File fileToAdd, ZipOutputStream zipOutputStream, ZipParameters zipParameters,
-                            SplitOutputStream splitOutputStream, ProgressMonitor progressMonitor) throws IOException {
+                            SplitOutputStream splitOutputStream, ProgressMonitor progressMonitor,
+                            byte[] readBuff) throws IOException {
 
     zipOutputStream.putNextEntry(zipParameters);
-
+    int readLen;
     if (fileToAdd.exists() && !fileToAdd.isDirectory()) {
       try (InputStream inputStream = new FileInputStream(fileToAdd)) {
         while ((readLen = inputStream.read(readBuff)) != -1) {
@@ -161,12 +163,12 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return totalWork;
   }
 
-  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream, Charset charset) throws IOException {
+  ZipOutputStream initializeOutputStream(SplitOutputStream splitOutputStream, Zip4jConfig zip4jConfig) throws IOException {
     if (zipModel.getZipFile().exists()) {
       splitOutputStream.seek(HeaderUtil.getOffsetStartOfCentralDirectory(zipModel));
     }
 
-    return new ZipOutputStream(splitOutputStream, password, charset, zipModel);
+    return new ZipOutputStream(splitOutputStream, password, zip4jConfig, zipModel);
   }
 
   void verifyZipParameters(ZipParameters parameters) throws ZipException {
@@ -233,7 +235,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return clonedZipParameters;
   }
 
-  private List<File> removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor, Charset charset)
+  private List<File> removeFilesIfExists(List<File> files, ZipParameters zipParameters, ProgressMonitor progressMonitor,
+                                         Zip4jConfig zip4jConfig)
       throws ZipException {
 
     List<File> filesToAdd = new ArrayList<>(files);
@@ -248,7 +251,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       if (fileHeader != null) {
         if (zipParameters.isOverrideExistingFilesInZip()) {
           progressMonitor.setCurrentTask(REMOVE_ENTRY);
-          removeFile(fileHeader, progressMonitor, charset);
+          removeFile(fileHeader, progressMonitor, zip4jConfig);
           verifyIfTaskIsCancelled();
           progressMonitor.setCurrentTask(ADD_ENTRY);
         } else {
@@ -260,10 +263,12 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     return filesToAdd;
   }
 
-  void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor, Charset charset) throws ZipException {
+  void removeFile(FileHeader fileHeader, ProgressMonitor progressMonitor, Zip4jConfig zip4jConfig) throws ZipException {
     AsyncTaskParameters asyncTaskParameters = new AsyncTaskParameters(null, false, progressMonitor);
     RemoveFilesFromZipTask removeFilesFromZipTask = new RemoveFilesFromZipTask(zipModel, headerWriter, asyncTaskParameters);
-    removeFilesFromZipTask.execute(new RemoveFilesFromZipTaskParameters(Collections.singletonList(fileHeader.getFileName()), charset));
+    RemoveFilesFromZipTaskParameters parameters = new RemoveFilesFromZipTaskParameters(
+        Collections.singletonList(fileHeader.getFileName()), zip4jConfig);
+    removeFilesFromZipTask.execute(parameters);
   }
 
   private String replaceFileNameInZip(String fileInZipWithPath, String newFileName) {

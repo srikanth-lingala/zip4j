@@ -4,7 +4,6 @@ import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
@@ -20,13 +19,14 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
   private byte[] singleByteBuffer = new byte[1];
   private LocalFileHeader localFileHeader;
 
-  public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException {
+  public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
+                           char[] password, int bufferSize) throws IOException {
     this.zipEntryInputStream = zipEntryInputStream;
     this.decrypter = initializeDecrypter(localFileHeader, password);
     this.localFileHeader = localFileHeader;
 
     if (Zip4jUtil.getCompressionMethod(localFileHeader).equals(CompressionMethod.DEFLATE)) {
-      lastReadRawDataCache = new byte[InternalZipConstants.BUFF_SIZE];
+      lastReadRawDataCache = new byte[bufferSize];
     }
   }
 

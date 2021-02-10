@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -607,6 +608,14 @@ public class ZipFileTest {
   @Test
   public void testToString() {
     assertThat(zipFile.toString()).isEqualTo("SOME_PATH");
+  }
+
+  @Test
+  public void testSetBufferSizeThrowsExceptionWhenSizeLessThanExpected()  {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
+
+    zipFile.setBufferSize(MIN_BUFF_SIZE - 1);
   }
 
   private File mockFile(boolean fileExists) {

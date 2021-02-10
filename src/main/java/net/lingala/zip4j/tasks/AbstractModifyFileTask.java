@@ -67,8 +67,8 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
   }
 
   long copyFile(RandomAccessFile randomAccessFile, OutputStream outputStream, long start, long length,
-                        ProgressMonitor progressMonitor) throws IOException {
-    FileUtils.copyFile(randomAccessFile, outputStream, start, start + length, progressMonitor);
+                        ProgressMonitor progressMonitor, int bufferSize) throws IOException {
+    FileUtils.copyFile(randomAccessFile, outputStream, start, start + length, progressMonitor, bufferSize);
     return length;
   }
 

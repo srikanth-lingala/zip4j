@@ -858,6 +858,16 @@ public class AddFilesToZipIT extends AbstractIT {
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
   }
 
+  @Test
+  public void testAddFolderWithCustomBufferSize() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setBufferSize(16 * 1024);
+
+    zipFile.addFolder(TestUtils.getTestFileFromResources(""));
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 13);
+  }
+
   private void verifyZipFileContainsFiles(File generatedZipFile, List<String> fileNames,
                                           CompressionMethod compressionMethod, EncryptionMethod encryptionMethod,
                                           AesKeyStrength aesKeyStrength) throws ZipException {

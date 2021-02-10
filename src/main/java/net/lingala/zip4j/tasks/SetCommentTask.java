@@ -4,12 +4,12 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderWriter;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
 import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
 
@@ -38,7 +38,7 @@ public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
       }
 
       HeaderWriter headerWriter = new HeaderWriter();
-      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, taskParameters.charset);
+      headerWriter.finalizeZipFileWithoutValidations(zipModel, outputStream, taskParameters.zip4jConfig.getCharset());
     }
   }
 
@@ -55,8 +55,8 @@ public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
   public static class SetCommentTaskTaskParameters extends AbstractZipTaskParameters {
     private String comment;
 
-    public SetCommentTaskTaskParameters(String comment, Charset charset) {
-      super(charset);
+    public SetCommentTaskTaskParameters(String comment, Zip4jConfig zip4jConfig) {
+      super(zip4jConfig);
       this.comment = comment;
     }
   }

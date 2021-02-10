@@ -26,6 +26,7 @@ import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
@@ -46,7 +47,6 @@ import java.util.List;
 
 import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
-import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
@@ -62,7 +62,7 @@ public class HeaderReader {
   private RawIO rawIO = new RawIO();
   private byte[] intBuff = new byte[4];
 
-  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Charset charset) throws IOException {
+  public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Zip4jConfig zip4jConfig) throws IOException {
 
     if (zip4jRaf.length() < ENDHDR) {
       throw new ZipException("Zip file size less than minimum expected zip file size. " +
@@ -72,8 +72,9 @@ public class HeaderReader {
     zipModel = new ZipModel();
 
     try {
-      zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO, charset));
-    } catch (ZipException e){
+      zipModel.setEndOfCentralDirectoryRecord(
+          readEndOfCentralDirectoryRecord(zip4jRaf, rawIO, zip4jConfig));
+    } catch (ZipException e) {
       throw e;
     } catch (IOException e) {
       throw new ZipException("Zip headers not found. Probably not a zip file or a corrupted zip file", e);
@@ -97,20 +98,20 @@ public class HeaderReader {
       }
     }
 
-    zipModel.setCentralDirectory(readCentralDirectory(zip4jRaf, rawIO, charset));
+    zipModel.setCentralDirectory(readCentralDirectory(zip4jRaf, rawIO, zip4jConfig.getCharset()));
 
     return zipModel;
   }
 
-  private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO, Charset charset)
-      throws IOException {
+  private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO,
+                                                                      Zip4jConfig zip4jConfig) throws IOException {
 
     long offsetEndOfCentralDirectory = zip4jRaf.length() - ENDHDR;
     seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectory);
     int headerSignature = rawIO.readIntLittleEndian(zip4jRaf);
 
     if (headerSignature != HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-      offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf);
+      offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf, zip4jConfig.getBufferSize());
       zip4jRaf.seek(offsetEndOfCentralDirectory + 4); // 4 to ignore reading signature again
     }
 
@@ -128,7 +129,7 @@ public class HeaderReader {
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
 
     int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
-    endOfCentralDirectoryRecord.setComment(readZipComment(zip4jRaf, commentLength, charset));
+    endOfCentralDirectoryRecord.setComment(readZipComment(zip4jRaf, commentLength, zip4jConfig.getCharset()));
 
     zipModel.setSplitArchive(endOfCentralDirectoryRecord.getNumberOfThisDisk() > 0);
     return endOfCentralDirectoryRecord;
@@ -697,12 +698,14 @@ public class HeaderReader {
     return zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
   }
 
-  private long determineOffsetOfEndOfCentralDirectory(RandomAccessFile randomAccessFile) throws IOException {
-    byte[] buff = new byte[BUFF_SIZE];
+  private long determineOffsetOfEndOfCentralDirectory(RandomAccessFile randomAccessFile, int bufferSize)
+      throws IOException {
+
+    byte[] buff = new byte[bufferSize];
     long currentFilePointer = randomAccessFile.getFilePointer();
 
     do {
-      int toRead = currentFilePointer > BUFF_SIZE ? BUFF_SIZE : (int) currentFilePointer;
+      int toRead = currentFilePointer > bufferSize ? bufferSize : (int) currentFilePointer;
       // read 4 bytes again to make sure that the header is not spilled over
       long seekPosition = currentFilePointer - toRead + 4;
       if (seekPosition == 4) {

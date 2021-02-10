@@ -21,16 +21,15 @@ import net.lingala.zip4j.model.enums.CompressionLevel;
 import java.io.IOException;
 import java.util.zip.Deflater;
 
-import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
-
 class DeflaterOutputStream extends CompressedOutputStream {
 
-  private byte[] buff = new byte[BUFF_SIZE];
+  private byte[] buff;
   protected Deflater deflater;
 
-  public DeflaterOutputStream(CipherOutputStream cipherOutputStream, CompressionLevel compressionLevel) {
+  public DeflaterOutputStream(CipherOutputStream cipherOutputStream, CompressionLevel compressionLevel, int bufferSize) {
     super(cipherOutputStream);
     deflater = new Deflater(compressionLevel.getLevel(), true);
+    buff = new byte[bufferSize];
   }
 
   public void write(byte[] b) throws IOException {

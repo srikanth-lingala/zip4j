@@ -4,6 +4,7 @@ import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
@@ -14,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,12 +32,24 @@ import java.util.zip.ZipOutputStream;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyFileContent;
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipInputStreamIT extends AbstractIT {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
+
+  @Test
+  public void testZipInputStreamConstructorThrowsExceptionWhenBufferSizeIsLessThanExpected() {
+    InputStream inputStream = new ByteArrayInputStream(new byte[1]);
+    Zip4jConfig zip4jConfig = new Zip4jConfig(null, InternalZipConstants.MIN_BUFF_SIZE - 1);
+
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
+
+    new ZipInputStream(inputStream, null, zip4jConfig);
+  }
 
   @Test
   public void testExtractStoreWithoutEncryption() throws IOException {

@@ -608,6 +608,20 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
   }
 
+  @Test
+  public void testExtractAllWithCustomBufferSize() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setIncludeRootFolder(false);
+    zipFile.addFolder(getTestFileFromResources(""), zipParameters);
+    zipFile.setBufferSize(32 * 1024);
+
+    zipFile.extractAll(outputFolder.getPath());
+
+    ZipFileVerifier.verifyFolderContentsSameAsSourceFiles(outputFolder);
+    verifyNumberOfFilesInOutputFolder(outputFolder, 10);
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

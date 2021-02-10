@@ -1,10 +1,12 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.testutils.TestUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -78,5 +80,17 @@ public abstract class AbstractIT {
     }
 
     Arrays.stream(filesInOutputFolder).forEach(File::delete);
+  }
+
+  protected Zip4jConfig buildDefaultConfig() {
+    return buildConfig(null);
+  }
+
+  protected Zip4jConfig buildConfig(Charset charset) {
+    return new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE);
+  }
+
+  protected Zip4jConfig buildConfig(int bufferSize) {
+    return new Zip4jConfig(null, bufferSize);
   }
 }

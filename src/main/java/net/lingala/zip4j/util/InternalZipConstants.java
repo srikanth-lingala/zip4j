@@ -42,6 +42,7 @@ public final class InternalZipConstants {
   public static final int ZIP_64_NUMBER_OF_ENTRIES_LIMIT = 65535;
 
   public static final int BUFF_SIZE = 1024 * 4;
+  public static final int MIN_BUFF_SIZE = 512;
 
   // Update local file header constants
   // This value holds the number of bytes to skip from

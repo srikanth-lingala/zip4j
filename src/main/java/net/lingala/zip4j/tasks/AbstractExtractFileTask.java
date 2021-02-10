@@ -20,14 +20,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
 
-import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
 public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
   private ZipModel zipModel;
   private UnzipParameters unzipParameters;
-  private byte[] buff = new byte[BUFF_SIZE];
 
   public AbstractExtractFileTask(ZipModel zipModel, UnzipParameters unzipParameters,
                                  AsyncTaskParameters asyncTaskParameters) {
@@ -37,7 +35,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   protected void extractFile(ZipInputStream zipInputStream, FileHeader fileHeader, String outputPath,
-                             String newFileName, ProgressMonitor progressMonitor) throws IOException {
+                             String newFileName, ProgressMonitor progressMonitor, byte[] readBuff) throws IOException {
 
     boolean isSymbolicLink = isSymbolicLink(fileHeader);
     if (isSymbolicLink && !unzipParameters.isExtractSymbolicLinks()) {
@@ -70,7 +68,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
     } else {
       checkOutputDirectoryStructure(outputFile);
-      unzipFile(zipInputStream, outputFile, progressMonitor);
+      unzipFile(zipInputStream, outputFile, progressMonitor, readBuff);
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);
@@ -86,7 +84,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     return BitUtils.isBitSet(externalFileAttributes[3], 5);
   }
 
-  private void unzipFile(ZipInputStream inputStream, File outputFile, ProgressMonitor progressMonitor)
+  private void unzipFile(ZipInputStream inputStream, File outputFile, ProgressMonitor progressMonitor, byte[] buff)
       throws IOException {
 
     int readLength;

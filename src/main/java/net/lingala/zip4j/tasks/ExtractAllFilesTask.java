@@ -4,13 +4,13 @@ import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters;
 import net.lingala.zip4j.util.UnzipUtil;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders;
 
@@ -28,7 +28,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   @Override
   protected void executeTask(ExtractAllFilesTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
-    try (ZipInputStream zipInputStream = prepareZipInputStream(taskParameters.charset)) {
+    try (ZipInputStream zipInputStream = prepareZipInputStream(taskParameters.zip4jConfig)) {
       for (FileHeader fileHeader : getZipModel().getCentralDirectory().getFileHeaders()) {
         if (fileHeader.getFileName().startsWith("__MACOSX")) {
           progressMonitor.updateWorkCompleted(fileHeader.getUncompressedSize());
@@ -37,7 +37,8 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
         splitInputStream.prepareExtractionForFileHeader(fileHeader);
 
-        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor);
+        byte[] readBuff = new byte[taskParameters.zip4jConfig.getBufferSize()];
+        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor, readBuff);
         verifyIfTaskIsCancelled();
       }
     } finally {
@@ -52,7 +53,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
     return getTotalUncompressedSizeOfAllFileHeaders(getZipModel().getCentralDirectory().getFileHeaders());
   }
 
-  private ZipInputStream prepareZipInputStream(Charset charset) throws IOException {
+  private ZipInputStream prepareZipInputStream(Zip4jConfig zip4jConfig) throws IOException {
     splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
 
     FileHeader fileHeader = getFirstFileHeader(getZipModel());
@@ -60,7 +61,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
     }
 
-    return new ZipInputStream(splitInputStream, password, charset);
+    return new ZipInputStream(splitInputStream, password, zip4jConfig);
   }
 
   private FileHeader getFirstFileHeader(ZipModel zipModel) {
@@ -76,8 +77,8 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   public static class ExtractAllFilesTaskParameters extends AbstractZipTaskParameters {
     private String outputPath;
 
-    public ExtractAllFilesTaskParameters(String outputPath, Charset charset) {
-      super(charset);
+    public ExtractAllFilesTaskParameters(String outputPath, Zip4jConfig zip4jConfig) {
+      super(zip4jConfig);
       this.outputPath = outputPath;
     }
   }

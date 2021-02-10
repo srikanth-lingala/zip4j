@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileUtilsIT extends AbstractIT {
@@ -52,7 +53,7 @@ public class FileUtilsIT extends AbstractIT {
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
-      FileUtils.copyFile(randomAccessFile, outputStream, 100, 100, progressMonitor);
+      FileUtils.copyFile(randomAccessFile, outputStream, 100, 100, progressMonitor, BUFF_SIZE);
     }
 
     assertThat(outputFile.exists()).isTrue();
@@ -65,7 +66,7 @@ public class FileUtilsIT extends AbstractIT {
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
-      FileUtils.copyFile(randomAccessFile, outputStream, 0, sourceFile.length(), progressMonitor);
+      FileUtils.copyFile(randomAccessFile, outputStream, 0, sourceFile.length(), progressMonitor, BUFF_SIZE);
     }
 
     assertThat(outputFile.length()).isEqualTo(sourceFile.length());
@@ -77,7 +78,7 @@ public class FileUtilsIT extends AbstractIT {
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
-      FileUtils.copyFile(randomAccessFile, outputStream, 500, 800, progressMonitor);
+      FileUtils.copyFile(randomAccessFile, outputStream, 500, 800, progressMonitor, BUFF_SIZE);
     }
 
     assertThat(outputFile.length()).isEqualTo(300);
@@ -194,7 +195,7 @@ public class FileUtilsIT extends AbstractIT {
     File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(temporaryFolder.newFile())) {
-      FileUtils.copyFile(randomAccessFile, outputStream, start, offset, progressMonitor);
+      FileUtils.copyFile(randomAccessFile, outputStream, start, offset, progressMonitor, BUFF_SIZE);
     }
   }
 }

@@ -1,12 +1,12 @@
 package net.lingala.zip4j.tasks;
 
-import java.nio.charset.Charset;
+import net.lingala.zip4j.model.Zip4jConfig;
 
 public abstract class AbstractZipTaskParameters {
 
-  protected Charset charset;
+  protected Zip4jConfig zip4jConfig;
 
-  protected AbstractZipTaskParameters(Charset charset) {
-    this.charset = charset;
+  protected AbstractZipTaskParameters(Zip4jConfig zip4jConfig) {
+    this.zip4jConfig = zip4jConfig;
   }
 }

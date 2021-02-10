@@ -35,7 +35,6 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.BitUtils.setBit;
-import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_FILE_SEPARATOR;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
@@ -289,7 +288,7 @@ public class FileUtils {
   }
 
   public static void copyFile(RandomAccessFile randomAccessFile, OutputStream outputStream, long start, long end,
-                              ProgressMonitor progressMonitor) throws ZipException {
+                              ProgressMonitor progressMonitor, int bufferSize) throws ZipException {
 
     if (start < 0 || end < 0 || start > end) {
       throw new ZipException("invalid offsets");
@@ -307,10 +306,10 @@ public class FileUtils {
       long bytesRead = 0;
       long bytesToRead = end - start;
 
-      if ((end - start) < BUFF_SIZE) {
+      if ((end - start) < bufferSize) {
         buff = new byte[(int) bytesToRead];
       } else {
-        buff = new byte[BUFF_SIZE];
+        buff = new byte[bufferSize];
       }
 
       while ((readLen = randomAccessFile.read(buff)) != -1) {

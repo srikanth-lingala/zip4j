@@ -24,6 +24,7 @@ import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
+import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
@@ -48,6 +49,7 @@ import net.lingala.zip4j.tasks.RenameFilesTask.RenameFilesTaskParameters;
 import net.lingala.zip4j.tasks.SetCommentTask;
 import net.lingala.zip4j.tasks.SetCommentTask.SetCommentTaskTaskParameters;
 import net.lingala.zip4j.util.FileUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -65,6 +67,7 @@ import java.util.concurrent.ThreadFactory;
 
 import static net.lingala.zip4j.util.FileUtils.isNumberedSplitFile;
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF_8;
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static net.lingala.zip4j.util.UnzipUtil.createZipInputStream;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
@@ -92,6 +95,7 @@ public class ZipFile {
   private Charset charset = null;
   private ThreadFactory threadFactory;
   private ExecutorService executorService;
+  private int bufferSize = InternalZipConstants.BUFF_SIZE;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -175,7 +179,7 @@ public class ZipFile {
     zipModel.setSplitLength(splitLength);
 
     new AddFilesToZipTask(zipModel, password, headerWriter, buildAsyncParameters()).execute(
-        new AddFilesToZipTaskParameters(filesToAdd, parameters, charset));
+        new AddFilesToZipTaskParameters(filesToAdd, parameters, buildConfig()));
   }
 
   /**
@@ -313,7 +317,7 @@ public class ZipFile {
     }
 
     new AddFilesToZipTask(zipModel, password, headerWriter, buildAsyncParameters()).execute(
-        new AddFilesToZipTaskParameters(filesToAdd, parameters, charset));
+        new AddFilesToZipTaskParameters(filesToAdd, parameters, buildConfig()));
   }
 
   /**
@@ -385,7 +389,7 @@ public class ZipFile {
     }
 
     new AddFolderToZipTask(zipModel, password, headerWriter, buildAsyncParameters()).execute(
-        new AddFolderToZipTaskParameters(folderToAdd, zipParameters, charset));
+        new AddFolderToZipTaskParameters(folderToAdd, zipParameters, buildConfig()));
   }
 
   /**
@@ -422,7 +426,7 @@ public class ZipFile {
     }
 
     new AddStreamToZipTask(zipModel, password, headerWriter, buildAsyncParameters()).execute(
-        new AddStreamToZipTaskParameters(inputStream, parameters, charset));
+        new AddStreamToZipTaskParameters(inputStream, parameters, buildConfig()));
   }
 
   /**
@@ -468,7 +472,7 @@ public class ZipFile {
     }
 
     new ExtractAllFilesTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
-        new ExtractAllFilesTaskParameters(destinationPath, charset));
+        new ExtractAllFilesTaskParameters(destinationPath, buildConfig()));
   }
 
   /**
@@ -683,7 +687,7 @@ public class ZipFile {
     readZipInfo();
 
     new ExtractFileTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
-        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, charset));
+        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, buildConfig()));
   }
 
   /**
@@ -842,7 +846,7 @@ public class ZipFile {
     }
 
     new RemoveFilesFromZipTask(zipModel, headerWriter, buildAsyncParameters()).execute(
-        new RemoveFilesFromZipTaskParameters(fileNames, charset));
+        new RemoveFilesFromZipTaskParameters(fileNames, buildConfig()));
   }
 
   /**
@@ -923,8 +927,8 @@ public class ZipFile {
     }
 
     AsyncZipTask.AsyncTaskParameters asyncTaskParameters = buildAsyncParameters();
-    new RenameFilesTask(zipModel, headerWriter, new RawIO(), charset, asyncTaskParameters).execute(
-        new RenameFilesTaskParameters(fileNamesMap));
+    new RenameFilesTask(zipModel, headerWriter, new RawIO(), asyncTaskParameters).execute(
+        new RenameFilesTaskParameters(fileNamesMap, buildConfig()));
   }
 
   /**
@@ -950,7 +954,7 @@ public class ZipFile {
     }
 
     new MergeSplitZipFileTask(zipModel, buildAsyncParameters()).execute(
-            new MergeSplitZipFileTaskParameters(outputZipFile, charset));
+            new MergeSplitZipFileTaskParameters(outputZipFile, buildConfig()));
   }
 
   /**
@@ -979,7 +983,7 @@ public class ZipFile {
     }
 
     new SetCommentTask(zipModel, buildAsyncParameters()).execute(
-            new SetCommentTaskTaskParameters(comment, charset));
+            new SetCommentTaskTaskParameters(comment, buildConfig()));
   }
 
   /**
@@ -1083,6 +1087,30 @@ public class ZipFile {
   }
 
   /**
+   * Returns the size of the buffer used to read streams
+   *
+   * @return size of the buffer used to read streams
+   */
+  public int getBufferSize() {
+    return bufferSize;
+  }
+
+  /**
+   * Sets the size of buffer that should be used when reading streams. This size cannot be less than the value defined
+   * in InternalZipConstants.MIN_BUFF_SIZE
+   *
+   * @param bufferSize size of the buffer that should be used when reading streams
+   * @throws IllegalArgumentException if bufferSize is less than value configured in InternalZipConstants.MIN_BUFF_SIZE
+   */
+  public void setBufferSize(int bufferSize) {
+    if (bufferSize < MIN_BUFF_SIZE) {
+      throw new IllegalArgumentException("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
+    }
+
+    this.bufferSize = bufferSize;
+  }
+
+  /**
    * Reads the zip header information for this zip file. If the zip file
    * does not exist, it creates an empty zip model.<br><br>
    * <b>Note:</b> This method does not read local file header information
@@ -1105,7 +1133,7 @@ public class ZipFile {
 
     try (RandomAccessFile randomAccessFile = initializeRandomAccessFileForHeaderReading()) {
       HeaderReader headerReader = new HeaderReader();
-      zipModel = headerReader.readAllHeaders(randomAccessFile, charset);
+      zipModel = headerReader.readAllHeaders(randomAccessFile, buildConfig());
       zipModel.setZipFile(zipFile);
     } catch (ZipException e) {
       throw e;
@@ -1114,11 +1142,6 @@ public class ZipFile {
     }
   }
 
-  /**
-   * Creates a new instance of zip model
-   *
-   * @throws ZipException
-   */
   private void createNewZipModel() {
     zipModel = new ZipModel();
     zipModel.setZipFile(zipFile);
@@ -1209,5 +1232,9 @@ public class ZipFile {
   @Override
   public String toString() {
     return zipFile.toString();
+  }
+
+  private Zip4jConfig buildConfig() {
+    return new Zip4jConfig(charset, bufferSize);
   }
 }

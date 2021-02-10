@@ -10,8 +10,8 @@ import static net.lingala.zip4j.util.InternalZipConstants.STD_DEC_HDR_SIZE;
 class ZipStandardCipherInputStream extends CipherInputStream<StandardDecrypter> {
 
   public ZipStandardCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
-                                      char[] password) throws IOException {
-    super(zipEntryInputStream, localFileHeader, password);
+                                      char[] password, int bufferSize) throws IOException {
+    super(zipEntryInputStream, localFileHeader, password, bufferSize);
   }
 
   @Override

@@ -27,9 +27,9 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
   private int lengthToCopyInThisIteration = 0;
   private int aes16ByteBlockReadLength = 0;
 
-  public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader, char[] password)
-      throws IOException {
-    super(zipEntryInputStream, localFileHeader, password);
+  public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
+                              char[] password, int bufferSize) throws IOException {
+    super(zipEntryInputStream, localFileHeader, password, bufferSize);
   }
 
   @Override
