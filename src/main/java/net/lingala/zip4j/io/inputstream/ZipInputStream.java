@@ -35,7 +35,6 @@ import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
-import java.util.zip.DataFormatException;
 
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
@@ -157,8 +156,7 @@ public class ZipInputStream extends InputStream {
 
       return readLen;
     } catch (IOException e) {
-      if (e.getCause() != null && e.getCause() instanceof DataFormatException
-          && isEncryptionMethodZipStandard(localFileHeader)) {
+      if (isEncryptionMethodZipStandard(localFileHeader)) {
         throw new ZipException(e.getMessage(), e.getCause(), ZipException.Type.WRONG_PASSWORD);
       }
 

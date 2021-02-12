@@ -32,8 +32,6 @@ import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
  */
 public class AESDecrypter implements Decrypter {
 
-  private AESExtraDataRecord aesExtraDataRecord;
-  private char[] password;
   private AESEngine aesEngine;
   private MacBasedPRF mac;
 
@@ -42,14 +40,14 @@ public class AESDecrypter implements Decrypter {
   private byte[] counterBlock;
 
   public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt, byte[] passwordVerifier) throws ZipException {
-    this.aesExtraDataRecord = aesExtraDataRecord;
-    this.password = password;
     iv = new byte[AES_BLOCK_SIZE];
     counterBlock = new byte[AES_BLOCK_SIZE];
-    init(salt, passwordVerifier);
+    init(salt, passwordVerifier, password, aesExtraDataRecord);
   }
 
-  private void init(byte[] salt, byte[] passwordVerifier) throws ZipException {
+  private void init(byte[] salt, byte[] passwordVerifier, char[] password, AESExtraDataRecord aesExtraDataRecord)
+      throws ZipException {
+
     if (password == null || password.length <= 0) {
       throw new ZipException("empty or null password provided for AES decryption");
     }

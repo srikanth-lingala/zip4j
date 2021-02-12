@@ -622,6 +622,26 @@ public class ExtractZipFileIT extends AbstractIT {
     verifyNumberOfFilesInOutputFolder(outputFolder, 10);
   }
 
+  @Test
+  public void testExtractingZipStandardEncryptedZipOverLoopAlwaysThrowsWrongPasswordTypeException() throws IOException {
+    for (int i = 0; i < 1000; i++) {
+      if (generatedZipFile.exists() && !generatedZipFile.delete()) {
+        throw new RuntimeException("Could not delete test zip file");
+      }
+
+      ZipFile zipFile = new ZipFile(generatedZipFile, "password".toCharArray());
+      addFileToZip(zipFile, "sample.pdf", EncryptionMethod.ZIP_STANDARD, "password");
+
+      try {
+        zipFile = new ZipFile(generatedZipFile, "WRONG_password".toCharArray());
+        zipFile.extractAll(outputFolder.getPath());
+      } catch (ZipException e) {
+        assertThat(e).isNotNull();
+        assertThat(e.getType()).isEqualTo(ZipException.Type.WRONG_PASSWORD);
+      }
+    }
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);
