@@ -13,6 +13,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private CompressionMethod compressionMethod;
   private long lastModifiedTime;
   private long crc = 0;
+  private byte[] crcRawData;
   private long compressedSize = 0;
   private long uncompressedSize = 0;
   private int fileNameLength;
@@ -69,6 +70,14 @@ public abstract class AbstractFileHeader extends ZipHeader {
 
   public void setCrc(long crc) {
     this.crc = crc;
+  }
+
+  public byte[] getCrcRawData() {
+    return crcRawData;
+  }
+
+  public void setCrcRawData(byte[] crcRawData) {
+    this.crcRawData = crcRawData;
   }
 
   public long getCompressedSize() {
