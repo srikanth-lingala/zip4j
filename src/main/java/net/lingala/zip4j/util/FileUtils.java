@@ -263,9 +263,19 @@ public class FileUtils {
     }
 
     if (!isStringNotNullAndNotEmpty(fileName)) {
-      throw new ZipException("fileName to add to zip is empty or null. fileName: '" + fileName
-          + "'. DefaultFolderPath: '" + zipParameters.getDefaultFolderPath() + "'. "
-          + "isSymlink: " + isSymbolicLink(fileToAdd));
+      String errorMessage = "fileName to add to zip is empty or null. fileName: '" + fileName + "' "
+          + "DefaultFolderPath: '" + zipParameters.getDefaultFolderPath() + "' "
+          + "FileNameInZip: " + zipParameters.getFileNameInZip();
+
+      if (isSymbolicLink(fileToAdd)) {
+        errorMessage += "isSymlink: true ";
+      }
+
+      if (Zip4jUtil.isStringNotNullAndNotEmpty(rootFolderNameInZip)) {
+        errorMessage = "rootFolderNameInZip: '" + rootFolderNameInZip + "' ";
+      }
+
+      throw new ZipException(errorMessage);
     }
 
     return fileName;
