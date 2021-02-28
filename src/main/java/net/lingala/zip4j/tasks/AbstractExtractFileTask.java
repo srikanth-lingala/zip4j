@@ -24,8 +24,8 @@ import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
 public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
-  private ZipModel zipModel;
-  private UnzipParameters unzipParameters;
+  private final ZipModel zipModel;
+  private final UnzipParameters unzipParameters;
 
   public AbstractExtractFileTask(ZipModel zipModel, UnzipParameters unzipParameters,
                                  AsyncTaskParameters asyncTaskParameters) {

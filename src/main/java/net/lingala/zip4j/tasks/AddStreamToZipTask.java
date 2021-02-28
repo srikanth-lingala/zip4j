@@ -86,8 +86,8 @@ public class AddStreamToZipTask extends AbstractAddFileToZipTask<AddStreamToZipT
   }
 
   public static class AddStreamToZipTaskParameters extends AbstractZipTaskParameters {
-    private InputStream inputStream;
-    private ZipParameters zipParameters;
+    private final InputStream inputStream;
+    private final ZipParameters zipParameters;
 
     public AddStreamToZipTaskParameters(InputStream inputStream, ZipParameters zipParameters, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

@@ -38,8 +38,8 @@ public class AddFilesToZipTask extends AbstractAddFileToZipTask<AddFilesToZipTas
   }
 
   public static class AddFilesToZipTaskParameters extends AbstractZipTaskParameters {
-    private List<File> filesToAdd;
-    private ZipParameters zipParameters;
+    private final List<File> filesToAdd;
+    private final ZipParameters zipParameters;
 
     public AddFilesToZipTaskParameters(List<File> filesToAdd, ZipParameters zipParameters, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

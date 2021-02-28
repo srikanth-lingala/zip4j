@@ -73,8 +73,8 @@ public class AddFolderToZipTask extends AbstractAddFileToZipTask<AddFolderToZipT
   }
 
   public static class AddFolderToZipTaskParameters extends AbstractZipTaskParameters {
-    private File folderToAdd;
-    private ZipParameters zipParameters;
+    private final File folderToAdd;
+    private final ZipParameters zipParameters;
 
     public AddFolderToZipTaskParameters(File folderToAdd, ZipParameters zipParameters, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

@@ -6,7 +6,7 @@ public enum VersionMadeBy {
   WINDOWS((byte) 0),
   UNIX((byte) 3);
 
-  private byte code;
+  private final byte code;
 
   VersionMadeBy(byte code) {
     this.code = code;

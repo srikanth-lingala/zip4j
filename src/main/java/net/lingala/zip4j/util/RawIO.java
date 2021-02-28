@@ -22,12 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 
 public class RawIO {
 
-  private byte[] shortBuff = new byte[2];
-  private byte[] intBuff = new byte[4];
-  private byte[] longBuff = new byte[8];
+  private final byte[] shortBuff = new byte[2];
+  private final byte[] intBuff = new byte[4];
+  private final byte[] longBuff = new byte[8];
 
   public long readLongLittleEndian(RandomAccessFile randomAccessFile) throws IOException {
     randomAccessFile.readFully(longBuff);
@@ -157,8 +158,6 @@ public class RawIO {
   }
 
   private void resetBytes(byte[] b) {
-    for(int i = 0; i < b.length; i++) {
-      b[i] = 0;
-    }
+    Arrays.fill(b, (byte) 0);
   }
 }
