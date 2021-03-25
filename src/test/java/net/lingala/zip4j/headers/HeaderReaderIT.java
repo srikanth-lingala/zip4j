@@ -250,6 +250,19 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
+  public void testReadLocalFileHeaderWithTemporarySpanningMarker() throws IOException {
+    long entrySize = InternalZipConstants.ZIP_64_SIZE_LIMIT + 1;
+    File headerFile = generateAndWriteLocalFileHeader(HeaderSignature.TEMPORARY_SPANNING_MARKER, entrySize, EncryptionMethod.NONE);
+
+    try(InputStream inputStream = new FileInputStream(headerFile)) {
+      LocalFileHeader readLocalFileHeader = headerReader.readLocalFileHeader(inputStream, InternalZipConstants.CHARSET_UTF_8);
+      assertThat(readLocalFileHeader).isNotNull();
+      assertThat(readLocalFileHeader.getCompressedSize()).isEqualTo(entrySize);
+      assertThat(readLocalFileHeader.getUncompressedSize()).isEqualTo(entrySize);
+    }
+  }
+
+  @Test
   public void testReadDataDescriptorWithSignature() {
 
   }
@@ -391,7 +404,12 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   private File generateAndWriteLocalFileHeader(long entrySize, EncryptionMethod encryptionMethod)
-      throws IOException {
+          throws IOException {
+    return generateAndWriteLocalFileHeader(null, entrySize, encryptionMethod);
+  }
+
+  private File generateAndWriteLocalFileHeader(HeaderSignature headerSignature, long entrySize, EncryptionMethod encryptionMethod)
+          throws IOException {
     LocalFileHeader localFileHeader = generateLocalFileHeader(entrySize, encryptionMethod);
 
     if (encryptionMethod != null && encryptionMethod != EncryptionMethod.NONE) {
@@ -403,6 +421,10 @@ public class HeaderReaderIT extends AbstractIT {
     File headerFile = temporaryFolder.newFile();
 
     try(OutputStream outputStream = new FileOutputStream(headerFile)) {
+      if (headerSignature != null) {
+        final RawIO rawIO = new RawIO();
+        rawIO.writeIntLittleEndian(outputStream, (int) headerSignature.getValue());
+      }
       headerWriter.writeLocalFileHeader(zipModel, localFileHeader, outputStream, InternalZipConstants.CHARSET_UTF_8);
     }
 
