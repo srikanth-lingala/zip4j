@@ -27,8 +27,8 @@ import static net.lingala.zip4j.util.FileUtils.copyFile;
 
 public class MergeSplitZipFileTask extends AsyncZipTask<MergeSplitZipFileTaskParameters> {
 
-  private ZipModel zipModel;
-  private RawIO rawIO = new RawIO();
+  private final ZipModel zipModel;
+  private final RawIO rawIO = new RawIO();
 
   public MergeSplitZipFileTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);

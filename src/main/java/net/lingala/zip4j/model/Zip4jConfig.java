@@ -4,8 +4,8 @@ import java.nio.charset.Charset;
 
 public class Zip4jConfig {
 
-  private Charset charset;
-  private int bufferSize;
+  private final Charset charset;
+  private final int bufferSize;
 
   public Zip4jConfig(Charset charset, int bufferSize) {
     this.charset = charset;

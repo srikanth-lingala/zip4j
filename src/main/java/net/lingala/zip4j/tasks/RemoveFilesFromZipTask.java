@@ -20,8 +20,8 @@ import java.util.List;
 
 public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFromZipTaskParameters>  {
 
-  private ZipModel zipModel;
-  private HeaderWriter headerWriter;
+  private final ZipModel zipModel;
+  private final HeaderWriter headerWriter;
 
   public RemoveFilesFromZipTask(ZipModel zipModel, HeaderWriter headerWriter, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);
@@ -144,7 +144,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
   }
 
   public static class RemoveFilesFromZipTaskParameters extends AbstractZipTaskParameters {
-    private List<String> filesToRemove;
+    private final List<String> filesToRemove;
 
     public RemoveFilesFromZipTaskParameters(List<String> filesToRemove, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);
