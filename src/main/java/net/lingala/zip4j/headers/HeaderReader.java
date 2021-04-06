@@ -527,6 +527,9 @@ public class HeaderReader {
 
     //signature
     int sig = rawIO.readIntLittleEndian(inputStream);
+    if (sig == HeaderSignature.TEMPORARY_SPANNING_MARKER.getValue()) {
+      sig = rawIO.readIntLittleEndian(inputStream);
+    }
     if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
       return null;
     }
