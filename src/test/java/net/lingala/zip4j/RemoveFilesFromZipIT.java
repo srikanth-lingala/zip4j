@@ -1,6 +1,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -17,9 +18,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
 import static net.lingala.zip4j.testutils.HeaderVerifier.verifyZipFileDoesNotContainFolders;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RemoveFilesFromZipIT extends AbstractIT {
 
@@ -217,6 +220,21 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries("test-files/file_PDF_1MB.pdf");
   }
 
+  @Test
+  public void testRemoveEntryWithAnotherSimilarNameFromZipRemovesOnlyTheEntryToBeRemoved() throws IOException {
+    File sourceFileToTest = TestUtils.getTestArchiveFromResources("remove_file_with_similar_file_names.zip");
+    File zipFileUnderTest = new File(temporaryFolder.getRoot().getPath() + InternalZipConstants.FILE_SEPARATOR + sourceFileToTest.getName());
+    TestUtils.copyFile(sourceFileToTest, zipFileUnderTest);
+    ZipFile zipFile = new ZipFile(zipFileUnderTest);
+    String fileNameToRemove ="a.js";
+    assertZipFileContainsFileByName(zipFile, fileNameToRemove);
+
+    zipFile.removeFile("a.js");
+
+    assertZipFileDoesNotContainsFileByName(zipFile, fileNameToRemove);
+    assertZipFileDoesNotContainsFileByName(new ZipFile(zipFileUnderTest), fileNameToRemove);
+  }
+
   private void testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries(
       String fileNameToRemove) throws IOException {
     TestUtils.copyFile(TestUtils.getTestArchiveFromResources("cen_dir_entries_diff_order_as_local_entries.zip"),
@@ -227,5 +245,21 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     zipFile = new ZipFile(generatedZipFile);
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 12);
     verifyFileHeadersDoesNotExist(zipFile, Collections.singletonList(fileNameToRemove));
+  }
+
+  private void assertZipFileContainsFileByName(ZipFile zipFile, String fileNameToExpect) throws IOException {
+    List<String> fileNamesInZip = getFileNamesFromZip(zipFile);
+    assertThat(fileNamesInZip).contains(fileNameToExpect);
+  }
+
+  private void assertZipFileDoesNotContainsFileByName(ZipFile zipFile, String fileNameToExpect) throws IOException {
+    List<String> fileNamesInZip = getFileNamesFromZip(zipFile);
+    assertThat(fileNamesInZip).doesNotContain(fileNameToExpect);
+  }
+
+  private List<String> getFileNamesFromZip(ZipFile zipFile) throws IOException {
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    assertThat(fileHeaders).isNotEmpty();
+    return fileHeaders.stream().map(FileHeader::getFileName).collect(Collectors.toList());
   }
 }

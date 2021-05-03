@@ -95,7 +95,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
 
   private boolean shouldEntryBeRemoved(FileHeader fileHeaderToBeChecked, List<String> fileNamesToBeRemoved) {
     for (String fileNameToBeRemoved : fileNamesToBeRemoved) {
-      if (fileHeaderToBeChecked.getFileName().startsWith(fileNameToBeRemoved)) {
+      if (fileHeaderToBeChecked.getFileName().equals(fileNameToBeRemoved)) {
         return true;
       }
     }
