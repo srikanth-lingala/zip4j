@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class SetCommentTask extends AsyncZipTask<SetCommentTaskTaskParameters> {
 
-  private ZipModel zipModel;
+  private final ZipModel zipModel;
 
   public SetCommentTask(ZipModel zipModel, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);

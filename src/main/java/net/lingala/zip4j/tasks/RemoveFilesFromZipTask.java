@@ -11,6 +11,7 @@ import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.RemoveFilesFromZipTask.RemoveFilesFromZipTaskParameters;
+import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +21,8 @@ import java.util.List;
 
 public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFromZipTaskParameters>  {
 
-  private ZipModel zipModel;
-  private HeaderWriter headerWriter;
+  private final ZipModel zipModel;
+  private final HeaderWriter headerWriter;
 
   public RemoveFilesFromZipTask(ZipModel zipModel, HeaderWriter headerWriter, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);
@@ -95,7 +96,12 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
 
   private boolean shouldEntryBeRemoved(FileHeader fileHeaderToBeChecked, List<String> fileNamesToBeRemoved) {
     for (String fileNameToBeRemoved : fileNamesToBeRemoved) {
-      if (fileHeaderToBeChecked.getFileName().startsWith(fileNameToBeRemoved)) {
+      // If any of the files to be removed is a directory, check if the fileHeaderToBeChecked is a sub-file or
+      // a sub-directory of that directory
+      if (InternalZipConstants.ZIP_FILE_SEPARATOR.endsWith(fileNameToBeRemoved) &&
+          fileHeaderToBeChecked.getFileName().startsWith(fileNameToBeRemoved)) {
+        return true;
+      } else if (fileHeaderToBeChecked.getFileName().equals(fileNameToBeRemoved)) {
         return true;
       }
     }
@@ -144,7 +150,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
   }
 
   public static class RemoveFilesFromZipTaskParameters extends AbstractZipTaskParameters {
-    private List<String> filesToRemove;
+    private final List<String> filesToRemove;
 
     public RemoveFilesFromZipTaskParameters(List<String> filesToRemove, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

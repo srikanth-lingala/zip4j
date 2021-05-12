@@ -7,7 +7,7 @@ public enum VersionNeededToExtract {
   ZIP_64_FORMAT(45),
   AES_ENCRYPTED(51);
 
-  private int code;
+  private final int code;
 
   VersionNeededToExtract(int code) {
     this.code = code;

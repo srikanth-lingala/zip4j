@@ -16,7 +16,7 @@ import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAll
 
 public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFilesTaskParameters> {
 
-  private char[] password;
+  private final char[] password;
   private SplitInputStream splitInputStream;
 
   public ExtractAllFilesTask(ZipModel zipModel, char[] password, UnzipParameters unzipParameters,
@@ -75,7 +75,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
   }
 
   public static class ExtractAllFilesTaskParameters extends AbstractZipTaskParameters {
-    private String outputPath;
+    private final String outputPath;
 
     public ExtractAllFilesTaskParameters(String outputPath, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

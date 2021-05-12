@@ -49,9 +49,9 @@ public class HeaderWriter {
   private static final short ZIP64_EXTRA_DATA_RECORD_SIZE_FH = 28;
   private static final short AES_EXTRA_DATA_RECORD_SIZE = 11;
 
-  private RawIO rawIO = new RawIO();
-  private byte[] longBuff = new byte[8];
-  private byte[] intBuff = new byte[4];
+  private final RawIO rawIO = new RawIO();
+  private final byte[] longBuff = new byte[8];
+  private final byte[] intBuff = new byte[4];
 
   public void writeLocalFileHeader(ZipModel zipModel, LocalFileHeader localFileHeader, OutputStream outputStream,
                                    Charset charset) throws IOException {

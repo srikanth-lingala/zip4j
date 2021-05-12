@@ -24,9 +24,9 @@ import java.util.Map;
 
 public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.RenameFilesTaskParameters> {
 
-  private ZipModel zipModel;
-  private HeaderWriter headerWriter;
-  private RawIO rawIO;
+  private final ZipModel zipModel;
+  private final HeaderWriter headerWriter;
+  private final RawIO rawIO;
 
   public RenameFilesTask(ZipModel zipModel, HeaderWriter headerWriter, RawIO rawIO, AsyncTaskParameters asyncTaskParameters) {
     super(asyncTaskParameters);
@@ -197,7 +197,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
   }
 
   public static class RenameFilesTaskParameters extends AbstractZipTaskParameters {
-    private Map<String, String> fileNamesMap;
+    private final Map<String, String> fileNamesMap;
 
     public RenameFilesTaskParameters(Map<String, String> fileNamesMap, Zip4jConfig zip4jConfig) {
       super(zip4jConfig);

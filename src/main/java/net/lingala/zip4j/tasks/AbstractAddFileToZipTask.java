@@ -43,9 +43,9 @@ import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 
 public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
-  private ZipModel zipModel;
-  private char[] password;
-  private HeaderWriter headerWriter;
+  private final ZipModel zipModel;
+  private final char[] password;
+  private final HeaderWriter headerWriter;
 
   AbstractAddFileToZipTask(ZipModel zipModel, char[] password, HeaderWriter headerWriter,
                            AsyncTaskParameters asyncTaskParameters) {

@@ -59,8 +59,8 @@ import static net.lingala.zip4j.util.Zip4jUtil.readFully;
 public class HeaderReader {
 
   private ZipModel zipModel;
-  private RawIO rawIO = new RawIO();
-  private byte[] intBuff = new byte[4];
+  private final RawIO rawIO = new RawIO();
+  private final byte[] intBuff = new byte[4];
 
   public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Zip4jConfig zip4jConfig) throws IOException {
 
@@ -406,7 +406,7 @@ public class HeaderReader {
     return zip64EndOfCentralDirectoryRecord;
   }
 
-  private void readZip64ExtendedInfo(FileHeader fileHeader, RawIO rawIO) throws ZipException {
+  private void readZip64ExtendedInfo(FileHeader fileHeader, RawIO rawIO)  {
     if (fileHeader.getExtraDataRecords() == null || fileHeader.getExtraDataRecords().size() <= 0) {
       return;
     }
@@ -527,6 +527,9 @@ public class HeaderReader {
 
     //signature
     int sig = rawIO.readIntLittleEndian(inputStream);
+    if (sig == HeaderSignature.TEMPORARY_SPANNING_MARKER.getValue()) {
+      sig = rawIO.readIntLittleEndian(inputStream);
+    }
     if (sig != HeaderSignature.LOCAL_FILE_HEADER.getValue()) {
       return null;
     }
@@ -560,11 +563,8 @@ public class HeaderReader {
     if (fileNameLength > 0) {
       byte[] fileNameBuf = new byte[fileNameLength];
       readFully(inputStream, fileNameBuf);
-      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
 
-      if (fileName == null) {
-        throw new ZipException("file name is null, cannot assign file name to local file header");
-      }
+      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
 
       if (fileName.contains(":" + System.getProperty("file.separator"))) {
         fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);
