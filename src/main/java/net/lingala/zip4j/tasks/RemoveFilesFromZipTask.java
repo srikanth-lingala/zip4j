@@ -98,7 +98,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
     for (String fileNameToBeRemoved : fileNamesToBeRemoved) {
       // If any of the files to be removed is a directory, check if the fileHeaderToBeChecked is a sub-file or
       // a sub-directory of that directory
-      if (InternalZipConstants.ZIP_FILE_SEPARATOR.endsWith(fileNameToBeRemoved) &&
+      if (fileNameToBeRemoved.endsWith(InternalZipConstants.ZIP_FILE_SEPARATOR) &&
           fileHeaderToBeChecked.getFileName().startsWith(fileNameToBeRemoved)) {
         return true;
       } else if (fileHeaderToBeChecked.getFileName().equals(fileNameToBeRemoved)) {
