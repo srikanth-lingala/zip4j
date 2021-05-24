@@ -302,10 +302,6 @@ public class ZipFile {
       throw new ZipException("input parameters are null");
     }
 
-    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
-      throw new ZipException("invalid operation - Zip4j is in busy state");
-    }
-
     readZipInfo();
 
     if (zipModel == null) {
@@ -465,10 +461,6 @@ public class ZipFile {
     // Throw an exception if zipModel is still null
     if (zipModel == null) {
       throw new ZipException("Internal error occurred when extracting zip file");
-    }
-
-    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
-      throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
     new ExtractAllFilesTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
@@ -674,10 +666,6 @@ public class ZipFile {
 
     if (!isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("destination path is empty or null, cannot extract file");
-    }
-
-    if (progressMonitor.getState() == ProgressMonitor.State.BUSY) {
-      throw new ZipException("invalid operation - Zip4j is in busy state");
     }
 
     if (unzipParameters == null) {

@@ -19,9 +19,11 @@ public abstract class AsyncZipTask<T> {
   }
 
   public void execute(T taskParameters) throws ZipException {
-    progressMonitor.fullReset();
-    progressMonitor.setState(ProgressMonitor.State.BUSY);
-    progressMonitor.setCurrentTask(getTask());
+    if (runInThread && ProgressMonitor.State.BUSY.equals(progressMonitor.getState())) {
+      throw new ZipException("invalid operation - Zip4j is in busy state");
+    }
+
+    initProgressMonitor();
 
     if (runInThread) {
       long totalWorkToBeDone = calculateTotalWork(taskParameters);
@@ -62,6 +64,12 @@ public abstract class AsyncZipTask<T> {
     progressMonitor.setResult(ProgressMonitor.Result.CANCELLED);
     progressMonitor.setState(ProgressMonitor.State.READY);
     throw new ZipException("Task cancelled", ZipException.Type.TASK_CANCELLED_EXCEPTION);
+  }
+
+  private void initProgressMonitor() {
+    progressMonitor.fullReset();
+    progressMonitor.setState(ProgressMonitor.State.BUSY);
+    progressMonitor.setCurrentTask(getTask());
   }
 
   protected abstract void executeTask(T taskParameters, ProgressMonitor progressMonitor) throws IOException;
