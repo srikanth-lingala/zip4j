@@ -35,7 +35,6 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
@@ -74,11 +73,11 @@ public class HeaderReader {
     zipModel = new ZipModel();
 
     try {
-      zipModel.setEndOfCentralDirectoryRecord(
-          readEndOfCentralDirectoryRecord(zip4jRaf, rawIO, zip4jConfig));
+      zipModel.setEndOfCentralDirectoryRecord(readEndOfCentralDirectoryRecord(zip4jRaf, rawIO, zip4jConfig));
     } catch (ZipException e) {
       throw e;
     } catch (IOException e) {
+      e.printStackTrace();
       throw new ZipException("Zip headers not found. Probably not a zip file or a corrupted zip file", e);
     }
 
@@ -108,10 +107,8 @@ public class HeaderReader {
   private EndOfCentralDirectoryRecord readEndOfCentralDirectoryRecord(RandomAccessFile zip4jRaf, RawIO rawIO,
                                                                       Zip4jConfig zip4jConfig) throws IOException {
 
-    long offsetEndOfCentralDirectory = determineOffsetOfEndOfCentralDirectory(zip4jRaf);
-    if (zip4jRaf.getFilePointer() !=  offsetEndOfCentralDirectory) {
-      zip4jRaf.seek(offsetEndOfCentralDirectory + 4); // 4 to ignore reading signature again
-    }
+    long offsetEndOfCentralDirectory = locateOffsetOfEndOfCentralDirectory(zip4jRaf);
+    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectory + 4);
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
     endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
@@ -696,35 +693,32 @@ public class HeaderReader {
     return zipModel.getEndOfCentralDirectoryRecord().getTotalNumberOfEntriesInCentralDirectory();
   }
 
-  private long determineOffsetOfEndOfCentralDirectory(RandomAccessFile randomAccessFile) throws IOException {
+  private long locateOffsetOfEndOfCentralDirectory(RandomAccessFile randomAccessFile) throws IOException {
     long zipFileSize = randomAccessFile.length();
     if (zipFileSize < ENDHDR) {
       throw new ZipException("Zip file size less than size of zip headers. Probably not a zip file.");
     }
 
-    long currentFilePointer = zipFileSize - ENDHDR;
-    randomAccessFile.seek(currentFilePointer);
+    seekInCurrentPart(randomAccessFile, zipFileSize - ENDHDR);
     if (rawIO.readIntLittleEndian(randomAccessFile) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-      return currentFilePointer;
+      return zipFileSize - ENDHDR;
     }
 
-    int readLength;
-    byte[] buff = new byte[InternalZipConstants.BUFF_SIZE];
-    long numberOfBytesToRead = zipFileSize < MAX_COMMENT_SIZE ? zipFileSize : MAX_COMMENT_SIZE;
+    return locateOffsetOfEndOfCentralDirectoryByReverseSeek(randomAccessFile);
+  }
 
-    do {
-      currentFilePointer -= buff.length;
-      randomAccessFile.seek(currentFilePointer);
-      readLength = randomAccessFile.read(buff);
+  private long locateOffsetOfEndOfCentralDirectoryByReverseSeek(RandomAccessFile randomAccessFile) throws IOException {
+    long currentFilePointer = randomAccessFile.length() - ENDHDR;
+    // reverse seek for a maximum of MAX_COMMENT_SIZE bytes
+    long numberOfBytesToRead = randomAccessFile.length() < MAX_COMMENT_SIZE ? randomAccessFile.length() : MAX_COMMENT_SIZE;
 
-      for (int i = readLength - 4; i > 0; i--) {
-        if (rawIO.readIntLittleEndian(buff, i) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
-          return currentFilePointer + i;
-        }
+    while (numberOfBytesToRead > 0 && currentFilePointer > 0){
+      seekInCurrentPart(randomAccessFile, --currentFilePointer);
+      if (rawIO.readIntLittleEndian(randomAccessFile) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
+        return currentFilePointer;
       }
-
-      numberOfBytesToRead -= readLength;
-    } while (numberOfBytesToRead > 0);
+      numberOfBytesToRead--;
+    };
 
     throw new ZipException("Zip headers not found. Probably not a zip file");
   }
