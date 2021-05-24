@@ -255,6 +255,7 @@ public class AddFilesToZipIT extends AbstractIT {
     expectedException.expect(ZipException.class);
 
     ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setRunInThread(true);
     ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
     progressMonitor.setState(ProgressMonitor.State.BUSY);
 
@@ -608,6 +609,19 @@ public class AddFilesToZipIT extends AbstractIT {
     assertThat(percentBetweenZeroAndHundred).isTrue();
     assertThat(fileNameSet).isTrue();
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 13);
+  }
+
+  @Test
+  public void testAddFolderProgressMonitorThrowsExceptionWhenPerformingActionInBusyState() throws ZipException {
+    expectedException.expectMessage("invalid operation - Zip4j is in busy state");
+    expectedException.expect(ZipException.class);
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.setRunInThread(true);
+    ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+    progressMonitor.setState(ProgressMonitor.State.BUSY);
+
+    zipFile.addFile(TestUtils.getTestFileFromResources(""));
   }
 
   @Test

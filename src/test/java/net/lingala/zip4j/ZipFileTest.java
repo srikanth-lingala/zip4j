@@ -155,6 +155,7 @@ public class ZipFileTest {
   @Test
   public void testAddFileAsFileThrowsExceptionWhenProgressMonitorStateIsBusy() throws ZipException {
     File fileToAdd = mockFile(true);
+    zipFile.setRunInThread(true);
     zipFile.getProgressMonitor().setState(ProgressMonitor.State.BUSY);
 
     expectedException.expect(ZipException.class);
@@ -182,6 +183,7 @@ public class ZipFileTest {
   @Test
   public void testAddFilesThrowsExceptionWhenProgressMonitorStateIsBusy() throws ZipException {
     zipFile.getProgressMonitor().setState(ProgressMonitor.State.BUSY);
+    zipFile.setRunInThread(true);
 
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("invalid operation - Zip4j is in busy state");
@@ -216,6 +218,7 @@ public class ZipFileTest {
 
   @Test
   public void testAddFilesWithParametersThrowsExceptionWhenProgressMonitorStateIsBusy() throws ZipException {
+    zipFile.setRunInThread(true);
     zipFile.getProgressMonitor().setState(ProgressMonitor.State.BUSY);
 
     expectedException.expect(ZipException.class);
@@ -319,6 +322,18 @@ public class ZipFileTest {
   }
 
   @Test
+  public void testAddFolderThrowsExceptionWhenProgressMonitorStateIsBusy() throws ZipException {
+    File folderToAdd = mockFolder();
+    zipFile.setRunInThread(true);
+    zipFile.getProgressMonitor().setState(ProgressMonitor.State.BUSY);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("invalid operation - Zip4j is in busy state");
+
+    zipFile.addFolder(folderToAdd, new ZipParameters());
+  }
+
+  @Test
   public void testAddStreamThrowsExceptionWhenInputStreamIsNull() throws ZipException {
     expectedException.expectMessage("inputstream is null, cannot add file to zip");
     expectedException.expect(ZipException.class);
@@ -376,6 +391,7 @@ public class ZipFileTest {
 
   @Test
   public void testExtractFileWithFileHeaderWhenBusyStateThrowsException() throws ZipException {
+    zipFile.setRunInThread(true);
     zipFile.getProgressMonitor().setState(ProgressMonitor.State.BUSY);
 
     expectedException.expectMessage("invalid operation - Zip4j is in busy state");
@@ -625,4 +641,12 @@ public class ZipFileTest {
     return file;
   }
 
+  private File mockFolder() {
+    File folder = mock(File.class);
+    when(folder.exists()).thenReturn(true);
+    when(folder.toString()).thenReturn("SOME_PATH");
+    when(folder.isDirectory()).thenReturn(true);
+    when(folder.canRead()).thenReturn(true);
+    return folder;
+  }
 }
