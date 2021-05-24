@@ -27,6 +27,7 @@ public final class InternalZipConstants {
 
   public static final int ENDHDR = 22;	// END header size
   public static final int STD_DEC_HDR_SIZE = 12;
+  public static final int MAX_COMMENT_SIZE = 65536;
 
   //AES Constants
   public static final int AES_AUTH_LENGTH = 10;
