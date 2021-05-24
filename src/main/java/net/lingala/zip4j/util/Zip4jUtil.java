@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 
 public class Zip4jUtil {
@@ -100,7 +99,7 @@ public class Zip4jUtil {
 
   public static byte[] convertCharArrayToByteArray(char[] charArray) {
     try {
-      ByteBuffer buf = StandardCharsets.UTF_8.encode(CharBuffer.wrap(charArray));
+      ByteBuffer buf = InternalZipConstants.CHARSET_UTF_8.encode(CharBuffer.wrap(charArray));
       byte[] bytes = new byte[buf.limit()];
       buf.get(bytes);
       return bytes;
