@@ -263,7 +263,10 @@ public class HeaderWriter {
     if (fileHeader.getDiskNumberStart() != outputStream.getCurrentSplitFileCounter()) {
       String parentFile = zipModel.getZipFile().getParent();
       String fileNameWithoutExt = getZipFileNameWithoutExtension(zipModel.getZipFile().getName());
-      String fileName = parentFile + System.getProperty("file.separator");
+      String fileName = "";
+      if (parentFile != null) {
+        fileName = parentFile + System.getProperty("file.separator");
+      }
       if (fileHeader.getDiskNumberStart() < 9) {
         fileName += fileNameWithoutExt + ".z0" + (fileHeader.getDiskNumberStart() + 1);
       } else {
