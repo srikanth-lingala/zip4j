@@ -148,6 +148,10 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
+    if (localFileHeader.isDirectory()) {
+      return -1;
+    }
+
     try {
       int readLen = decompressedInputStream.read(b, off, len);
 
@@ -319,8 +323,8 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readUntilEndOfEntry() throws IOException {
-    if (localFileHeader.isDirectory()
-        || (localFileHeader.getCompressedSize() == 0 && !localFileHeader.isDataDescriptorExists())) {
+    if ((localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0)
+        && !localFileHeader.isDataDescriptorExists()) {
       return;
     }
 
@@ -328,6 +332,7 @@ public class ZipInputStream extends InputStream {
       endOfEntryBuffer = new byte[512];
     }
 
+    //noinspection StatementWithEmptyBody
     while (read(endOfEntryBuffer) != -1);
     this.entryEOFReached = true;
   }
