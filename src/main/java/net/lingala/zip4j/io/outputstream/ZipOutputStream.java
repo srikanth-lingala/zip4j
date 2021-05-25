@@ -38,6 +38,7 @@ public class ZipOutputStream extends OutputStream {
   private long uncompressedSizeForThisEntry = 0;
   private Zip4jConfig zip4jConfig;
   private boolean streamClosed;
+  private boolean entryClosed = false;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
     this(outputStream, null, null);
@@ -77,6 +78,7 @@ public class ZipOutputStream extends OutputStream {
     //because local header data should be written first and then the encryption header data
     //and below initialisation writes encryption header data
     compressedOutputStream = initializeCompressedOutputStream(zipParameters);
+    this.entryClosed = false;
   }
 
   public void write(int b) throws IOException {
@@ -116,11 +118,17 @@ public class ZipOutputStream extends OutputStream {
       headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);
     }
     reset();
+    this.entryClosed = true;
     return fileHeader;
   }
 
   @Override
   public void close() throws IOException {
+    if (!this.entryClosed) {
+      closeEntry();
+      this.entryClosed = true;
+    }
+
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
     headerWriter.finalizeZipFile(zipModel, countingOutputStream, zip4jConfig.getCharset());
     countingOutputStream.close();

@@ -219,6 +219,25 @@ public class ZipOutputStreamIT extends AbstractIT {
     verifyDefaultFileAttributes();
   }
 
+  @Test
+  public void testCreatingZipWithoutClosingEntryManuallySuccessfullyClosesEntry() throws IOException {
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      File fileToAdd = getTestFileFromResources("file_PDF_1MB.pdf");
+      byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+      int readLen;
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zipOutputStream.putNextEntry(zipParameters);
+      try (InputStream inputStream = new FileInputStream(fileToAdd)) {
+        while ((readLen = inputStream.read(buffer)) != -1) {
+          zipOutputStream.write(buffer, 0, readLen);
+        }
+      }
+    }
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+  }
+
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion)
