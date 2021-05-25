@@ -177,39 +177,41 @@ public class ZipInputStreamIT extends AbstractIT {
   @Test
   public void testExtractFilesForZipFileWithInvalidExtraDataRecordIgnoresIt() throws IOException {
     InputStream inputStream = new FileInputStream(getTestArchiveFromResources("invalid_extra_data_record.zip"));
-    ZipInputStream zipInputStream = new ZipInputStream(inputStream, "password".toCharArray());
-    byte[] b = new byte[4096];
-    while (zipInputStream.getNextEntry() != null) {
-      while (zipInputStream.read(b) != -1) {
+    try (ZipInputStream zipInputStream = new ZipInputStream(inputStream, "password".toCharArray())) {
+      byte[] b = new byte[4096];
+      while (zipInputStream.getNextEntry() != null) {
+        while (zipInputStream.read(b) != -1) {
 
+        }
       }
     }
-    zipInputStream.close();
   }
 
   @Test
   public void testGetNextEntryReturnsNextEntryEvenIfEntryNotCompletelyRead() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE);
-    ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(createZipFile));
-    int numberOfEntries = 0;
-    while (zipInputStream.getNextEntry() != null) {
-      numberOfEntries++;
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(createZipFile))) {
+      int numberOfEntries = 0;
+      while (zipInputStream.getNextEntry() != null) {
+        numberOfEntries++;
+      }
+      assertThat(numberOfEntries).isEqualTo(FILES_TO_ADD.size());
     }
-    assertThat(numberOfEntries).isEqualTo(FILES_TO_ADD.size());
   }
 
   @Test
   public void testGetFileNamesWithChineseCharset() throws IOException {
     InputStream inputStream = new FileInputStream(getTestArchiveFromResources("testfile_with_chinese_filename_by_7zip.zip"));
-    ZipInputStream zipInputStream = new ZipInputStream(inputStream, CHARSET_GBK);
-    LocalFileHeader localFileHeader;
-    String expactedFileName = "fff - 副本.txt";
-    Set<String> filenameSet = new HashSet<>();
+    try (ZipInputStream zipInputStream = new ZipInputStream(inputStream, CHARSET_GBK)) {
+      LocalFileHeader localFileHeader;
+      String expactedFileName = "fff - 副本.txt";
+      Set<String> filenameSet = new HashSet<>();
 
-    while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
-      filenameSet.add(localFileHeader.getFileName());
+      while ((localFileHeader = zipInputStream.getNextEntry()) != null) {
+        filenameSet.add(localFileHeader.getFileName());
+      }
+      assertThat(filenameSet.contains(expactedFileName)).isTrue();
     }
-    assertThat(filenameSet.contains(expactedFileName)).isTrue();
   }
 
   @Test
@@ -252,6 +254,32 @@ public class ZipInputStreamIT extends AbstractIT {
     }
 
     assertThat(totalNumberOfEntriesRead).isEqualTo(6);
+  }
+
+  @Test
+  public void testAvailableThrowsExceptionWhenStreamClosed() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Stream closed");
+
+    File createZipFile = createZipFile(CompressionMethod.DEFLATE);
+    ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(createZipFile));
+    zipInputStream.close();
+
+    zipInputStream.available();
+  }
+
+  @Test
+  public void testAvailableReturns1WhenEntryEOFNotReachedAnd0AfterEOFReached() throws IOException {
+    byte[] b = new byte[InternalZipConstants.BUFF_SIZE];
+    File createZipFile = createZipFile(CompressionMethod.DEFLATE);
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(createZipFile))) {
+      while (zipInputStream.getNextEntry() != null) {
+        while (zipInputStream.read(b) != -1) {
+          assertThat(zipInputStream.available()).isEqualTo(1);
+        }
+        assertThat(zipInputStream.available()).isEqualTo(0);
+      }
+    }
   }
 
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {

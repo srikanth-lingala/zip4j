@@ -50,6 +50,8 @@ public class ZipInputStream extends InputStream {
   private byte[] endOfEntryBuffer;
   private boolean canSkipExtendedLocalFileHeader = false;
   private Zip4jConfig zip4jConfig;
+  private boolean streamClosed = false;
+  private boolean entryEOFReached = false;
 
   public ZipInputStream(InputStream inputStream) {
     this(inputStream, null, (Charset) null);
@@ -109,6 +111,7 @@ public class ZipInputStream extends InputStream {
     }
 
     this.decompressedInputStream = initializeEntryInputStream(localFileHeader);
+    this.entryEOFReached = false;
     return localFileHeader;
   }
 
@@ -169,6 +172,13 @@ public class ZipInputStream extends InputStream {
     if (decompressedInputStream != null) {
       decompressedInputStream.close();
     }
+    this.streamClosed = true;
+  }
+
+  @Override
+  public int available() throws IOException {
+    assertStreamOpen();
+    return entryEOFReached ? 0 : 1;
   }
 
   private void endOfCompressedDataReached() throws IOException {
@@ -182,6 +192,7 @@ public class ZipInputStream extends InputStream {
     readExtendedLocalFileHeaderIfPresent();
     verifyCrc();
     resetFields();
+    this.entryEOFReached = true;
   }
 
   private DecompressedInputStream initializeEntryInputStream(LocalFileHeader localFileHeader) throws IOException {
@@ -318,9 +329,16 @@ public class ZipInputStream extends InputStream {
     }
 
     while (read(endOfEntryBuffer) != -1);
+    this.entryEOFReached = true;
   }
 
   private boolean isEncryptionMethodZipStandard(LocalFileHeader localFileHeader) {
     return localFileHeader.isEncrypted() && EncryptionMethod.ZIP_STANDARD.equals(localFileHeader.getEncryptionMethod());
+  }
+
+  private void assertStreamOpen() throws IOException {
+    if (streamClosed) {
+      throw new IOException("Stream closed");
+    }
   }
 }
