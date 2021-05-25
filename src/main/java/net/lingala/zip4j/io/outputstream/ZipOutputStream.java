@@ -38,7 +38,7 @@ public class ZipOutputStream extends OutputStream {
   private long uncompressedSizeForThisEntry = 0;
   private Zip4jConfig zip4jConfig;
   private boolean streamClosed;
-  private boolean entryClosed = false;
+  private boolean entryClosed = true;
 
   public ZipOutputStream(OutputStream outputStream) throws IOException {
     this(outputStream, null, null);
@@ -126,7 +126,6 @@ public class ZipOutputStream extends OutputStream {
   public void close() throws IOException {
     if (!this.entryClosed) {
       closeEntry();
-      this.entryClosed = true;
     }
 
     zipModel.getEndOfCentralDirectoryRecord().setOffsetOfStartOfCentralDirectory(countingOutputStream.getNumberOfBytesWritten());
