@@ -5,6 +5,7 @@ import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.testutils.TestUtils;
@@ -496,6 +497,30 @@ public class CreateZipFileIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
   }
 
+  @Test
+  public void testCreateZipFileWithFasterCompressionLevel() throws IOException {
+    createZipFileWithCompressionLevel(CompressionLevel.FASTER);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+  }
+
+  @Test
+  public void testCreateZipFileWithMediumFastCompressionLevel() throws IOException {
+    createZipFileWithCompressionLevel(CompressionLevel.MEDIUM_FAST);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+  }
+
+  @Test
+  public void testCreateZipFileWithHigherCompressionLevel() throws IOException {
+    createZipFileWithCompressionLevel(CompressionLevel.HIGHER);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+  }
+
+  @Test
+  public void testCreateZipFileWithPreUltraCompressionLevel() throws IOException {
+    createZipFileWithCompressionLevel(CompressionLevel.PRE_ULTRA);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+  }
+
   private void testAddSymlinkThrowsExceptionForMissingTarget(ZipParameters.SymbolicLinkAction symbolicLinkAction)
       throws IOException {
     File targetFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "foo").toFile();
@@ -646,4 +671,11 @@ public class CreateZipFileIT extends AbstractIT {
     }
   }
 
+  private ZipFile createZipFileWithCompressionLevel(CompressionLevel compressionLevel) throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionLevel(compressionLevel);
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+    return zipFile;
+  }
 }

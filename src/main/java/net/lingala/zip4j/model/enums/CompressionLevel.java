@@ -7,28 +7,39 @@ package net.lingala.zip4j.model.enums;
 public enum CompressionLevel {
 
   /**
-   * Level 1 Deflate compression
-   * @see java.util.zip.Deflater#BEST_SPEED
+   * Level 1 Deflate compression. Fastest compression.
    */
   FASTEST(1),
   /**
+   * Level 2 Deflate compression
+   */
+  FASTER(2),
+  /**
    * Level 3 Deflate compression
-   * @see java.util.zip.Deflater
    */
   FAST(3),
   /**
-   * Level 5 Deflate compression
-   * @see java.util.zip.Deflater
+   * Level 4 Deflate compression
+   */
+  MEDIUM_FAST(4),
+  /**
+   * Level 5 Deflate compression. A compromise between speed and compression level.
    */
   NORMAL(5),
   /**
+   * Level 6 Deflate compression
+   */
+  HIGHER(6),
+  /**
    * Level 7 Deflate compression
-   * @see java.util.zip.Deflater
    */
   MAXIMUM(7),
   /**
-   * Level 9 Deflate compression. Not part of the original ZIP format specification.
-   * @see java.util.zip.Deflater#BEST_COMPRESSION
+   * Level 8 Deflate compression
+   */
+  PRE_ULTRA(8),
+  /**
+   * Level 9 Deflate compression. Highest compression.
    */
   ULTRA(9);
 
@@ -39,7 +50,7 @@ public enum CompressionLevel {
   }
 
   /**
-   * Get the Deflate compression level (0-9) for this CompressionLevel 
+   * Get the Deflate compression level (0-9) for this CompressionLevel
    * @return the deflate compression level
    */
   public int getLevel() {
