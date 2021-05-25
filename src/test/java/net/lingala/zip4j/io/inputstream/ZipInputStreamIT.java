@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import org.junit.Rule;
 import org.junit.Test;
@@ -282,6 +283,18 @@ public class ZipInputStreamIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testExtractZipWithDifferentPasswords() throws IOException {
+    byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+    File zipFileUnderTest = TestUtils.getTestArchiveFromResources("zip_with_different_passwords.zip");
+    try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFileUnderTest))) {
+      readAndAssertNextEntry(zipInputStream, "after_deflate_remaining_bytes.bin", "password_1");
+      readAndAssertNextEntry(zipInputStream, "file_PDF_1MB.pdf", "password_2");
+      // 3rd entry is not encrypted, but it should not be impacted if a password is set
+      readAndAssertNextEntry(zipInputStream, "sample.pdf", null);
+    }
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, 4096, AesVersion.TWO);
   }
@@ -381,5 +394,17 @@ public class ZipInputStreamIT extends AbstractIT {
       }
     }
     return generatedZipFile;
+  }
+
+  private void readAndAssertNextEntry(ZipInputStream zipInputStream, String fileNameToExpect, String passwordToUse)
+      throws IOException {
+    byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+    if (passwordToUse != null) {
+      zipInputStream.setPassword(passwordToUse.toCharArray());
+    }
+    LocalFileHeader localFileHeader = zipInputStream.getNextEntry();
+    assertThat(localFileHeader.getFileName()).isEqualTo(fileNameToExpect);
+    //noinspection StatementWithEmptyBody
+    while (zipInputStream.read(buffer) != -1);
   }
 }

@@ -185,6 +185,17 @@ public class ZipInputStream extends InputStream {
     return entryEOFReached ? 0 : 1;
   }
 
+  /**
+   * Sets the password for the inputstream. This password will be used for any subsequent encrypted entries that will be
+   * read from this stream. If this method is called when an entry is being read, it has no effect on the read action
+   * of the current entry, and the password will take effect from any subsequent entry reads.
+   *
+   * @param password Password to be used for reading of entries from the zip input stream
+   */
+  public void setPassword(char[] password) {
+    this.password = password;
+  }
+
   private void endOfCompressedDataReached() throws IOException {
     //With inflater, without knowing the compressed or uncompressed size, we over read necessary data
     //In such cases, we have to push back the inputstream to the end of data
