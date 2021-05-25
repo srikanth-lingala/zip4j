@@ -245,6 +245,12 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     }
 
     for (File file : files) {
+      // In some OS it is possible to have empty file names (even without any extension).
+      // Remove such files from list as this might cause incompatibility with the zip file
+      if (!Zip4jUtil.isStringNotNullAndNotEmpty(file.getName())) {
+        filesToAdd.remove(file);
+      }
+
       String fileName = getRelativeFileName(file, zipParameters);
 
       FileHeader fileHeader = getFileHeader(zipModel, fileName);
