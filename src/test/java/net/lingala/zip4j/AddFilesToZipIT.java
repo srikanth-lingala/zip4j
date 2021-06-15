@@ -873,6 +873,23 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddStreamWithStoreCompressionAndAesEncryptionWorksFine() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    File fileToAdd = TestUtils.getTestFileFromResources("sample.pdf");
+
+    try(InputStream inputStream = new FileInputStream(fileToAdd)) {
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setCompressionMethod(CompressionMethod.STORE);
+      zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+      zipParameters.setEncryptFiles(true);
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zipFile.addStream(inputStream, zipParameters);
+    }
+
+    extractZipFileWithStream(generatedZipFile, PASSWORD);
+  }
+
+  @Test
   public void testAddFolderWithCustomBufferSize() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.setBufferSize(16 * 1024);
@@ -1040,5 +1057,16 @@ public class AddFilesToZipIT extends AbstractIT {
 
     assertThat(fileHeader.getVersionMadeBy()).isEqualTo(versionMadeBy);
     assertThat(fileHeader.getVersionNeededToExtract()).isEqualTo(versionNeededToExtract);
+  }
+
+  @SuppressWarnings("StatementWithEmptyBody")
+  private void extractZipFileWithStream(File zipFileToExtract, char[] password) throws IOException {
+    byte[] readBuff = new byte[InternalZipConstants.BUFF_SIZE];
+    try (ZipInputStream inputStream = new ZipInputStream(new FileInputStream(zipFileToExtract), password)) {
+      while ((inputStream.getNextEntry()) != null) {
+        while (inputStream.read(readBuff) != -1) {
+        }
+      }
+    }
   }
 }

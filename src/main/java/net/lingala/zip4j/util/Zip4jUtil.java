@@ -17,7 +17,7 @@
 package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.LocalFileHeader;
+import net.lingala.zip4j.model.AbstractFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.File;
@@ -112,7 +112,7 @@ public class Zip4jUtil {
     }
   }
 
-  public static CompressionMethod getCompressionMethod(LocalFileHeader localFileHeader) {
+  public static CompressionMethod getCompressionMethod(AbstractFileHeader localFileHeader) {
     if (localFileHeader.getCompressionMethod() != CompressionMethod.AES_INTERNAL_ONLY) {
       return localFileHeader.getCompressionMethod();
     }
