@@ -134,6 +134,10 @@ public class ZipInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    if (streamClosed) {
+      throw new IOException("Stream closed");
+    }
+
     if (len < 0) {
       throw new IllegalArgumentException("Negative read length");
     }
@@ -173,6 +177,10 @@ public class ZipInputStream extends InputStream {
 
   @Override
   public void close() throws IOException {
+    if (streamClosed) {
+      return;
+    }
+
     if (decompressedInputStream != null) {
       decompressedInputStream.close();
     }

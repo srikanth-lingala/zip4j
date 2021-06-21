@@ -4,6 +4,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
@@ -13,7 +14,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -559,6 +564,38 @@ public class MiscZipFileIT extends AbstractIT {
     }
 
     assertThat(zipFile.isValidZipFile()).isFalse();
+  }
+
+  @Test
+  public void testCloseSuccessfullyClosesAllInputStreams() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFile(TestUtils.getTestFileFromResources("after_deflate_remaining_bytes.bin"));
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+    zipFile.addFile(TestUtils.getTestFileFromResources("file_PDF_1MB.pdf"), zipParameters);
+    zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample.pdf"), zipParameters);
+    zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"), zipParameters);
+
+    List<InputStream> inputStreams = new ArrayList<>();
+    for (FileHeader fileHeader : zipFile.getFileHeaders()) {
+      inputStreams.add(zipFile.getInputStream(fileHeader));
+    }
+    zipFile.close();
+
+    assertThat(inputStreams).hasSize(4);
+    for (InputStream inputStream : inputStreams) {
+      try {
+        //noinspection ResultOfMethodCallIgnored
+        inputStream.read();
+        fail("Should have thrown an exception");
+      } catch (IOException e) {
+        assertThat(e.getMessage()).isEqualTo("Stream closed");
+      }
+    }
   }
 
   private void verifyInputStream(InputStream inputStream, File fileToCompareAgainst) throws IOException {

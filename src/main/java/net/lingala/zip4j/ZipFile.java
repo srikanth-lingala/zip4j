@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,8 @@ public class ZipFile {
   private ThreadFactory threadFactory;
   private ExecutorService executorService;
   private int bufferSize = InternalZipConstants.BUFF_SIZE;
+  private List<InputStream> openInputStreams = new ArrayList<>();
+  private boolean zipFileClosed = false;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -1018,7 +1021,9 @@ public class ZipFile {
       throw new ZipException("zip model is null, cannot get inputstream");
     }
 
-    return createZipInputStream(zipModel, fileHeader, password);
+    ZipInputStream zipInputStream = createZipInputStream(zipModel, fileHeader, password);
+    openInputStreams.add(zipInputStream);
+    return zipInputStream;
   }
 
   /**
@@ -1064,6 +1069,23 @@ public class ZipFile {
   public List<File> getSplitZipFiles() throws ZipException {
     readZipInfo();
     return FileUtils.getSplitZipFiles(zipModel);
+  }
+
+  /**
+   * Closes any open streams that were open by an instance of this class.
+   *
+   * @throws IOException when the underlying input stream throws an exception when trying to close it
+   */
+  public void close() throws IOException {
+    if (zipFileClosed) {
+      return;
+    }
+
+    for (InputStream inputStream : openInputStreams) {
+      inputStream.close();
+    }
+    openInputStreams.clear();
+    zipFileClosed = true;
   }
 
   /**
