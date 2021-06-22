@@ -39,7 +39,9 @@ public class HeaderVerifier {
 
   public static void verifyZipFileDoesNotContainFolders(ZipFile zipFile, Collection<String> folderNames) throws IOException {
     for (FileHeader fileHeader : zipFile.getFileHeaders()) {
-      folderNames.forEach(e -> assertThat(fileHeader.getFileName().startsWith(e)).isFalse());
+      for (String folderName : folderNames) {
+        assertThat(fileHeader.getFileName().startsWith(folderName)).isFalse();
+      }
     }
   }
 

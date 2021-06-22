@@ -24,9 +24,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadFactory;
 
 import static java.util.Collections.singletonList;
+import static net.lingala.zip4j.testutils.TestUtils.getFileNamesOfFiles;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -80,8 +81,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     assertThat(fileHeaders).isNotNull();
     assertThat(fileHeaders).hasSize(FILES_TO_ADD.size());
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
-    verifyFileHeadersContainsFiles(fileHeaders, fileNames);
+    verifyFileHeadersContainsFiles(fileHeaders, getFileNamesOfFiles(FILES_TO_ADD));
   }
 
   @Test
@@ -95,7 +95,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     assertThat(fileHeaders).isNotNull();
     assertThat(fileHeaders).hasSize(FILES_TO_ADD.size() + 1);
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    List<String> fileNames = getFileNamesOfFiles(FILES_TO_ADD);
     fileNames.add("бореиская.txt");
     verifyFileHeadersContainsFiles(fileHeaders, fileNames);
   }
@@ -483,12 +483,15 @@ public class MiscZipFileIT extends AbstractIT {
   public void testCustomThreadFactory() throws IOException {
     TestUtils.copyFileToFolder(getTestFileFromResources("file_PDF_1MB.pdf"), temporaryFolder.getRoot(), 1000);
 
-    String threadName = "CustomThreadFactoryTest";
+    final String threadName = "CustomThreadFactoryTest";
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    zipFile.setThreadFactory(r -> {
-      Thread t = new Thread(threadName);
-      t.setDaemon(false);
-      return t;
+    zipFile.setThreadFactory(new ThreadFactory() {
+      @Override
+      public Thread newThread(Runnable r) {
+        Thread t = new Thread(threadName);
+        t.setDaemon(false);
+        return t;
+      }
     });
     zipFile.setRunInThread(true);
 
@@ -498,8 +501,7 @@ public class MiscZipFileIT extends AbstractIT {
 
     zipFile.addFolder(temporaryFolder.getRoot(), zipParameters);
 
-    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-    List<Thread> zip4jThread = threadSet.stream().filter(e -> e.getName().equals(threadName)).collect(Collectors.toList());
+    List<Thread> zip4jThread = filterForThreadsByName(threadName);
     assertThat(zip4jThread).hasSize(1);
     assertThat(zip4jThread.get(0).getName()).isEqualTo(threadName);
     assertThat(zip4jThread.get(0).isDaemon()).isFalse();
@@ -633,4 +635,14 @@ public class MiscZipFileIT extends AbstractIT {
     }
   }
 
+  private List<Thread> filterForThreadsByName(String threadName) {
+    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    List<Thread> filteredThreads = new ArrayList<>();
+    for (Thread thread : threadSet) {
+      if (thread.getName().equals(threadName)) {
+        filteredThreads.add(thread);
+      }
+    }
+    return filteredThreads;
+  }
 }

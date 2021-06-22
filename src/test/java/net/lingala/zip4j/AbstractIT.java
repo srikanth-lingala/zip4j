@@ -42,8 +42,7 @@ public abstract class AbstractIT {
   public void before() throws IOException {
     generatedZipFile = temporaryFolder.newFile("output.zip");
     outputFolder = temporaryFolder.newFolder("output");
-    File[] allTempFiles = temporaryFolder.getRoot().listFiles();
-    Arrays.stream(allTempFiles).forEach(File::delete);
+    cleanupDirectory(temporaryFolder.getRoot());
   }
 
   protected ZipParameters createZipParameters(EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength) {
@@ -73,13 +72,7 @@ public abstract class AbstractIT {
   }
 
   protected void cleanupOutputFolder() {
-    File[] filesInOutputFolder = outputFolder.listFiles();
-
-    if (filesInOutputFolder == null) {
-      return;
-    }
-
-    Arrays.stream(filesInOutputFolder).forEach(File::delete);
+    cleanupDirectory(outputFolder);
   }
 
   protected Zip4jConfig buildDefaultConfig() {
@@ -92,5 +85,17 @@ public abstract class AbstractIT {
 
   protected Zip4jConfig buildConfig(int bufferSize) {
     return new Zip4jConfig(null, bufferSize);
+  }
+
+  private void cleanupDirectory(File directory) {
+    File[] allTempFiles = directory.listFiles();
+    if (allTempFiles == null) {
+      return;
+    }
+    for (File file : allTempFiles) {
+      if (!file.delete()) {
+        throw new RuntimeException("Could not clean up directory. Error deleting file: " + file);
+      }
+    }
   }
 }

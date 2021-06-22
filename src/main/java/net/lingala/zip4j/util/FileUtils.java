@@ -7,6 +7,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -381,8 +382,13 @@ public class FileUtils {
    * @return sorted list of split files. Returns an empty list if no files of that pattern are found in the current directory
    */
   public static File[] getAllSortedNumberedSplitFiles(File firstNumberedFile) {
-    String zipFileNameWithoutExtension = FileUtils.getFileNameWithoutExtension(firstNumberedFile.getName());
-    File[] allSplitFiles = firstNumberedFile.getParentFile().listFiles((dir, name) -> name.startsWith(zipFileNameWithoutExtension + "."));
+    final String zipFileNameWithoutExtension = FileUtils.getFileNameWithoutExtension(firstNumberedFile.getName());
+    File[] allSplitFiles = firstNumberedFile.getParentFile().listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.startsWith(zipFileNameWithoutExtension + ".");
+      }
+    });
 
     if(allSplitFiles == null) {
       return new File[0];

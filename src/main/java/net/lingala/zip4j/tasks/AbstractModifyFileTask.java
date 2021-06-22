@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -75,12 +76,15 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
   List<FileHeader> cloneAndSortFileHeadersByOffset(List<FileHeader> allFileHeaders) {
     List<FileHeader> clonedFileHeaders = new ArrayList<>(allFileHeaders);
     //noinspection Java8ListSort
-    Collections.sort(clonedFileHeaders, (o1, o2) -> {
-      if (o1.getFileName().equals(o2.getFileName())) {
-        return 0;
-      }
+    Collections.sort(clonedFileHeaders, new Comparator<FileHeader>() {
+      @Override
+      public int compare(FileHeader o1, FileHeader o2) {
+        if (o1.getFileName().equals(o2.getFileName())) {
+          return 0;
+        }
 
-      return o1.getOffsetLocalHeader() < o2.getOffsetLocalHeader() ? -1 : 1;
+        return o1.getOffsetLocalHeader() < o2.getOffsetLocalHeader() ? -1 : 1;
+      }
     });
 
     return clonedFileHeaders;

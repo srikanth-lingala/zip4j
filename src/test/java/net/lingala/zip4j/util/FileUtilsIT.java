@@ -2,6 +2,7 @@ package net.lingala.zip4j.util;
 
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -122,11 +123,16 @@ public class FileUtilsIT extends AbstractIT {
   @Test
   public void testGetFilesInDirectoryRecursiveWithExcludeFileFilter() throws IOException {
     File rootFolder = TestUtils.getTestFileFromResources("");
-    List<File> filesToExclude = Arrays.asList(
+    final List<File> filesToExclude = Arrays.asList(
         TestUtils.getTestFileFromResources("бореиская.txt"),
         TestUtils.getTestFileFromResources("sample_directory/favicon.ico")
     );
-    List<File> allFiles = FileUtils.getFilesInDirectoryRecursive(rootFolder, true, true, filesToExclude::contains);
+    List<File> allFiles = FileUtils.getFilesInDirectoryRecursive(rootFolder, true, true, new ExcludeFileFilter() {
+      @Override
+      public boolean isExcluded(File o) {
+        return filesToExclude.contains(o);
+      }
+    });
 
     assertThat(allFiles).hasSize(10);
     for (File file : allFiles) {

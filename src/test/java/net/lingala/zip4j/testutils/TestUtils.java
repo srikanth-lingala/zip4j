@@ -17,6 +17,7 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -136,6 +137,18 @@ public class TestUtils {
     Path link = Paths.get(rootFolder.getAbsolutePath(), "symlink.link");
     Files.createSymbolicLink(link, targetFile.toPath());
     return link.toFile();
+  }
+
+  public static List<String> getFileNamesOfFiles(List<File> files) {
+    List<String> fileNames = new ArrayList<>();
+    if (files.isEmpty()) {
+      return fileNames;
+    }
+
+    for (File file : files) {
+      fileNames.add(file.getName());
+    }
+    return fileNames;
   }
 
   private static OutputStream startNext7ZipSplitStream(File sourceFile, File outputFolder, int index) throws IOException {

@@ -7,9 +7,9 @@ import net.lingala.zip4j.util.InternalZipConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET_NAME;
@@ -70,7 +70,13 @@ public class HeaderUtil {
       return Collections.emptyList();
     }
 
-    return allFileHeaders.stream().filter(e -> e.getFileName().startsWith(rootFileHeader.getFileName())).collect(Collectors.toList());
+    List<FileHeader> fileHeadersUnderDirectory = new ArrayList<>();
+    for (FileHeader fileHeader : allFileHeaders) {
+      if (fileHeader.getFileName().startsWith(rootFileHeader.getFileName())) {
+        fileHeadersUnderDirectory.add(fileHeader);
+      }
+    }
+    return fileHeadersUnderDirectory;
   }
 
   public static long getTotalUncompressedSizeOfAllFileHeaders(List<FileHeader> fileHeaders) {

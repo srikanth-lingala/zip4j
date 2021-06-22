@@ -74,7 +74,7 @@ public class HeaderUtilTest {
   public void testGetFileHeaderWithEmptyFileHeadersReturnsNull() throws ZipException {
     ZipModel zipModel = new ZipModel();
     CentralDirectory centralDirectory = new CentralDirectory();
-    centralDirectory.setFileHeaders(Collections.emptyList());
+    centralDirectory.setFileHeaders(Collections.<FileHeader>emptyList());
     zipModel.setCentralDirectory(centralDirectory);
 
     FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, FILE_NAME);

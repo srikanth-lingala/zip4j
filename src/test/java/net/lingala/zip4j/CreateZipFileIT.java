@@ -605,8 +605,13 @@ public class CreateZipFileIT extends AbstractIT {
     assertThat(aesExtraDataRecord.getAesKeyStrength()).isEqualTo(aesKeyStrength);
   }
 
-  private File[] getAllSplitZipFilesInFolder(File folder, String fileNameWithoutExtension) {
-    FilenameFilter filenameFilter = (dir, name) -> name.contains(fileNameWithoutExtension + ".");
+  private File[] getAllSplitZipFilesInFolder(File folder, final String fileNameWithoutExtension) {
+    FilenameFilter filenameFilter = new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.contains(fileNameWithoutExtension + ".");
+      }
+    };
     return folder.listFiles(filenameFilter);
   }
 

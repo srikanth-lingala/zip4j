@@ -708,7 +708,7 @@ public class HeaderWriterIT extends AbstractIT {
     FileHeader firstFileHeader = zipModel.getCentralDirectory().getFileHeaders().get(0);
 
     if (firstFileHeader.getExtraDataRecords() == null) {
-      firstFileHeader.setExtraDataRecords(new ArrayList<>());
+      firstFileHeader.setExtraDataRecords(new ArrayList<ExtraDataRecord>());
     }
 
     firstFileHeader.getExtraDataRecords().add(extraDataRecord);

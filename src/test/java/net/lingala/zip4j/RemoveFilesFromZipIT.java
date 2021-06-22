@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static net.lingala.zip4j.testutils.HeaderVerifier.verifyFileHeadersDoesNotExist;
 import static net.lingala.zip4j.testutils.HeaderVerifier.verifyZipFileDoesNotContainFolders;
@@ -260,6 +259,10 @@ public class RemoveFilesFromZipIT extends AbstractIT {
   private List<String> getFileNamesFromZip(ZipFile zipFile) throws IOException {
     List<FileHeader> fileHeaders = zipFile.getFileHeaders();
     assertThat(fileHeaders).isNotEmpty();
-    return fileHeaders.stream().map(FileHeader::getFileName).collect(Collectors.toList());
+    List<String> fileNames = new ArrayList<>();
+    for (FileHeader fileHeader :fileHeaders) {
+      fileNames.add(fileHeader.getFileName());
+    }
+    return fileNames;
   }
 }

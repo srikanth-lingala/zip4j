@@ -4,6 +4,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.AbstractFileHeader;
+import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.ZipParameters;
@@ -29,13 +30,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.lingala.zip4j.testutils.HeaderVerifier.verifyLocalFileHeaderUncompressedSize;
+import static net.lingala.zip4j.testutils.TestUtils.getFileNamesOfFiles;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class AddFilesToZipIT extends AbstractIT {
 
@@ -354,7 +355,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    List<String> fileNames = getFileNamesOfFiles(FILES_TO_ADD);
     verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256, AesVersion.ONE);
   }
@@ -367,7 +368,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    List<String> fileNames = getFileNamesOfFiles(FILES_TO_ADD);
     verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.AES,
         AesKeyStrength.KEY_STRENGTH_256);
   }
@@ -380,7 +381,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, FILES_TO_ADD.size());
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    List<String> fileNames = getFileNamesOfFiles(FILES_TO_ADD);
     verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.ZIP_STANDARD,
         null);
   }
@@ -398,7 +399,7 @@ public class AddFilesToZipIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD, zipParameters);
 
     ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, newPassword, outputFolder, FILES_TO_ADD.size());
-    List<String> fileNames = FILES_TO_ADD.stream().map(File::getName).collect(Collectors.toList());
+    List<String> fileNames = getFileNamesOfFiles(FILES_TO_ADD);
     verifyZipFileContainsFiles(generatedZipFile, fileNames, CompressionMethod.DEFLATE, EncryptionMethod.ZIP_STANDARD,
         null);
   }
@@ -645,13 +646,18 @@ public class AddFilesToZipIT extends AbstractIT {
   @Test
   public void testAddFolderWithExcludeFileFilter() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
-    List<File> filesToExclude = Arrays.asList(
+    final List<File> filesToExclude = Arrays.asList(
         TestUtils.getTestFileFromResources("sample.pdf"),
         TestUtils.getTestFileFromResources("sample_directory/favicon.ico")
     );
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setIncludeRootFolder(false);
-    zipParameters.setExcludeFileFilter(filesToExclude::contains);
+    zipParameters.setExcludeFileFilter(new ExcludeFileFilter() {
+      @Override
+      public boolean isExcluded(File o) {
+        return filesToExclude.contains(o);
+      }
+    });
 
     zipFile.addFolder(TestUtils.getTestFileFromResources(""), zipParameters);
 
@@ -933,7 +939,11 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   private void verifyFoldersInFileHeaders(List<FileHeader> fileHeaders) {
-    fileHeaders.stream().filter(FileHeader::isDirectory).forEach(this::verifyFolderEntryInZip);
+    for (FileHeader fileHeader : fileHeaders){
+      if (fileHeader.isDirectory()) {
+        verifyFolderEntryInZip(fileHeader);
+      }
+    }
   }
 
   private void verifyFoldersInLocalFileHeaders(File generatedZipFile, char[] password) throws IOException {
@@ -957,11 +967,15 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   private void verifyAllFilesInZipContainsPath(List<FileHeader> fileHeaders, String pathToBeChecked) {
-    fileHeaders.forEach(e -> assertThat(e.getFileName()).startsWith(pathToBeChecked));
+    for (FileHeader fileHeader : fileHeaders) {
+      assertThat(fileHeader.getFileName()).startsWith(pathToBeChecked);
+    }
   }
 
   private void verifyAllFilesInZipDoesNotContainPath(List<FileHeader> fileHeaders, String pathToBeChecked) {
-    fileHeaders.forEach(e -> assertThat(e.getFileName()).doesNotStartWith(pathToBeChecked));
+    for (FileHeader fileHeader : fileHeaders) {
+      assertThat(fileHeader.getFileName()).doesNotStartWith(pathToBeChecked);
+    }
   }
 
   private void verifyAllFilesAreOf(List<FileHeader> fileHeaders, CompressionMethod compressionMethod,
@@ -1017,9 +1031,13 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   private FileHeader getFileHeaderFrom(List<FileHeader> fileHeaders, String fileName) {
-    Optional<FileHeader> fileHeader = fileHeaders.stream().filter(e -> e.getFileName().equals(fileName)).findFirst();
-    assertThat(fileHeader).isPresent();
-    return fileHeader.get();
+    for (FileHeader fileHeader : fileHeaders) {
+      if (fileHeader.getFileName().equals(fileName)) {
+        return fileHeader;
+      }
+    }
+    fail("Could not find a file header by filename: " + fileName);
+    return null;
   }
 
   private List<FileHeader> getFileHeaders(File generatedZipFile) throws ZipException {

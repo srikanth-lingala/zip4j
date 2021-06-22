@@ -15,9 +15,8 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -121,19 +120,19 @@ public class FileUtilsTestLinuxAndMac {
   }
 
   private Set<PosixFilePermission> getAllPermissions() {
-    return Stream.of(
-        PosixFilePermission.OWNER_READ,
-        PosixFilePermission.OWNER_WRITE,
-        PosixFilePermission.OWNER_EXECUTE,
-        PosixFilePermission.GROUP_READ,
-        PosixFilePermission.GROUP_WRITE,
-        PosixFilePermission.GROUP_EXECUTE,
-        PosixFilePermission.OTHERS_READ,
-        PosixFilePermission.OTHERS_WRITE,
-        PosixFilePermission.OTHERS_EXECUTE
-    ).collect(Collectors.toSet());
+    Set<PosixFilePermission> permissions  = new HashSet<>();
+    permissions.add(PosixFilePermission.OWNER_READ);
+    permissions.add(PosixFilePermission.OWNER_WRITE);
+    permissions.add(PosixFilePermission.OWNER_EXECUTE);
+    permissions.add(PosixFilePermission.GROUP_READ);
+    permissions.add(PosixFilePermission.GROUP_WRITE);
+    permissions.add(PosixFilePermission.GROUP_EXECUTE);
+    permissions.add(PosixFilePermission.OTHERS_READ);
+    permissions.add(PosixFilePermission.OTHERS_WRITE);
+    permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+    return permissions;
   }
-  
+
   private void verifyAllPermissionSet(Set<PosixFilePermission> permissions) {
     assertThat(permissions).contains(
         PosixFilePermission.OWNER_READ,

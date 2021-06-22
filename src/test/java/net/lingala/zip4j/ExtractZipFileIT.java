@@ -21,11 +21,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
+import static net.lingala.zip4j.testutils.TestUtils.getFileNamesOfFiles;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -392,7 +391,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(44);
-    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(44);
+    assertThat(getRegularFilesFromFolder(outputFolder)).hasSize(44);
    }
 
   @Test
@@ -413,7 +412,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(3);
-    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(3);
+    assertThat(getRegularFilesFromFolder(outputFolder)).hasSize(3);
   }
 
   @Test
@@ -424,7 +423,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(1);
-    assertThat(Files.walk(outputFolder.toPath()).filter(Files::isRegularFile)).hasSize(1);
+    assertThat(getRegularFilesFromFolder(outputFolder)).hasSize(1);
   }
 
   @Test
@@ -436,8 +435,8 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
 
     assertThat(zipFile.getFileHeaders()).hasSize(2);
-    Set<String> filenameSet = new HashSet<>();
-    Files.walk(outputFolder.toPath()).forEach(file -> filenameSet.add(file.getFileName().toString()));
+    @SuppressWarnings("ConstantConditions")
+    List<String> filenameSet = getFileNamesOfFiles(Arrays.asList(outputFolder.listFiles()));
     assertThat(filenameSet.contains(expectedFileName)).isTrue();
   }
 
@@ -504,7 +503,7 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractAll(outputFolder.getPath());
     assertThat(outputFolder.listFiles()).isEmpty();
   }
-  
+
   @Test
   public void testExtractZipFileCRCError() throws IOException {
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("archive_with_invalid_zip64_headers.zip"));
@@ -712,9 +711,13 @@ public class ExtractZipFileIT extends AbstractIT {
 
   private File getFileWithNameFrom(File outputFolder, String fileName) throws ZipException {
     List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
-    Optional<File> file = filesInFolder.stream().filter(e -> e.getName().equals(fileName)).findFirst();
-    assertThat(file).isPresent();
-    return file.get();
+    for (File file : filesInFolder) {
+      if (file.getName().equals(fileName)) {
+        return file;
+      }
+    }
+    fail("Could not find a file by name " + fileName);
+    return null;
   }
 
   private File createZipFileAndSplit(List<File> filesToAddToZip, long splitLength, boolean encrypt,
@@ -752,5 +755,17 @@ public class ExtractZipFileIT extends AbstractIT {
   private File createSymlink() throws IOException {
     File targetFile = getTestFileFromResources("file_PDF_1MB.pdf");
     return TestUtils.createSymlink(targetFile, temporaryFolder.getRoot());
+  }
+
+  private List<File> getRegularFilesFromFolder(File folder) throws ZipException {
+    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(folder, false, false);
+
+    List<File> regularFiles = new ArrayList<>();
+    for (File file : filesInFolder) {
+      if (Files.isRegularFile(file.toPath())) {
+        regularFiles.add(file);
+      }
+    }
+    return regularFiles;
   }
 }
