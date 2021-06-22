@@ -33,7 +33,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <junit.version>4.13.1</junit.version>
         <lombok.version>1.18.8</lombok.version>
-        <assertj.version>3.12.2</assertj.version>
+        <assertj.version>2.9.1</assertj.version>
         <mockito.version>2.28.2</mockito.version>
         <powermock.version>2.0.2</powermock.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
