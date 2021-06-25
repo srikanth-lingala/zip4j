@@ -589,6 +589,26 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.close();
 
     assertThat(inputStreams).hasSize(4);
+    assertInputStreamsAreClosed(inputStreams);
+  }
+
+  @Test
+  public void testCloseZipFileByTryWithResourceSuccessfullyClosesAllOpenStreams() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFiles(FILES_TO_ADD);
+    List<InputStream> inputStreams = new ArrayList<>();
+
+    try(ZipFile closeableZipFile = new ZipFile(generatedZipFile)) {
+      for (FileHeader fileHeader : closeableZipFile.getFileHeaders()) {
+        inputStreams.add(closeableZipFile.getInputStream(fileHeader));
+      }
+    }
+
+    assertThat(inputStreams).hasSize(3);
+    assertInputStreamsAreClosed(inputStreams);
+  }
+
+  private void assertInputStreamsAreClosed(List<InputStream> inputStreams) {
     for (InputStream inputStream : inputStreams) {
       try {
         //noinspection ResultOfMethodCallIgnored

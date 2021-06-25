@@ -53,6 +53,7 @@ import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +85,7 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
  * </ul>
  */
 
-public class ZipFile {
+public class ZipFile implements Closeable {
 
   private File zipFile;
   private ZipModel zipModel;
@@ -1076,6 +1077,7 @@ public class ZipFile {
    *
    * @throws IOException when the underlying input stream throws an exception when trying to close it
    */
+  @Override
   public void close() throws IOException {
     if (zipFileClosed) {
       return;
