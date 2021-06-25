@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadFactory;
@@ -606,6 +607,29 @@ public class MiscZipFileIT extends AbstractIT {
 
     assertThat(inputStreams).hasSize(3);
     assertInputStreamsAreClosed(inputStreams);
+  }
+
+  @Test
+  public void testCloseZipFileMultipleTimesClosesAllStreams() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFiles(FILES_TO_ADD);
+    List<InputStream> inputStreams = new ArrayList<>();
+
+    // First open the inputstreams
+    for (FileHeader fileHeader : zipFile.getFileHeaders()) {
+      inputStreams.add(zipFile.getInputStream(fileHeader));
+    }
+    // Close it for the first time
+    zipFile.close();
+    assertInputStreamsAreClosed(inputStreams);
+
+    //Now open an inputstream again
+    InputStream inputStream = zipFile.getInputStream(zipFile.getFileHeader(FILES_TO_ADD.get(0).getName()));
+
+    // Closing it now again should close the inputstream as well
+    zipFile.close();
+
+    assertInputStreamsAreClosed(Collections.singletonList(inputStream));
   }
 
   private void assertInputStreamsAreClosed(List<InputStream> inputStreams) {

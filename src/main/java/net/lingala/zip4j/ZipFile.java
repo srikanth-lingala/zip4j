@@ -99,7 +99,6 @@ public class ZipFile implements Closeable {
   private ExecutorService executorService;
   private int bufferSize = InternalZipConstants.BUFF_SIZE;
   private List<InputStream> openInputStreams = new ArrayList<>();
-  private boolean zipFileClosed = false;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -1079,15 +1078,10 @@ public class ZipFile implements Closeable {
    */
   @Override
   public void close() throws IOException {
-    if (zipFileClosed) {
-      return;
-    }
-
     for (InputStream inputStream : openInputStreams) {
       inputStream.close();
     }
     openInputStreams.clear();
-    zipFileClosed = true;
   }
 
   /**
