@@ -19,13 +19,13 @@ public class HeaderUtil {
   public static FileHeader getFileHeader(ZipModel zipModel, String fileName) throws ZipException {
     FileHeader fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
 
-    if (fileHeader == null) {
-      fileName = fileName.replaceAll("\\\\", "/");
-      fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+    String backslashReplaced;
+    if (fileHeader == null && !(backslashReplaced = fileName.replaceAll("\\\\", "/")).equals(fileName)) {
+      fileHeader = getFileHeaderWithExactMatch(zipModel, backslashReplaced);
 
-      if (fileHeader == null) {
-        fileName = fileName.replaceAll("/", "\\\\");
-        fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+      String slashesReplaced;
+      if (fileHeader == null && !(slashesReplaced = backslashReplaced.replaceAll("/", "\\\\")).equals(backslashReplaced)) {
+        fileHeader = getFileHeaderWithExactMatch(zipModel, slashesReplaced);
       }
     }
 
