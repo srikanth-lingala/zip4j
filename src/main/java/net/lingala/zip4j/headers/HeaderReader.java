@@ -155,7 +155,7 @@ public class HeaderReader {
       zip4jRaf.readFully(generalPurposeFlags);
       fileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
       fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
-      fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
+      fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[0], 3));
       fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
 
       fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
