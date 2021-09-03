@@ -238,6 +238,21 @@ public class ZipOutputStreamIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
   }
 
+  @Test
+  public void testCreateZipFileWithDirectoriesAndExtendedLocalFileHeaderIsSuccessful() throws IOException {
+    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      putNextEntryAndCloseEntry(zos, "dir1/");
+      putNextEntryAndCloseEntry(zos, "dir2/");
+    }
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    for (FileHeader fileHeader : fileHeaders) {
+      assertThat(fileHeader.isDataDescriptorExists()).isFalse();
+    }
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
+  }
+
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion)
@@ -433,5 +448,12 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
 
     return zipFile;
+  }
+
+  private void putNextEntryAndCloseEntry(ZipOutputStream zipOutputStream, String fileName) throws IOException {
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip(fileName);
+    zipOutputStream.putNextEntry(zipParameters);
+    zipOutputStream.closeEntry();
   }
 }

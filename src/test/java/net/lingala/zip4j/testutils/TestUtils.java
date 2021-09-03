@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -164,8 +165,11 @@ public class TestUtils {
   private static File getFileFromResources(String parentFolder, String fileName) {
     try {
       String path = "/" + parentFolder + "/" + fileName;
-      String utfDecodedFilePath = URLDecoder.decode(TestUtils.class.getResource(path).getFile(),
-          InternalZipConstants.CHARSET_UTF_8.toString());
+      URL fileUrl = TestUtils.class.getResource(path);
+      if (fileUrl == null) {
+        throw new RuntimeException("File not found " + path);
+      }
+      String utfDecodedFilePath = URLDecoder.decode(fileUrl.getFile(), InternalZipConstants.CHARSET_UTF_8.toString());
       return new File(utfDecodedFilePath);
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);

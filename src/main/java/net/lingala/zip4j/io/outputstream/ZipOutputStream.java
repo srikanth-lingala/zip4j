@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.zip.CRC32;
 
+import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 
@@ -72,12 +73,19 @@ public class ZipOutputStream extends OutputStream {
 
   public void putNextEntry(ZipParameters zipParameters) throws IOException {
     verifyZipParameters(zipParameters);
-    initializeAndWriteFileHeader(zipParameters);
+
+    ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
+    if (isZipEntryDirectory(zipParameters.getFileNameInZip())) {
+      clonedZipParameters.setWriteExtendedLocalFileHeader(false);
+      clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+      clonedZipParameters.setEncryptFiles(false);
+    }
+    initializeAndWriteFileHeader(clonedZipParameters);
 
     //Initialisation of below compressedOutputStream should happen after writing local file header
     //because local header data should be written first and then the encryption header data
     //and below initialisation writes encryption header data
-    compressedOutputStream = initializeCompressedOutputStream(zipParameters);
+    compressedOutputStream = initializeCompressedOutputStream(clonedZipParameters);
     this.entryClosed = false;
   }
 
@@ -220,7 +228,7 @@ public class ZipOutputStream extends OutputStream {
   private void verifyZipParameters(ZipParameters zipParameters) {
     if (zipParameters.getCompressionMethod() == CompressionMethod.STORE
         && zipParameters.getEntrySize() < 0
-        && !isEntryDirectory(zipParameters.getFileNameInZip())
+        && !isZipEntryDirectory(zipParameters.getFileNameInZip())
         && zipParameters.isWriteExtendedLocalFileHeader()) {
       throw new IllegalArgumentException("uncompressed size should be set for zip entries of compression type store");
     }
@@ -234,9 +242,5 @@ public class ZipOutputStream extends OutputStream {
     }
 
     return fileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.ONE);
-  }
-
-  private boolean isEntryDirectory(String entryName) {
-    return entryName.endsWith("/") || entryName.endsWith("\\");
   }
 }

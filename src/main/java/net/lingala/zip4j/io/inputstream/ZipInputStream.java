@@ -152,10 +152,6 @@ public class ZipInputStream extends InputStream {
       return -1;
     }
 
-    if (localFileHeader.isDirectory()) {
-      return -1;
-    }
-
     try {
       int readLen = decompressedInputStream.read(b, off, len);
 

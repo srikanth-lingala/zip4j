@@ -97,55 +97,55 @@ public class ZipInputStreamIT extends AbstractIT {
   @Test
   public void testExtractDeflateWithAesEncryption256AndV1() throws IOException {
     File createdZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD, AesVersion.ONE);
-    extractZipFileWithInputStreams(createdZipFile, PASSWORD, InternalZipConstants.BUFF_SIZE, AesVersion.ONE);
+    extractZipFileWithInputStreams(createdZipFile, PASSWORD);
   }
 
   @Test
   public void testExtractWithReadLengthLessThan16WithAesAndStoreCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, 15, AesVersion.TWO);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, 15);
   }
 
   @Test
   public void testExtractWithReadLengthLessThan16WithAesAndDeflateCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, 15, AesVersion.TWO);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, 15);
   }
 
   @Test
   public void testExtractWithReadLengthLessThan16WithZipCryptoAndStoreCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, 12, null);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, 12);
   }
 
   @Test
   public void testExtractWithReadLengthLessThan16WithZipCryptoAndDeflateCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, 5, null);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, 5);
   }
 
   @Test
   public void testExtractWithReadLengthGreaterThanButNotMultipleOf16WithAesAndStoreCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.STORE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 4) + 1, AesVersion.TWO);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 4) + 1);
   }
 
   @Test
   public void testExtractWithReadLengthGreaterThanButNotMultipleOf16WithAesAndDeflateCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 8) - 10, AesVersion.TWO);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 8) - 10);
   }
 
   @Test
   public void testExtractWithReadLengthGreaterThanButNotMultipleOf16WithZipCryptoAndStoreCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 2) - 6, null);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 2) - 6);
   }
 
   @Test
   public void testExtractWithReadLengthGreaterThanButNotMultipleOf16WithZipCryptoAndDeflateCompression() throws IOException {
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.ZIP_STANDARD, null, PASSWORD);
-    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 10) - 11, null);
+    extractZipFileWithInputStreams(createZipFile, PASSWORD, (16 * 10) - 11);
   }
 
   @Test
@@ -295,12 +295,22 @@ public class ZipInputStreamIT extends AbstractIT {
     }
   }
 
-  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
-    extractZipFileWithInputStreams(zipFile, password, 4096, AesVersion.TWO);
+  @Test
+  public void testExtractZipFileWithDirectoriesContainingExtendedLocalFileHeader() throws IOException {
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("dirs_with_extended_local_file_headers.zip"),
+        null, InternalZipConstants.BUFF_SIZE, false, 2);
   }
 
-  private void extractZipFileWithInputStreams(File zipFile, char[] password, int bufferLength, AesVersion aesVersion)
-      throws IOException {
+  private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
+    extractZipFileWithInputStreams(zipFile, password, InternalZipConstants.BUFF_SIZE);
+  }
+
+  private void extractZipFileWithInputStreams(File zipFile, char[] password, int bufferLength) throws IOException {
+    extractZipFileWithInputStreams(zipFile, password, bufferLength, true, FILES_TO_ADD.size());
+  }
+
+  private void extractZipFileWithInputStreams(File zipFile, char[] password, int bufferLength,
+                                              boolean verifyFileContents, int numberOfEntriesExpected) throws IOException {
     LocalFileHeader localFileHeader;
     int readLen;
     byte[] readBuffer = new byte[bufferLength];
@@ -316,13 +326,15 @@ public class ZipInputStreamIT extends AbstractIT {
             }
           }
           verifyLocalFileHeader(localFileHeader);
-          verifyFileContent(getTestFileFromResources(localFileHeader.getFileName()), extractedFile);
+          if (verifyFileContents) {
+            verifyFileContent(getTestFileFromResources(localFileHeader.getFileName()), extractedFile);
+          }
           numberOfEntriesExtracted++;
         }
       }
     }
 
-    assertThat(numberOfEntriesExtracted).isEqualTo(FILES_TO_ADD.size());
+    assertThat(numberOfEntriesExtracted).isEqualTo(numberOfEntriesExpected);
   }
 
   private void verifyLocalFileHeader(LocalFileHeader localFileHeader) {
