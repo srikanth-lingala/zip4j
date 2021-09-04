@@ -29,9 +29,8 @@
     </licenses>
 
     <properties>
-        <maven.compiler.source>7</maven.compiler.source>
-        <maven.compiler.target>7</maven.compiler.target>
-        <maven.compiler.target.module-info>9</maven.compiler.target.module-info>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <junit.version>4.13.1</junit.version>
         <lombok.version>1.18.8</lombok.version>
         <assertj.version>2.9.1</assertj.version>
@@ -94,18 +93,6 @@
                 <additionalparam>-Xdoclint:none</additionalparam>
             </properties>
         </profile>
-
-        <!-- Without this profile idea refused to compile module-info, it needs
-          java 9 to work with module-info
-          Activate only when working in Idea.
-          -->
-        <profile>
-            <id>for-idea</id>
-            <properties>
-                <maven.compiler.source>${maven.compiler.target.module-info}</maven.compiler.source>
-                <maven.compiler.target>${maven.compiler.target.module-info}</maven.compiler.target>
-            </properties>
-        </profile>
     </profiles>
 
     <build>
@@ -114,47 +101,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <release>${maven.compiler.target}</release>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
-                <executions>
-                    <!-- First pass - compiling with module-info -->
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration combine.self="override">
-                            <release>${maven.compiler.target.module-info}</release>
-                            <source>${maven.compiler.target.module-info}</source>
-                            <target>${maven.compiler.target.module-info}</target>
-                            <useIncrementalCompilation>true</useIncrementalCompilation>
-                        </configuration>
-                    </execution>
-                    <!-- Second pass - recompiling without module-info, to keep java 8 compatibility -->
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <release>${maven.compiler.target}</release>
-                            <source>${maven.compiler.source}</source>
-                            <target>${maven.compiler.target}</target>
-                            <excludes>
-                                <exclude>module-info.java</exclude>
-                            </excludes>
-                            <useIncrementalCompilation>true</useIncrementalCompilation>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
