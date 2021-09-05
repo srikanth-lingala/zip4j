@@ -5,3 +5,7 @@ before_script:
 
 script:
   - travis_wait 45 mvn clean verify
+
+cache:
+  directories:
+  - $HOME/.m2
