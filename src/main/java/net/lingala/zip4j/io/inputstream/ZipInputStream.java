@@ -80,11 +80,13 @@ public class ZipInputStream extends InputStream {
   }
 
   public LocalFileHeader getNextEntry() throws IOException {
-    return getNextEntry(null);
+    return getNextEntry(null, true);
   }
 
-  public LocalFileHeader getNextEntry(FileHeader fileHeader) throws IOException {
-    if (localFileHeader != null) {
+  public LocalFileHeader getNextEntry(FileHeader fileHeader, boolean readUntilEndOfCurrentEntryIfOpen)
+      throws IOException {
+
+    if (localFileHeader != null && readUntilEndOfCurrentEntryIfOpen) {
       readUntilEndOfEntry();
     }
 

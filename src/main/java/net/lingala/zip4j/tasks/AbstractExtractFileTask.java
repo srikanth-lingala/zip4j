@@ -140,7 +140,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
           "Zip4j does not support Strong Encryption, as this is patented.");
     }
 
-    LocalFileHeader localFileHeader = zipInputStream.getNextEntry(fileHeader);
+    LocalFileHeader localFileHeader = zipInputStream.getNextEntry(fileHeader, false);
 
     if (localFileHeader == null) {
       throw new ZipException("Could not read corresponding local file header for file header: "

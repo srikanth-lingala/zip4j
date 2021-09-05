@@ -27,7 +27,7 @@ public class UnzipUtil {
       splitInputStream.prepareExtractionForFileHeader(fileHeader);
 
       ZipInputStream zipInputStream = new ZipInputStream(splitInputStream, password);
-      if (zipInputStream.getNextEntry(fileHeader) == null) {
+      if (zipInputStream.getNextEntry(fileHeader, false) == null) {
         throw new ZipException("Could not locate local file header for corresponding file header");
       }
 
