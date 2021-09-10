@@ -641,6 +641,17 @@ public class ExtractZipFileIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testExtractZipFileByFileNameWhichTheDirectoryEntryAtTheEndOfCentralDirectoryExtractsSuccessfully()
+      throws  ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFolder(getTestFileFromResources("/"));
+
+    zipFile.extractFile("test-files/", outputFolder.getPath());
+    zipFile = new ZipFile(generatedZipFile);
+    zipFile.extractFile("test-files/", outputFolder.getPath());
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

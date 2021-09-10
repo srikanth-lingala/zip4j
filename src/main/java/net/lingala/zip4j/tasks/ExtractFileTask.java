@@ -39,6 +39,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
       List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
       byte[] readBuff = new byte[taskParameters.zip4jConfig.getBufferSize()];
       for (FileHeader fileHeader : fileHeadersUnderDirectory) {
+        splitInputStream.prepareExtractionForFileHeader(fileHeader);
         String newFileName = determineNewFileName(taskParameters.newFileName, taskParameters.fileHeader, fileHeader);
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, newFileName, progressMonitor, readBuff);
       }
@@ -66,7 +67,6 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
 
   private ZipInputStream createZipInputStream(FileHeader fileHeader, Zip4jConfig zip4jConfig) throws IOException {
     splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
-    splitInputStream.prepareExtractionForFileHeader(fileHeader);
     return new ZipInputStream(splitInputStream, password, zip4jConfig);
   }
 
