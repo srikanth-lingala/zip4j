@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static net.lingala.zip4j.exception.ZipException.Type.FILE_NOT_FOUND;
 import static net.lingala.zip4j.headers.HeaderUtil.getFileHeadersUnderDirectory;
 import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders;
 
@@ -37,8 +38,8 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
 
+    List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileToExtract);
     try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.zip4jConfig)) {
-      List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileToExtract);
       byte[] readBuff = new byte[taskParameters.zip4jConfig.getBufferSize()];
       for (FileHeader fileHeader : fileHeadersUnderDirectory) {
         splitInputStream.prepareExtractionForFileHeader(fileHeader);
@@ -62,7 +63,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
     if (!FileUtils.isZipEntryDirectory(fileNameToExtract)) {
       FileHeader fileHeader = HeaderUtil.getFileHeader(getZipModel(), fileNameToExtract);
       if (fileHeader == null) {
-        throw new ZipException("No file found with name " + fileNameToExtract + " in zip file");
+        throw new ZipException("No file found with name " + fileNameToExtract + " in zip file", FILE_NOT_FOUND);
       }
       return Collections.singletonList(fileHeader);
     }
