@@ -378,7 +378,7 @@ public class ZipFileTest {
     expectedException.expectMessage("destination path is empty or null, cannot extract file");
     expectedException.expect(ZipException.class);
 
-    zipFile.extractFile(new FileHeader(), null);
+    zipFile.extractFile(createFileHeader("SOME_NAME"), null);
   }
 
   @Test
@@ -386,7 +386,7 @@ public class ZipFileTest {
     expectedException.expectMessage("destination path is empty or null, cannot extract file");
     expectedException.expect(ZipException.class);
 
-    zipFile.extractFile(new FileHeader(), "");
+    zipFile.extractFile(createFileHeader("SOME_NAME"), "");
   }
 
   @Test
@@ -397,7 +397,7 @@ public class ZipFileTest {
     expectedException.expectMessage("invalid operation - Zip4j is in busy state");
     expectedException.expect(ZipException.class);
 
-    zipFile.extractFile(new FileHeader(), "SOME_DESTINATION");
+    zipFile.extractFile(createFileHeader("SOME_NAME"), "SOME_DESTINATION");
   }
 
   @Test
@@ -648,5 +648,11 @@ public class ZipFileTest {
     when(folder.isDirectory()).thenReturn(true);
     when(folder.canRead()).thenReturn(true);
     return folder;
+  }
+
+  private FileHeader createFileHeader(String fileName) {
+    FileHeader fileHeader = new FileHeader();
+    fileHeader.setFileName(fileName);
+    return fileHeader;
   }
 }
