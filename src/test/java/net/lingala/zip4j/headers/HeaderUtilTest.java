@@ -194,10 +194,8 @@ public class HeaderUtilTest {
   @Test
   public void testGetFileHeadersUnderDirectoryWhenNotDirectoryReturnsEmptyList() {
     List<FileHeader> allFileHeaders = generateFileHeaderWithFileNames("header", 5);
-    FileHeader rootFileHeader = generateFileHeader("some_name");
-    rootFileHeader.setDirectory(false);
 
-    assertThat(HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, rootFileHeader)).isEmpty();
+    assertThat(HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, "some_name")).isEmpty();
   }
 
   @Test
@@ -205,10 +203,8 @@ public class HeaderUtilTest {
     List<FileHeader> allFileHeaders = generateFileHeaderWithFileNames("some_name/header", 5);
     allFileHeaders.add(generateFileHeader("some_name/"));
     allFileHeaders.add(generateFileHeader("some_other_name.txt"));
-    FileHeader rootFileHeader = generateFileHeader("some_name/");
-    rootFileHeader.setDirectory(true);
 
-    List<FileHeader> filHeadersUnderDirectory = HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, rootFileHeader);
+    List<FileHeader> filHeadersUnderDirectory = HeaderUtil.getFileHeadersUnderDirectory(allFileHeaders, "some_name/");
     assertThat(filHeadersUnderDirectory).hasSize(6);
     for (FileHeader fileHeader : filHeadersUnderDirectory) {
       assertThat(fileHeader)

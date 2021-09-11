@@ -502,6 +502,34 @@ public class ZipFile implements Closeable {
 
   /**
    * Extracts a specific file from the zip file to the destination path.
+   * If destination path is invalid, then this method throws an exception.
+   * <br><br>
+   * If newFileName is not null or empty, newly created file name will be replaced by
+   * the value in newFileName. If this value is null, then the file name will be the
+   * value in FileHeader.getFileName. If file being extract is a directory, the directory name
+   * will be replaced with the newFileName
+   * <br><br>
+   * If fileHeader is a directory, this method extracts all files under this directory.
+   * <br/><br/>
+   * Any parameters that have to be considered during extraction can be passed in through unzipParameters
+   *
+   * @param fileHeader file header corresponding to the entry which has to be extracted
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileName if not null, this will be the name given to the file upon extraction
+   * @param unzipParameters any parameters that have to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractFile(FileHeader fileHeader, String destinationPath, String newFileName,
+                          UnzipParameters unzipParameters) throws ZipException {
+    if (fileHeader == null) {
+      throw new ZipException("input file header is null, cannot extract file");
+    }
+
+    extractFile(fileHeader.getFileName(), destinationPath, newFileName, unzipParameters);
+  }
+
+  /**
+   * Extracts a specific file from the zip file to the destination path.
    * This method first finds the necessary file header from the input file name.
    * <br><br>
    * File name is relative file name in the zip file. For example if a zip file contains
@@ -631,42 +659,6 @@ public class ZipFile implements Closeable {
       throw new ZipException("file to extract is null or empty, cannot extract file");
     }
 
-    readZipInfo();
-
-    FileHeader fileHeader = HeaderUtil.getFileHeader(zipModel, fileName);
-
-    if (fileHeader == null) {
-      throw new ZipException("No file found with name " + fileName + " in zip file", ZipException.Type.FILE_NOT_FOUND);
-    }
-
-    extractFile(fileHeader, destinationPath, newFileName, unzipParameters);
-  }
-
-  /**
-   * Extracts a specific file from the zip file to the destination path.
-   * If destination path is invalid, then this method throws an exception.
-   * <br><br>
-   * If newFileName is not null or empty, newly created file name will be replaced by
-   * the value in newFileName. If this value is null, then the file name will be the
-   * value in FileHeader.getFileName. If file being extract is a directory, the directory name
-   * will be replaced with the newFileName
-   * <br><br>
-   * If fileHeader is a directory, this method extracts all files under this directory.
-   * <br/><br/>
-   * Any parameters that have to be considered during extraction can be passed in through unzipParameters
-   *
-   * @param fileHeader file header corresponding to the entry which has to be extracted
-   * @param destinationPath path to which the entries of the zip are to be extracted
-   * @param newFileName if not null, this will be the name given to the file upon extraction
-   * @param unzipParameters any parameters that have to be considered during extraction
-   * @throws ZipException when an issue occurs during extraction
-   */
-  public void extractFile(FileHeader fileHeader, String destinationPath, String newFileName,
-                          UnzipParameters unzipParameters) throws ZipException {
-    if (fileHeader == null) {
-      throw new ZipException("input file header is null, cannot extract file");
-    }
-
     if (!isStringNotNullAndNotEmpty(destinationPath)) {
       throw new ZipException("destination path is empty or null, cannot extract file");
     }
@@ -678,7 +670,7 @@ public class ZipFile implements Closeable {
     readZipInfo();
 
     new ExtractFileTask(zipModel, password, unzipParameters, buildAsyncParameters()).execute(
-        new ExtractFileTaskParameters(destinationPath, fileHeader, newFileName, buildConfig()));
+        new ExtractFileTaskParameters(destinationPath, fileName, newFileName, buildConfig()));
   }
 
   /**

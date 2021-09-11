@@ -588,6 +588,22 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testExtractFileWhichIsAFolderExtractsContentsEvenWhenFolderEntryIsNotInZip() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("archive-with-no-dir-entries.zip"));
+    String outputFolderPath = outputFolder.getPath();
+
+    zipFile.extractFile("items/", outputFolderPath);
+
+    List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, false, false);
+    assertThat(extractedFiles).isNotEmpty();
+    assertThat(extractedFiles).hasSize(3);
+    assertThat(extractedFiles).contains(
+        Paths.get(outputFolderPath, "items").toFile(),
+        Paths.get(outputFolderPath, "items/subitems").toFile(),
+        Paths.get(outputFolderPath, "items/subitems/beta.txt").toFile());
+  }
+
+  @Test
   public void testExtractJarFileWithFileHeaderCompressedSize2() throws IOException {
     extractFile(TestUtils.getTestArchiveFromResources("jar-dir-fh-entry-size-2.jar"));
   }

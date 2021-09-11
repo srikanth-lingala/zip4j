@@ -1,5 +1,7 @@
 package net.lingala.zip4j.tasks;
 
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.io.inputstream.SplitInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
@@ -8,6 +10,7 @@ import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.tasks.ExtractFileTask.ExtractFileTaskParameters;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.UnzipUtil;
 import net.lingala.zip4j.util.Zip4jUtil;
@@ -34,13 +37,12 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   protected void executeTask(ExtractFileTaskParameters taskParameters, ProgressMonitor progressMonitor)
       throws IOException {
 
-    try(ZipInputStream zipInputStream =
-            createZipInputStream(taskParameters.fileHeader, taskParameters.zip4jConfig)) {
-      List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
+    try(ZipInputStream zipInputStream = createZipInputStream(taskParameters.zip4jConfig)) {
+      List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileToExtract);
       byte[] readBuff = new byte[taskParameters.zip4jConfig.getBufferSize()];
       for (FileHeader fileHeader : fileHeadersUnderDirectory) {
         splitInputStream.prepareExtractionForFileHeader(fileHeader);
-        String newFileName = determineNewFileName(taskParameters.newFileName, taskParameters.fileHeader, fileHeader);
+        String newFileName = determineNewFileName(taskParameters.newFileName, taskParameters.fileToExtract, fileHeader);
         extractFile(zipInputStream, fileHeader, taskParameters.outputPath, newFileName, progressMonitor, readBuff);
       }
     } finally {
@@ -51,32 +53,35 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
   }
 
   @Override
-  protected long calculateTotalWork(ExtractFileTaskParameters taskParameters) {
-    List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileHeader);
+  protected long calculateTotalWork(ExtractFileTaskParameters taskParameters) throws ZipException {
+    List<FileHeader> fileHeadersUnderDirectory = getFileHeadersToExtract(taskParameters.fileToExtract);
     return getTotalUncompressedSizeOfAllFileHeaders(fileHeadersUnderDirectory);
   }
 
-  private List<FileHeader> getFileHeadersToExtract(FileHeader rootFileHeader) {
-    if (!rootFileHeader.isDirectory()) {
-      return Collections.singletonList(rootFileHeader);
+  private List<FileHeader> getFileHeadersToExtract(String fileNameToExtract) throws ZipException {
+    if (!FileUtils.isZipEntryDirectory(fileNameToExtract)) {
+      FileHeader fileHeader = HeaderUtil.getFileHeader(getZipModel(), fileNameToExtract);
+      if (fileHeader == null) {
+        throw new ZipException("No file found with name " + fileNameToExtract + " in zip file");
+      }
+      return Collections.singletonList(fileHeader);
     }
 
-    return getFileHeadersUnderDirectory(
-        getZipModel().getCentralDirectory().getFileHeaders(), rootFileHeader);
+    return getFileHeadersUnderDirectory(getZipModel().getCentralDirectory().getFileHeaders(), fileNameToExtract);
   }
 
-  private ZipInputStream createZipInputStream(FileHeader fileHeader, Zip4jConfig zip4jConfig) throws IOException {
+  private ZipInputStream createZipInputStream(Zip4jConfig zip4jConfig) throws IOException {
     splitInputStream = UnzipUtil.createSplitInputStream(getZipModel());
     return new ZipInputStream(splitInputStream, password, zip4jConfig);
   }
 
-  private String determineNewFileName(String newFileName, FileHeader fileHeaderToExtract,
+  private String determineNewFileName(String newFileName, String fileNameToExtract,
                                       FileHeader fileHeaderBeingExtracted) {
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
       return newFileName;
     }
 
-    if (!fileHeaderToExtract.isDirectory()) {
+    if (!FileUtils.isZipEntryDirectory(fileNameToExtract)) {
       return newFileName;
     }
 
@@ -85,20 +90,19 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
       fileSeparator = "";
     }
 
-    return fileHeaderBeingExtracted.getFileName().replaceFirst(fileHeaderToExtract.getFileName(),
-        newFileName + fileSeparator);
+    return fileHeaderBeingExtracted.getFileName().replaceFirst(fileNameToExtract, newFileName + fileSeparator);
   }
 
   public static class ExtractFileTaskParameters extends AbstractZipTaskParameters {
     private String outputPath;
-    private FileHeader fileHeader;
+    private String fileToExtract;
     private String newFileName;
 
-    public ExtractFileTaskParameters(String outputPath, FileHeader fileHeader, String newFileName,
+    public ExtractFileTaskParameters(String outputPath, String fileToExtract, String newFileName,
                                      Zip4jConfig zip4jConfig) {
       super(zip4jConfig);
       this.outputPath = outputPath;
-      this.fileHeader = fileHeader;
+      this.fileToExtract = fileToExtract;
       this.newFileName = newFileName;
     }
   }

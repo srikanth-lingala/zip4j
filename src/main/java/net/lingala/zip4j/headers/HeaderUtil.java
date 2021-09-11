@@ -8,7 +8,6 @@ import net.lingala.zip4j.util.InternalZipConstants;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
@@ -65,14 +64,10 @@ public class HeaderUtil {
     return zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
   }
 
-  public static List<FileHeader> getFileHeadersUnderDirectory(List<FileHeader> allFileHeaders, FileHeader rootFileHeader) {
-    if (!rootFileHeader.isDirectory()) {
-      return Collections.emptyList();
-    }
-
+  public static List<FileHeader> getFileHeadersUnderDirectory(List<FileHeader> allFileHeaders, String fileName) {
     List<FileHeader> fileHeadersUnderDirectory = new ArrayList<>();
     for (FileHeader fileHeader : allFileHeaders) {
-      if (fileHeader.getFileName().startsWith(rootFileHeader.getFileName())) {
+      if (fileHeader.getFileName().startsWith(fileName)) {
         fileHeadersUnderDirectory.add(fileHeader);
       }
     }
