@@ -16,6 +16,9 @@
 
 package net.lingala.zip4j.io.inputstream;
 
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
+import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
+
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
@@ -28,6 +31,7 @@ import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.InternalZipConstants;
+import net.lingala.zip4j.util.PasswordCallback;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,15 +40,13 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
 
-import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
-import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
-
 public class ZipInputStream extends InputStream {
 
   private PushbackInputStream inputStream;
   private DecompressedInputStream decompressedInputStream;
   private HeaderReader headerReader = new HeaderReader();
   private char[] password;
+  private PasswordCallback passwordCallback;
   private LocalFileHeader localFileHeader;
   private CRC32 crc32 = new CRC32();
   private byte[] endOfEntryBuffer;
@@ -54,28 +56,45 @@ public class ZipInputStream extends InputStream {
   private boolean entryEOFReached = false;
 
   public ZipInputStream(InputStream inputStream) {
-    this(inputStream, null, (Charset) null);
+    this(inputStream, (char[]) null, (Charset) null);
   }
 
   public ZipInputStream(InputStream inputStream, Charset charset) {
-    this(inputStream, null, charset);
+    this(inputStream, (char[]) null, charset);
   }
 
   public ZipInputStream(InputStream inputStream, char[] password) {
     this(inputStream, password, (Charset) null);
   }
 
+  public ZipInputStream(InputStream inputStream, PasswordCallback passwordCallback) {
+    this(inputStream, passwordCallback, (Charset) null);
+  }
+
   public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
     this(inputStream, password, new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE));
   }
 
+  public ZipInputStream(InputStream inputStream, PasswordCallback passwordCallback, Charset charset) {
+    this(inputStream, passwordCallback, new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE));
+  }
+
   public ZipInputStream(InputStream inputStream, char[] password, Zip4jConfig zip4jConfig) {
+    this(inputStream, password, null, zip4jConfig);
+  }
+
+  public ZipInputStream(InputStream inputStream, PasswordCallback passwordCallback, Zip4jConfig zip4jConfig) {
+    this(inputStream, null, passwordCallback, zip4jConfig);
+  }
+
+  private ZipInputStream(InputStream inputStream, char[] password, PasswordCallback passwordCallback, Zip4jConfig zip4jConfig) {
     if (zip4jConfig.getBufferSize() < InternalZipConstants.MIN_BUFF_SIZE) {
       throw new IllegalArgumentException("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
     }
 
     this.inputStream = new PushbackInputStream(inputStream, zip4jConfig.getBufferSize());
     this.password = password;
+    this.passwordCallback = passwordCallback;
     this.zip4jConfig = zip4jConfig;
   }
 
@@ -94,6 +113,10 @@ public class ZipInputStream extends InputStream {
 
     if (localFileHeader == null) {
       return null;
+    }
+
+    if (localFileHeader.isEncrypted() && password == null && passwordCallback != null) {
+      setPassword(passwordCallback.getPassword());
     }
 
     verifyLocalFileHeader(localFileHeader);
