@@ -49,7 +49,7 @@ public class ZipInputStreamIT extends AbstractIT {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
 
-    new ZipInputStream(inputStream, null, zip4jConfig);
+    new ZipInputStream(inputStream, (char[]) null, zip4jConfig);
   }
 
   @Test
