@@ -117,22 +117,6 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithFileNameContainsWindowsDriveExcludesIt() throws IOException {
-    String fileName = "C:\\test.txt";
-    ZipModel actualZipModel = generateZipModel(1);
-    actualZipModel.getCentralDirectory().getFileHeaders().get(0).setFileName(fileName);
-    File headersFile = writeZipHeaders(actualZipModel);
-    actualZipModel.setZipFile(headersFile);
-
-    try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
-        RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
-      FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(0);
-      assertThat(fileHeader.getFileName()).isEqualTo("test.txt");
-    }
-  }
-
-  @Test
   public void testReadAllWithoutFileNameWritesNull() throws IOException {
     ZipModel actualZipModel = generateZipModel(1);
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setFileName(null);

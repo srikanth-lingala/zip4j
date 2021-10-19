@@ -18,7 +18,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.regex.Matcher;
 
 import static net.lingala.zip4j.util.InternalZipConstants.FILE_SEPARATOR;
 
@@ -159,19 +158,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   private File determineOutputFile(FileHeader fileHeader, String outputPath, String newFileName) {
-    String outputFileName;
+    String outputFileName = fileHeader.getFileName();
     if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
       outputFileName = newFileName;
-    } else {
-      // replace all slashes with file separator
-      outputFileName = fileHeader.getFileName();
     }
-
     return new File(outputPath + FILE_SEPARATOR + outputFileName);
-  }
-
-  private String getFileNameWithSystemFileSeparators(String fileNameToReplace) {
-    return fileNameToReplace.replaceAll("[/\\\\]", Matcher.quoteReplacement(FILE_SEPARATOR));
   }
 
   @Override
