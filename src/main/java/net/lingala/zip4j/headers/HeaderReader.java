@@ -191,11 +191,6 @@ public class HeaderReader {
         byte[] fileNameBuff = new byte[fileNameLength];
         zip4jRaf.readFully(fileNameBuff);
         String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded(), charset);
-
-        if (fileName.contains(":\\")) {
-          fileName = fileName.substring(fileName.indexOf(":\\") + 2);
-        }
-
         fileHeader.setFileName(fileName);
       } else {
         fileHeader.setFileName(null);
@@ -560,11 +555,6 @@ public class HeaderReader {
       readFully(inputStream, fileNameBuf);
 
       String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
-
-      if (fileName.contains(":" + System.getProperty("file.separator"))) {
-        fileName = fileName.substring(fileName.indexOf(":" + System.getProperty("file.separator")) + 2);
-      }
-
       localFileHeader.setFileName(fileName);
       localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
     } else {

@@ -164,7 +164,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       outputFileName = newFileName;
     } else {
       // replace all slashes with file separator
-      outputFileName = getFileNameWithSystemFileSeparators(fileHeader.getFileName());
+      outputFileName = fileHeader.getFileName();
     }
 
     return new File(outputPath + FILE_SEPARATOR + outputFileName);
