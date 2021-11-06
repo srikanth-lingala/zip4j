@@ -668,6 +668,16 @@ public class ExtractZipFileIT extends AbstractIT {
     zipFile.extractFile("test-files/", outputFolder.getPath());
   }
 
+  @Test
+  public void testExtractZipFileThrowsExceptionOfTypeWrongPasswordForNullAesPassword() throws ZipException {
+    testExtractZipFileThrowsExceptionOfTypeWrongPasswordForNullOrEmptyAesPassword(null);
+  }
+
+  @Test
+  public void testExtractZipFileThrowsExceptionOfTypeWrongPasswordForEmptyAesPassword() throws ZipException {
+    testExtractZipFileThrowsExceptionOfTypeWrongPasswordForNullOrEmptyAesPassword("".toCharArray());
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);
@@ -794,5 +804,16 @@ public class ExtractZipFileIT extends AbstractIT {
       }
     }
     return regularFiles;
+  }
+
+  private void testExtractZipFileThrowsExceptionOfTypeWrongPasswordForNullOrEmptyAesPassword(char[] password) throws ZipException {
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    addFileToZip(zipFile, "sample.pdf", EncryptionMethod.AES, new String(PASSWORD));
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("empty or null password provided for AES decryption");
+
+    zipFile = new ZipFile(generatedZipFile, password);
+    zipFile.extractAll(outputFolder.getPath());
   }
 }

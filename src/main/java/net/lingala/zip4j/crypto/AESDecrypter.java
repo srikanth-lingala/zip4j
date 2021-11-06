@@ -25,6 +25,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import java.util.Arrays;
 
 import static net.lingala.zip4j.crypto.AesCipherUtil.prepareBuffAESIVBytes;
+import static net.lingala.zip4j.exception.ZipException.Type.WRONG_PASSWORD;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
 /**
@@ -49,7 +50,7 @@ public class AESDecrypter implements Decrypter {
       throws ZipException {
 
     if (password == null || password.length <= 0) {
-      throw new ZipException("empty or null password provided for AES decryption");
+      throw new ZipException("empty or null password provided for AES decryption", WRONG_PASSWORD);
     }
 
     final AesKeyStrength aesKeyStrength = aesExtraDataRecord.getAesKeyStrength();
