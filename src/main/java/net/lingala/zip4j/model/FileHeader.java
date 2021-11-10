@@ -18,6 +18,8 @@ package net.lingala.zip4j.model;
 
 import net.lingala.zip4j.headers.HeaderSignature;
 
+import java.util.Objects;
+
 public class FileHeader extends AbstractFileHeader {
 
   private int versionMadeBy;
@@ -91,5 +93,27 @@ public class FileHeader extends AbstractFileHeader {
   @Override
   public String toString() {
     return getFileName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    FileHeader that = (FileHeader) o;
+    return determineOffsetOfLocalFileHeader(this) == determineOffsetOfLocalFileHeader(that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getFileName(), determineOffsetOfLocalFileHeader(this));
+  }
+
+  private long determineOffsetOfLocalFileHeader(FileHeader fileHeader) {
+    if (fileHeader.getZip64ExtendedInfo() != null) {
+      return fileHeader.getZip64ExtendedInfo().getOffsetLocalHeader();
+    }
+
+    return fileHeader.getOffsetLocalHeader();
   }
 }

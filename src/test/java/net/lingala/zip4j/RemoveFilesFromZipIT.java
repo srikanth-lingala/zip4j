@@ -234,6 +234,18 @@ public class RemoveFilesFromZipIT extends AbstractIT {
     assertZipFileDoesNotContainsFileByName(new ZipFile(zipFileUnderTest), fileNameToRemove);
   }
 
+  @Test
+  public void testRemoveEntryFromAZipFileWithDuplicateEntriesRemovesSuccessfully() throws IOException {
+    TestUtils.copyFile(TestUtils.getTestArchiveFromResources("zip_with_duplicate_entries.zip"), generatedZipFile);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    int actualNumberOfEntries = zipFile.getFileHeaders().size();
+    zipFile.removeFile("sample.pdf");
+
+    zipFile = new ZipFile(generatedZipFile);
+    assertThat(zipFile.getFileHeaders().size()).isEqualTo(actualNumberOfEntries - 1);
+    assertZipFileDoesNotContainsFileByName(zipFile, "sample.pdf");
+  }
+
   private void testRemoveEntryFromZipWhichHasCentralDirEntriesInDifferentOrderThanLocalEntries(
       String fileNameToRemove) throws IOException {
     TestUtils.copyFile(TestUtils.getTestArchiveFromResources("cen_dir_entries_diff_order_as_local_entries.zip"),
