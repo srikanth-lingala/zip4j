@@ -118,7 +118,7 @@ public class HeaderUtil {
         continue;
       }
 
-      if (fileName.equalsIgnoreCase(fileNameForHdr)) {
+      if (fileName.equals(fileNameForHdr)) {
         return fileHeader;
       }
     }
