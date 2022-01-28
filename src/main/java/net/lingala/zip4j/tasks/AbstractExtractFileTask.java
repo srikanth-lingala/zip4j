@@ -48,9 +48,14 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     File outputFile = determineOutputFile(fileHeader, outputPath, newFileName);
     progressMonitor.setFileName(outputFile.getAbsolutePath());
 
+    String outputFileCanonicalPath = outputFile.getCanonicalPath();
+    if (isRelativeRootDirectory(fileHeader.getFileName()) && !outputFileCanonicalPath.endsWith(FILE_SEPARATOR)) {
+      outputFileCanonicalPath = outputFileCanonicalPath + File.separator;
+    }
+
     // make sure no file is extracted outside of the target directory (a.k.a zip slip)
     String outputCanonicalPath = (new File(outputPath).getCanonicalPath()) + File.separator;
-    if (!outputFile.getCanonicalPath().startsWith(outputCanonicalPath)) {
+    if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
       throw new ZipException("illegal file name that breaks out of the target directory: "
           + fileHeader.getFileName());
     }
@@ -71,6 +76,10 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+  }
+
+  private boolean isRelativeRootDirectory(String outputFileName) {
+    return "/".equals(outputFileName);
   }
 
   private boolean isSymbolicLink(FileHeader fileHeader) {
