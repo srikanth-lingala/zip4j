@@ -32,6 +32,10 @@ public class Zip4jUtil {
   private static final long DOSTIME_BEFORE_1980 = (1 << 21) | (1 << 16);
   private static final int MAX_RAW_READ_FULLY_RETRY_ATTEMPTS = 15;
 
+  public static boolean isStringNullOrEmpty(String str) {
+    return str == null || str.trim().length() == 0;
+  }
+
   public static boolean isStringNotNullAndNotEmpty(String str) {
     return str != null && str.trim().length() > 0;
   }
