@@ -37,6 +37,7 @@ import static net.lingala.zip4j.util.FileUtils.isUnix;
 import static net.lingala.zip4j.util.FileUtils.isWindows;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ZipOutputStreamIT extends AbstractIT {
 
@@ -252,6 +253,39 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
     verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 2);
   }
+
+
+    @Test
+    public void testPutNextEntryWithEmptyFileNameInZipParameters() throws IOException {
+      ZipParameters zParams = new ZipParameters();
+      zParams.setFileNameInZip("");
+
+      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+        try {
+          zos.putNextEntry(zParams);
+          fail("Suppose to throw an exception");
+        } catch (Exception ex) {
+          assertThat(ex).isInstanceOf(IllegalArgumentException.class);
+          assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
+        }
+      }
+    }
+
+    @Test
+    public void testPutNextEntryWithNullFileNameInZipParameters() throws IOException {
+      ZipParameters zParams = new ZipParameters();
+      zParams.setFileNameInZip(null);
+
+      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+        try {
+          zos.putNextEntry(zParams);
+          fail("Suppose to throw an exception");
+        } catch (Exception ex) {
+          assertThat(ex).isInstanceOf(IllegalArgumentException.class);
+          assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
+        }
+      }
+    }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,

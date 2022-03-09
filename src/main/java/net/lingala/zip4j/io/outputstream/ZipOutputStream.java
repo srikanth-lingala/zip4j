@@ -14,6 +14,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
+import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -226,6 +227,10 @@ public class ZipOutputStream extends OutputStream {
   }
 
   private void verifyZipParameters(ZipParameters zipParameters) {
+    if (Zip4jUtil.isStringNullOrEmpty(zipParameters.getFileNameInZip())) {
+      throw new IllegalArgumentException("fileNameInZip is null or empty");
+    }
+
     if (zipParameters.getCompressionMethod() == CompressionMethod.STORE
         && zipParameters.getEntrySize() < 0
         && !isZipEntryDirectory(zipParameters.getFileNameInZip())
