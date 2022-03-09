@@ -48,17 +48,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     File outputFile = determineOutputFile(fileHeader, outputPath, newFileName);
     progressMonitor.setFileName(outputFile.getAbsolutePath());
 
-    String outputFileCanonicalPath = outputFile.getCanonicalPath();
-    if (isRelativeRootDirectory(fileHeader.getFileName()) && !outputFileCanonicalPath.endsWith(FILE_SEPARATOR)) {
-      outputFileCanonicalPath = outputFileCanonicalPath + File.separator;
-    }
-
-    // make sure no file is extracted outside of the target directory (a.k.a zip slip)
-    String outputCanonicalPath = (new File(outputPath).getCanonicalPath()) + File.separator;
-    if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
-      throw new ZipException("illegal file name that breaks out of the target directory: "
-          + fileHeader.getFileName());
-    }
+    assertCanonicalPathsAreSame(outputFile, outputPath, fileHeader);
 
     verifyNextEntry(zipInputStream, fileHeader);
 
@@ -78,8 +68,20 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     UnzipUtil.applyFileAttributes(fileHeader, outputFile);
   }
 
-  private boolean isRelativeRootDirectory(String outputFileName) {
-    return "/".equals(outputFileName);
+  private void assertCanonicalPathsAreSame(File outputFile, String outputPath, FileHeader fileHeader)
+      throws IOException {
+
+    String outputFileCanonicalPath = outputFile.getCanonicalPath();
+    if (outputFile.isDirectory() && !outputFileCanonicalPath.endsWith(FILE_SEPARATOR)) {
+      outputFileCanonicalPath = outputFileCanonicalPath + FILE_SEPARATOR;
+    }
+
+    // make sure no file is extracted outside the target directory (a.k.a. zip slip)
+    String outputCanonicalPath = (new File(outputPath).getCanonicalPath()) + File.separator;
+    if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
+      throw new ZipException("illegal file name that breaks out of the target directory: "
+          + fileHeader.getFileName());
+    }
   }
 
   private boolean isSymbolicLink(FileHeader fileHeader) {
