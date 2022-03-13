@@ -157,7 +157,7 @@ public class Zip4jUtilTest {
   @Test
   public void testGetCompressionMethodForAesWhenAesExtraDataMissingThrowsException() throws ZipException {
     expectedException.expectMessage("AesExtraDataRecord not present in local header for aes encrypted data");
-    expectedException.expect(RuntimeException.class);
+    expectedException.expect(ZipException.class);
 
     LocalFileHeader localFileHeader = new LocalFileHeader();
     localFileHeader.setCompressionMethod(CompressionMethod.AES_INTERNAL_ONLY);
