@@ -310,6 +310,15 @@ public class ZipInputStreamIT extends AbstractIT {
         null, InternalZipConstants.BUFF_SIZE, false, 1);
   }
 
+  @Test
+  public void testExtractZipFileWithFileNameLength0ThrowsException() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Invalid entry name in local file header");
+
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("file_name_size_is_0_in_local_file_header"),
+        null, InternalZipConstants.BUFF_SIZE, false, 1);
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, InternalZipConstants.BUFF_SIZE);
   }

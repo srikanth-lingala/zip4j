@@ -193,7 +193,7 @@ public class HeaderReader {
         String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded(), charset);
         fileHeader.setFileName(fileName);
       } else {
-        fileHeader.setFileName(null);
+        throw new ZipException("Invalid entry name in file header");
       }
 
       fileHeader.setDirectory(isDirectory(fileHeader.getExternalFileAttributes(), fileHeader.getFileName()));
@@ -558,7 +558,7 @@ public class HeaderReader {
       localFileHeader.setFileName(fileName);
       localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
     } else {
-      localFileHeader.setFileName(null);
+      throw new ZipException("Invalid entry name in local file header");
     }
 
     readExtraDataRecords(inputStream, localFileHeader);
