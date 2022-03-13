@@ -34,11 +34,11 @@ public class ZipParameters {
     /**
      * Add only the symbolic link itself, not the target file or its contents
      */
-    INCLUDE_LINK_ONLY, 
+    INCLUDE_LINK_ONLY,
     /**
      * Add only the target file and its contents, using the filename of the symbolic link
      */
-    INCLUDE_LINKED_FILE_ONLY, 
+    INCLUDE_LINKED_FILE_ONLY,
     /**
      * Add the symbolic link itself and the target file with its original filename and its contents
      */
@@ -58,7 +58,7 @@ public class ZipParameters {
   private String defaultFolderPath;
   private String fileNameInZip;
   private long lastModifiedFileTime = System.currentTimeMillis();
-  private long entrySize = -1;
+  private long entrySize = 0;
   private boolean writeExtendedLocalFileHeader = true;
   private boolean overrideExistingFilesInZip = true;
   private String rootFolderNameInZip;
@@ -72,7 +72,7 @@ public class ZipParameters {
    * CompressionMethod.DEFLATE, CompressionLevel.NORMAL, EncryptionMethod.NONE,
    * AesKeyStrength.KEY_STRENGTH_256, AesVerson.Two, SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY,
    * readHiddenFiles is true, readHiddenFolders is true, includeRootInFolder is true,
-   * writeExtendedLocalFileHeader is true, overrideExistingFilesInZip is true 
+   * writeExtendedLocalFileHeader is true, overrideExistingFilesInZip is true
    */
   public ZipParameters() {
   }
@@ -113,7 +113,7 @@ public class ZipParameters {
     return compressionMethod;
   }
 
-  /** 
+  /**
    * Set the ZIP compression method
    * @param compressionMethod the ZIP compression method
    */
@@ -171,31 +171,31 @@ public void setEncryptFiles(boolean encryptFiles) {
 
   /**
    * Test if hidden files will be included during folder recursion
-   * 
+   *
    * @return true if hidden files will be included when adding folders to the zip
    */
   public boolean isReadHiddenFiles() {
     return readHiddenFiles;
   }
-  
+
   /**
    * Indicate if hidden files will be included during folder recursion
-   * 
+   *
    * @param readHiddenFiles if true, hidden files will be included when adding folders to the zip
    */
   public void setReadHiddenFiles(boolean readHiddenFiles) {
     this.readHiddenFiles = readHiddenFiles;
   }
-  
+
   /**
    * Test if hidden folders will be included during folder recursion
-   * 
+   *
    * @return true if hidden folders will be included when adding folders to the zip
    */
   public boolean isReadHiddenFolders() {
     return readHiddenFolders;
   }
-  
+
   /**
    * Indicate if hidden folders will be included during folder recursion
    * @param readHiddenFolders if true, hidden folders will be included when added folders to the zip
@@ -217,7 +217,7 @@ public void setEncryptFiles(boolean encryptFiles) {
   }
 
   /**
-   * Set the key strength of the AES encryption key 
+   * Set the key strength of the AES encryption key
    * @param aesKeyStrength the key strength of the AES encryption key
    */
   public void setAesKeyStrength(AesKeyStrength aesKeyStrength) {
@@ -279,10 +279,10 @@ public void setEncryptFiles(boolean encryptFiles) {
   /**
    * Set the filename that will be used to include a file into the ZIP file to a different name
    * that given by the source filename added to the ZIP file.  The filenameInZip must
-   * adhere to the ZIP filename specification, including the use of forward slash '/' as the 
-   * directory separator, and it must also be a relative file.  If the filenameInZip given is not null and 
-   * not empty, the value specified by setRootFolderNameInZip() will be ignored.  
-   * 
+   * adhere to the ZIP filename specification, including the use of forward slash '/' as the
+   * directory separator, and it must also be a relative file.  If the filenameInZip given is not null and
+   * not empty, the value specified by setRootFolderNameInZip() will be ignored.
+   *
    * @param fileNameInZip the filename to set in the ZIP. Use null or an empty String to set the default behavior
    */
    public void setFileNameInZip(String fileNameInZip) {
@@ -290,7 +290,7 @@ public void setEncryptFiles(boolean encryptFiles) {
   }
 
   /**
-   * Get the last modified time to be used for files written to the ZIP 
+   * Get the last modified time to be used for files written to the ZIP
    * @return the last modified time in milliseconds since the epoch
    */
   public long getLastModifiedFileTime() {
@@ -345,7 +345,7 @@ public void setEncryptFiles(boolean encryptFiles) {
   /**
    * Set the folder name that will be prepended to the filename in the ZIP.  This value is ignored
    * if setFileNameInZip() is specified with a non-null, non-empty string.
-   * 
+   *
    * @param rootFolderNameInZip the name of the folder to be prepended to the filename
    * in the ZIP archive
    */
