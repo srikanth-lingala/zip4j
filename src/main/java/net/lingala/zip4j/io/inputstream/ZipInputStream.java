@@ -16,9 +16,6 @@
 
 package net.lingala.zip4j.io.inputstream;
 
-import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
-import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
-
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
@@ -39,6 +36,9 @@ import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
+
+import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
+import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
 
 public class ZipInputStream extends InputStream {
 
@@ -262,7 +262,7 @@ public class ZipInputStream extends InputStream {
   }
 
   private DecompressedInputStream initializeDecompressorForThisEntry(CipherInputStream cipherInputStream,
-                                                                     LocalFileHeader localFileHeader) {
+                                                                     LocalFileHeader localFileHeader) throws ZipException {
     CompressionMethod compressionMethod = getCompressionMethod(localFileHeader);
 
     if (compressionMethod == CompressionMethod.DEFLATE) {
@@ -335,7 +335,7 @@ public class ZipInputStream extends InputStream {
     return entryName.endsWith("/") || entryName.endsWith("\\");
   }
 
-  private long getCompressedSize(LocalFileHeader localFileHeader) {
+  private long getCompressedSize(LocalFileHeader localFileHeader) throws ZipException {
     if (getCompressionMethod(localFileHeader).equals(CompressionMethod.STORE)) {
       return localFileHeader.getUncompressedSize();
     }

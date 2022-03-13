@@ -116,13 +116,13 @@ public class Zip4jUtil {
     }
   }
 
-  public static CompressionMethod getCompressionMethod(AbstractFileHeader localFileHeader) {
+  public static CompressionMethod getCompressionMethod(AbstractFileHeader localFileHeader) throws ZipException {
     if (localFileHeader.getCompressionMethod() != CompressionMethod.AES_INTERNAL_ONLY) {
       return localFileHeader.getCompressionMethod();
     }
 
     if (localFileHeader.getAesExtraDataRecord() == null) {
-      throw new RuntimeException("AesExtraDataRecord not present in local header for aes encrypted data");
+      throw new ZipException("AesExtraDataRecord not present in local header for aes encrypted data");
     }
 
     return localFileHeader.getAesExtraDataRecord().getCompressionMethod();
