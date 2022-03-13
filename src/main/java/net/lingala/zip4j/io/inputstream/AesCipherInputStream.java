@@ -158,6 +158,11 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
     }
 
     AESExtraDataRecord aesExtraDataRecord = localFileHeader.getAesExtraDataRecord();
+
+    if (aesExtraDataRecord.getAesKeyStrength() == null) {
+      throw new IOException("Invalid aes key strength in aes extra data record");
+    }
+
     byte[] saltBytes = new byte[aesExtraDataRecord.getAesKeyStrength().getSaltLength()];
     readRaw(saltBytes);
     return saltBytes;

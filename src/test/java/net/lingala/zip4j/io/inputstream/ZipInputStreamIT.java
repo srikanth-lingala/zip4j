@@ -301,6 +301,15 @@ public class ZipInputStreamIT extends AbstractIT {
         null, InternalZipConstants.BUFF_SIZE, false, 2);
   }
 
+  @Test
+  public void testExtractZipFileWithNullAesExtraDataRecordThrowsException() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Invalid aes key strength in aes extra data record");
+
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("null-aes-key-strength-in-aes-extra-data-record"),
+        null, InternalZipConstants.BUFF_SIZE, false, 1);
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, InternalZipConstants.BUFF_SIZE);
   }
