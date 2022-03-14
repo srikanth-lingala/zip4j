@@ -80,6 +80,7 @@ public class ZipOutputStream extends OutputStream {
       clonedZipParameters.setWriteExtendedLocalFileHeader(false);
       clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
       clonedZipParameters.setEncryptFiles(false);
+      clonedZipParameters.setEntrySize(0);
     }
     initializeAndWriteFileHeader(clonedZipParameters);
 
