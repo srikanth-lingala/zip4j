@@ -56,7 +56,7 @@ public class RawIO {
     if (array.length - pos < 8) {
       resetBytes(longBuff);
     }
-    System.arraycopy(array, pos, longBuff, 0, array.length < 8 ? array.length - pos : 8);
+    System.arraycopy(array, pos, longBuff, 0, Math.min(array.length - pos, 8));
 
     long temp = 0;
     temp |= longBuff[7] & 0xff;
