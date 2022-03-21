@@ -319,6 +319,15 @@ public class ZipInputStreamIT extends AbstractIT {
         null, InternalZipConstants.BUFF_SIZE, false, 1);
   }
 
+  @Test
+  public void testExtractZipFileWithInvalidAesExtraDataRecordThrowsException() throws IOException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("corrupt AES extra data records");
+
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("invalid_aes_extra_data_record_length_in_header"),
+        null, InternalZipConstants.BUFF_SIZE, false, 1);
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, InternalZipConstants.BUFF_SIZE);
   }
