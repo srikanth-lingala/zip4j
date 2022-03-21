@@ -117,17 +117,18 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithoutFileNameWritesNull() throws IOException {
+  public void testReadAllWithoutFileNameThrowsException() throws IOException {
     ZipModel actualZipModel = generateZipModel(1);
     actualZipModel.getCentralDirectory().getFileHeaders().get(0).setFileName(null);
     File headersFile = writeZipHeaders(actualZipModel);
     actualZipModel.setZipFile(headersFile);
 
-    try(RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
+    try (RandomAccessFile randomAccessFile = new RandomAccessFile(actualZipModel.getZipFile(),
         RandomAccessFileMode.READ.getValue())) {
-      ZipModel readZipModel = headerReader.readAllHeaders(randomAccessFile, buildDefaultConfig());
-      FileHeader fileHeader = readZipModel.getCentralDirectory().getFileHeaders().get(0);
-      assertThat(fileHeader.getFileName()).isNull();
+      headerReader.readAllHeaders(randomAccessFile, HeaderReaderIT.this.buildDefaultConfig());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e.getMessage()).isEqualTo("Invalid entry name in file header");
     }
   }
 
