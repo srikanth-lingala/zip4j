@@ -651,7 +651,7 @@ public class HeaderReader {
       if (extraDataRecord.getHeader() == HeaderSignature.AES_EXTRA_DATA_RECORD.getValue()) {
 
         byte[] aesExtraDataRecordBytes = extraDataRecord.getData();
-        if (aesExtraDataRecordBytes == null || aesExtraDataRecordBytes.length != 9) {
+        if (aesExtraDataRecordBytes == null || aesExtraDataRecordBytes.length != 7) {
           throw new ZipException("corrupt AES extra data records");
         }
 
