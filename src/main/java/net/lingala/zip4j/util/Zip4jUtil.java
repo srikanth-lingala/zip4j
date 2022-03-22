@@ -132,6 +132,10 @@ public class Zip4jUtil {
 
     int readLen = inputStream.read(bufferToReadInto);
 
+    if (readLen == -1) {
+      throw new IOException("Unexpected EOF reached when trying to read stream");
+    }
+
     if (readLen != bufferToReadInto.length) {
       readLen = readUntilBufferIsFull(inputStream, bufferToReadInto, readLen);
 
@@ -179,6 +183,13 @@ public class Zip4jUtil {
 
   private static int readUntilBufferIsFull(InputStream inputStream, byte[] bufferToReadInto, int readLength)
       throws IOException {
+    if (readLength < 0) {
+      throw new IOException("Invalid readLength");
+    }
+
+    if (readLength == 0) {
+      return 0;
+    }
 
     int remainingLength = bufferToReadInto.length - readLength;
     int loopReadLength = 0;
