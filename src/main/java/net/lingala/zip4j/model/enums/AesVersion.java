@@ -1,16 +1,18 @@
 package net.lingala.zip4j.model.enums;
 
+import net.lingala.zip4j.exception.ZipException;
+
 /**
  * Indicates the AES format used
  */
 public enum AesVersion {
 
   /**
-   * Version 1 of the AES format 
+   * Version 1 of the AES format
    */
   ONE(1),
   /**
-   * Version 2 of the AES format 
+   * Version 2 of the AES format
    */
   TWO(2);
 
@@ -32,13 +34,13 @@ public enum AesVersion {
    * @return the AESVersion instance for a given version
    * @throws IllegalArgumentException if an unsupported version is given
    */
-  public static AesVersion getFromVersionNumber(int versionNumber) {
+  public static AesVersion getFromVersionNumber(int versionNumber) throws ZipException {
     for (AesVersion aesVersion : values()) {
       if (aesVersion.versionNumber == versionNumber) {
         return aesVersion;
       }
     }
 
-    throw new IllegalArgumentException("Unsupported Aes version");
+    throw new ZipException("Unsupported Aes version");
   }
 }
