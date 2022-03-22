@@ -328,6 +328,15 @@ public class ZipInputStreamIT extends AbstractIT {
         null, InternalZipConstants.BUFF_SIZE, false, 1);
   }
 
+  @Test
+  public void testExtractZipFileWhenUnexpectedEofReachedThrowsException() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Unexpected EOF reached when trying to read stream");
+
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("unexpected-eof-when-reading-stream"),
+        null, InternalZipConstants.BUFF_SIZE, false, 1);
+  }
+
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
     extractZipFileWithInputStreams(zipFile, password, InternalZipConstants.BUFF_SIZE);
   }

@@ -58,6 +58,10 @@ class ZipEntryInputStream extends InputStream {
 
     int readLen = inputStream.read(b);
 
+    if (readLen == -1) {
+      throw new IOException("Unexpected EOF reached when trying to read stream");
+    }
+
     if (readLen != b.length) {
       readLen = readUntilBufferIsFull(b, readLen);
 
