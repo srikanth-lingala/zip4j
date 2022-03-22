@@ -19,6 +19,7 @@ package net.lingala.zip4j.io.inputstream;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderSignature;
+import net.lingala.zip4j.model.AESExtraDataRecord;
 import net.lingala.zip4j.model.DataDescriptor;
 import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
@@ -347,14 +348,13 @@ public class ZipInputStream extends InputStream {
     return localFileHeader.getCompressedSize() - getEncryptionHeaderSize(localFileHeader);
   }
 
-  private int getEncryptionHeaderSize(LocalFileHeader localFileHeader) {
+  private int getEncryptionHeaderSize(LocalFileHeader localFileHeader) throws ZipException {
     if (!localFileHeader.isEncrypted()) {
       return 0;
     }
 
     if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.AES)) {
-      return InternalZipConstants.AES_AUTH_LENGTH + InternalZipConstants.AES_PASSWORD_VERIFIER_LENGTH
-          + localFileHeader.getAesExtraDataRecord().getAesKeyStrength().getSaltLength();
+      return getAesEncryptionHeaderSize(localFileHeader.getAesExtraDataRecord());
     } else if (localFileHeader.getEncryptionMethod().equals(EncryptionMethod.ZIP_STANDARD)) {
       return InternalZipConstants.STD_DEC_HDR_SIZE;
     } else {
@@ -375,6 +375,15 @@ public class ZipInputStream extends InputStream {
     //noinspection StatementWithEmptyBody
     while (read(endOfEntryBuffer) != -1);
     this.entryEOFReached = true;
+  }
+
+  private int getAesEncryptionHeaderSize(AESExtraDataRecord aesExtraDataRecord) throws ZipException {
+    if (aesExtraDataRecord == null || aesExtraDataRecord.getAesKeyStrength() == null) {
+      throw new ZipException("AesExtraDataRecord not found or invalid for Aes encrypted entry");
+    }
+
+    return InternalZipConstants.AES_AUTH_LENGTH + InternalZipConstants.AES_PASSWORD_VERIFIER_LENGTH
+        + aesExtraDataRecord.getAesKeyStrength().getSaltLength();
   }
 
   private boolean isEncryptionMethodZipStandard(LocalFileHeader localFileHeader) {
