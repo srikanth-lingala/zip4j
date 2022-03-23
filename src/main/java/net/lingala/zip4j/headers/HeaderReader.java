@@ -193,6 +193,7 @@ public class HeaderReader {
         zip4jRaf.readFully(fileNameBuff);
         String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded(), charset);
         fileHeader.setFileName(fileName);
+        fileHeader.setFileNameBytes(fileNameBuff);
       } else {
         throw new ZipException("Invalid entry name in file header");
       }
@@ -558,6 +559,7 @@ public class HeaderReader {
       String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
       localFileHeader.setFileName(fileName);
       localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
+      localFileHeader.setFileNameBytes(fileNameBuf);
     } else {
       throw new ZipException("Invalid entry name in local file header");
     }

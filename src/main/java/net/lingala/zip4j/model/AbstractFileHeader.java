@@ -18,6 +18,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private int fileNameLength;
   private int extraFieldLength;
   private String fileName;
+  private byte[] fileNameBytes;
   private boolean isEncrypted;
   private EncryptionMethod encryptionMethod = EncryptionMethod.NONE;
   private boolean dataDescriptorExists;
@@ -109,6 +110,14 @@ public abstract class AbstractFileHeader extends ZipHeader {
 
   public void setFileName(String fileName) {
     this.fileName = fileName;
+  }
+
+  public byte[] getFileNameBytes() {
+    return fileNameBytes;
+  }
+
+  public void setFileNameBytes(byte[] fileNameBytes) {
+    this.fileNameBytes = fileNameBytes;
   }
 
   public boolean isEncrypted() {

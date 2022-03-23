@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -630,6 +631,35 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.close();
 
     assertInputStreamsAreClosed(Collections.singletonList(inputStream));
+  }
+
+  @Test
+  public void testGetFileNameBytesReturnsValidBytes() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    File firstFileToAdd = getTestFileFromResources("가나다.abc");
+    File secondFileToAdd = getTestFileFromResources("sample.pdf");
+    zipFile.addFile(firstFileToAdd);
+    zipFile.addFile(secondFileToAdd);
+
+    byte[] firstNameExpectedBytes = firstFileToAdd.getName().getBytes(StandardCharsets.UTF_8);
+    byte[] secondNameExpectedBytes = secondFileToAdd.getName().getBytes(StandardCharsets.UTF_8);
+
+    // Assert before and after creating a new instance of zipFile to make sure that the bytes are set
+    // even after adding entries to zip and not just when reading zip entries
+    assertFileNameBytesEqualsToFileName(zipFile, firstNameExpectedBytes, firstFileToAdd.getName());
+    assertFileNameBytesEqualsToFileName(zipFile, secondNameExpectedBytes, secondFileToAdd.getName());
+
+    zipFile = new ZipFile(generatedZipFile);
+
+    assertFileNameBytesEqualsToFileName(zipFile, firstNameExpectedBytes, firstFileToAdd.getName());
+    assertFileNameBytesEqualsToFileName(zipFile, secondNameExpectedBytes, secondFileToAdd.getName());
+  }
+
+  private void assertFileNameBytesEqualsToFileName(ZipFile zipFile, byte[] expectedFileNameBytes,
+                                                   String expectedFileName) throws ZipException {
+    FileHeader fileHeader = zipFile.getFileHeader(expectedFileName);
+    assertThat(fileHeader.getFileNameBytes()).isEqualTo(expectedFileNameBytes);
+    assertThat(new String(fileHeader.getFileNameBytes(), StandardCharsets.UTF_8)).isEqualTo(expectedFileName);
   }
 
   private void assertInputStreamsAreClosed(List<InputStream> inputStreams) {

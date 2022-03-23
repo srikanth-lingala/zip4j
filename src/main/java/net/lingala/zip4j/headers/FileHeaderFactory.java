@@ -16,6 +16,7 @@ import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.Charset;
 
+import static net.lingala.zip4j.headers.HeaderUtil.getBytesFromString;
 import static net.lingala.zip4j.util.BitUtils.setBit;
 import static net.lingala.zip4j.util.BitUtils.unsetBit;
 import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
@@ -52,6 +53,7 @@ public class FileHeaderFactory {
 
     String fileName = validateAndGetFileName(zipParameters.getFileNameInZip());
     fileHeader.setFileName(fileName);
+    fileHeader.setFileNameBytes(getBytesFromString(fileHeader.getFileName(), charset));
     fileHeader.setFileNameLength(determineFileNameLength(fileName, charset));
     fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart : 0);
 
@@ -90,6 +92,7 @@ public class FileHeaderFactory {
     localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
     localFileHeader.setFileNameLength(fileHeader.getFileNameLength());
     localFileHeader.setFileName(fileHeader.getFileName());
+    localFileHeader.setFileNameBytes(fileHeader.getFileNameBytes());
     localFileHeader.setEncrypted(fileHeader.isEncrypted());
     localFileHeader.setEncryptionMethod(fileHeader.getEncryptionMethod());
     localFileHeader.setAesExtraDataRecord(fileHeader.getAesExtraDataRecord());

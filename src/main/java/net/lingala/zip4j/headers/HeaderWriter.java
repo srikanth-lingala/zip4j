@@ -91,11 +91,7 @@ public class HeaderWriter {
         localFileHeader.setWriteCompressedSizeInZip64ExtraRecord(false);
       }
 
-      byte[] fileNameBytes = new byte[0];
-      if (isStringNotNullAndNotEmpty(localFileHeader.getFileName())) {
-        fileNameBytes = getBytesFromString(localFileHeader.getFileName(), charset);
-      }
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
+      rawIO.writeShortLittleEndian(byteArrayOutputStream, localFileHeader.getFileNameBytes().length);
 
       int extraFieldLength = 0;
       if (writeZip64Header) {
@@ -106,8 +102,8 @@ public class HeaderWriter {
       }
       rawIO.writeShortLittleEndian(byteArrayOutputStream, extraFieldLength);
 
-      if (fileNameBytes.length > 0) {
-        byteArrayOutputStream.write(fileNameBytes);
+      if (localFileHeader.getFileNameBytes().length > 0) {
+        byteArrayOutputStream.write(localFileHeader.getFileNameBytes());
       }
 
       //Zip64 should be the first extra data record that should be written
@@ -430,11 +426,7 @@ public class HeaderWriter {
         byteArrayOutputStream.write(longBuff, 0, 4);
       }
 
-      byte[] fileNameBytes = new byte[0];
-      if (isStringNotNullAndNotEmpty(fileHeader.getFileName())) {
-        fileNameBytes = getBytesFromString(fileHeader.getFileName(), charset);
-      }
-      rawIO.writeShortLittleEndian(byteArrayOutputStream, fileNameBytes.length);
+      rawIO.writeShortLittleEndian(byteArrayOutputStream, fileHeader.getFileNameBytes().length);
 
       //Compute offset bytes before extra field is written for Zip64 compatibility
       //NOTE: this data is not written now, but written at a later point
@@ -472,8 +464,8 @@ public class HeaderWriter {
       //offset local header - this data is computed above
       byteArrayOutputStream.write(offsetLocalHeaderBytes);
 
-      if (fileNameBytes.length > 0) {
-        byteArrayOutputStream.write(fileNameBytes);
+      if (fileHeader.getFileNameBytes().length > 0) {
+        byteArrayOutputStream.write(fileHeader.getFileNameBytes());
       }
 
       if (writeZip64ExtendedInfo) {
