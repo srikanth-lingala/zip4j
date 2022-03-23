@@ -211,7 +211,7 @@ public class Zip4jUtilTest {
     ControlledReadInputStream controlledReadInputStream = new ControlledReadInputStream(randomInputStream, 100);
 
     expectedException.expect(IOException.class);
-    expectedException.expectMessage("Cannot read fully into byte buffer");
+    expectedException.expectMessage("Unexpected EOF reached when trying to read stream");
 
     assertThat(Zip4jUtil.readFully(controlledReadInputStream, b)).isEqualTo(-1);
   }
