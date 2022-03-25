@@ -521,6 +521,12 @@ public class CreateZipFileIT extends AbstractIT {
     verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
   }
 
+  @Test
+  public void testCreateZipFileWithDeflateNoCompressionLevel() throws IOException {
+    createZipFileWithCompressionLevel(CompressionLevel.NO_COMPRESSION);
+    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
+  }
+
   private void testAddSymlinkThrowsExceptionForMissingTarget(ZipParameters.SymbolicLinkAction symbolicLinkAction)
       throws IOException {
     File targetFile = Paths.get(temporaryFolder.getRoot().getAbsolutePath(), "foo").toFile();

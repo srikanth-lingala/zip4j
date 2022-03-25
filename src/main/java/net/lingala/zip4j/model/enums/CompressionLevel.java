@@ -7,6 +7,10 @@ package net.lingala.zip4j.model.enums;
 public enum CompressionLevel {
 
   /**
+   * Level 0 - No compression
+   */
+  NO_COMPRESSION(0),
+  /**
    * Level 1 Deflate compression. Fastest compression.
    */
   FASTEST(1),
@@ -43,7 +47,7 @@ public enum CompressionLevel {
    */
   ULTRA(9);
 
-  private int level;
+  private final int level;
 
   CompressionLevel(int level) {
     this.level = level;
