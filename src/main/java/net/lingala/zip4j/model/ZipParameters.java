@@ -16,11 +16,7 @@
 
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.enums.*;
 
 /**
  * Encapsulates the parameters that that control how Zip4J encodes data
@@ -202,10 +198,6 @@ public void setEncryptFiles(boolean encryptFiles) {
    */
   public void setReadHiddenFolders(boolean readHiddenFolders) {
     this.readHiddenFolders = readHiddenFolders;
-  }
-
-  public Object clone() throws CloneNotSupportedException {
-    return super.clone();
   }
 
   /**
