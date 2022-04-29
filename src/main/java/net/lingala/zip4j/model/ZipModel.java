@@ -35,6 +35,7 @@ public class ZipModel implements Cloneable {
   private File zipFile;
   private boolean isZip64Format = false;
   private boolean isNestedZipFile;
+  private boolean isFileNamesCaseSensitive = false;
   private long start;
   private long end;
 
@@ -131,6 +132,14 @@ public class ZipModel implements Cloneable {
 
   public void setNestedZipFile(boolean isNestedZipFile) {
     this.isNestedZipFile = isNestedZipFile;
+  }
+
+  public boolean isFileNamesCaseSensitive() {
+    return isFileNamesCaseSensitive;
+  }
+
+  public void setFileNamesCaseSensitive(boolean isFileNamesCaseSensitive) {
+    this.isFileNamesCaseSensitive = isFileNamesCaseSensitive;
   }
 
   public long getStart() {

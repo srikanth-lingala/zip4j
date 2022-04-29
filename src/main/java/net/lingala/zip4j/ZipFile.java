@@ -99,6 +99,7 @@ public class ZipFile implements Closeable {
   private ExecutorService executorService;
   private int bufferSize = InternalZipConstants.BUFF_SIZE;
   private List<InputStream> openInputStreams = new ArrayList<>();
+  private boolean isFileNamesCaseSensitive = false;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -141,6 +142,19 @@ public class ZipFile implements Closeable {
    * @throws IllegalArgumentException when zip file parameter is null
    */
   public ZipFile(File zipFile, char[] password) {
+    this(zipFile, password, false);
+  }
+
+  /**
+   * Creates a new Zip File Object with the input file.
+   * If the zip file does not exist, it is not created at this point.
+   *
+   * @param zipFile file reference to the zip file
+   * @param password password to use for the zip file
+   * @param isFileNamesCaseSensitive whether the file name is case-sensitive
+   * @throws IllegalArgumentException when zip file parameter is null
+   */
+  public ZipFile(File zipFile, char[] password, boolean isFileNamesCaseSensitive) {
     if (zipFile == null) {
       throw new IllegalArgumentException("input zip file parameter is null");
     }
@@ -149,6 +163,7 @@ public class ZipFile implements Closeable {
     this.password = password;
     this.runInThread = false;
     this.progressMonitor = new ProgressMonitor();
+    this.isFileNamesCaseSensitive = isFileNamesCaseSensitive;
   }
 
   /**
@@ -1133,6 +1148,7 @@ public class ZipFile implements Closeable {
       HeaderReader headerReader = new HeaderReader();
       zipModel = headerReader.readAllHeaders(randomAccessFile, buildConfig());
       zipModel.setZipFile(zipFile);
+      zipModel.setFileNamesCaseSensitive(isFileNamesCaseSensitive);
     } catch (ZipException e) {
       throw e;
     } catch (IOException e) {
@@ -1143,6 +1159,7 @@ public class ZipFile implements Closeable {
   private void createNewZipModel() {
     zipModel = new ZipModel();
     zipModel.setZipFile(zipFile);
+    zipModel.setFileNamesCaseSensitive(isFileNamesCaseSensitive);
   }
 
   private RandomAccessFile initializeRandomAccessFileForHeaderReading() throws IOException {

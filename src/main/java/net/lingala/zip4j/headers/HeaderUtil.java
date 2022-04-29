@@ -15,15 +15,20 @@ import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 public class HeaderUtil {
 
   public static FileHeader getFileHeader(ZipModel zipModel, String fileName) throws ZipException {
-    FileHeader fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+    boolean isFileNamesCaseSensitive = false;
+    if (zipModel != null) {
+      isFileNamesCaseSensitive = zipModel.isFileNamesCaseSensitive();
+    }
+
+    FileHeader fileHeader = getFileHeaderWithExactMatch(zipModel, fileName, isFileNamesCaseSensitive);
 
     if (fileHeader == null) {
       fileName = fileName.replaceAll("\\\\", "/");
-      fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+      fileHeader = getFileHeaderWithExactMatch(zipModel, fileName, isFileNamesCaseSensitive);
 
       if (fileHeader == null) {
         fileName = fileName.replaceAll("/", "\\\\");
-        fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+        fileHeader = getFileHeaderWithExactMatch(zipModel, fileName, isFileNamesCaseSensitive);
       }
     }
 
@@ -81,7 +86,7 @@ public class HeaderUtil {
     return totalUncompressedSize;
   }
 
-  private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName) throws ZipException {
+  private static FileHeader getFileHeaderWithExactMatch(ZipModel zipModel, String fileName, boolean isCaseSensitive) throws ZipException {
     if (zipModel == null) {
       throw new ZipException("zip model is null, cannot determine file header with exact match for fileName: "
           + fileName);
@@ -112,7 +117,9 @@ public class HeaderUtil {
         continue;
       }
 
-      if (fileName.equalsIgnoreCase(fileNameForHdr)) {
+      if (isCaseSensitive && fileName.equals(fileNameForHdr)) {
+        return fileHeader;
+      } else if (!isCaseSensitive && fileName.equalsIgnoreCase(fileNameForHdr)) {
         return fileHeader;
       }
     }

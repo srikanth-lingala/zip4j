@@ -99,6 +99,48 @@ public class HeaderUtilTest {
   }
 
   @Test
+  public void testGetFileHeaderWithExactMatchCaseSensitive() throws ZipException {
+    final String lowerCaseFile = FILE_NAME.toLowerCase();
+    final String upperCaseFile = FILE_NAME.toUpperCase();
+    ZipModel zipModel = new ZipModel();
+
+    // ZipModel.isFileNamesCaseSensitive default is false
+    assertThat(zipModel.isFileNamesCaseSensitive()).isFalse();
+
+    CentralDirectory centralDirectory = new CentralDirectory();
+    centralDirectory.setFileHeaders(Arrays.asList(
+            generateFileHeader(lowerCaseFile)
+    ));
+    zipModel.setCentralDirectory(centralDirectory);
+
+    FileHeader fileHeaderLower = HeaderUtil.getFileHeader(zipModel, lowerCaseFile);
+    assertThat(fileHeaderLower).isNotNull();
+    assertThat(fileHeaderLower.getFileName()).isEqualTo(lowerCaseFile);
+    FileHeader fileHeaderUpper = HeaderUtil.getFileHeader(zipModel, upperCaseFile);
+    assertThat(fileHeaderUpper).isNotNull();
+    assertThat(fileHeaderUpper.getFileName()).isEqualTo(lowerCaseFile);
+
+    // Set up the "ZipModel.isFileNamesCaseSensitive" true
+    zipModel.setFileNamesCaseSensitive(true);
+
+    fileHeaderUpper = HeaderUtil.getFileHeader(zipModel, upperCaseFile);
+    assertThat(fileHeaderUpper).isNull();
+
+    centralDirectory.setFileHeaders(Arrays.asList(
+            generateFileHeader(lowerCaseFile),
+            generateFileHeader(upperCaseFile)
+    ));
+    zipModel.setCentralDirectory(centralDirectory);
+
+    fileHeaderLower = HeaderUtil.getFileHeader(zipModel, lowerCaseFile);
+    assertThat(fileHeaderLower).isNotNull();
+    assertThat(fileHeaderLower.getFileName()).isEqualTo(lowerCaseFile);
+    fileHeaderUpper = HeaderUtil.getFileHeader(zipModel, upperCaseFile);
+    assertThat(fileHeaderUpper).isNotNull();
+    assertThat(fileHeaderUpper.getFileName()).isEqualTo(upperCaseFile);
+  }
+
+  @Test
   public void testGetFileHeaderWithWindowsFileSeparator() throws ZipException {
     ZipModel zipModel = new ZipModel();
     CentralDirectory centralDirectory = new CentralDirectory();
