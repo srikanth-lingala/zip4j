@@ -5,11 +5,13 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.util.InternalZipConstants;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
+import static net.lingala.zip4j.util.InternalZipConstants.ZIP_STANDARD_CHARSET_NAME;
 import static net.lingala.zip4j.util.Zip4jUtil.isStringNotNullAndNotEmpty;
 
 public class HeaderUtil {
@@ -39,7 +41,11 @@ public class HeaderUtil {
       return new String(data, InternalZipConstants.CHARSET_UTF_8);
     }
 
-    return new String(data, ZIP4J_DEFAULT_CHARSET);
+    try {
+      return new String(data, ZIP_STANDARD_CHARSET_NAME);
+    } catch (UnsupportedEncodingException e) {
+      return new String(data);
+    }
   }
 
   public static byte[] getBytesFromString(String string, Charset charset) {
