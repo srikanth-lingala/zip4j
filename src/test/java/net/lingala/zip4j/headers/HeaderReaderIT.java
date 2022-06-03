@@ -3,12 +3,7 @@ package net.lingala.zip4j.headers;
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.outputstream.SplitOutputStream;
-import net.lingala.zip4j.model.CentralDirectory;
-import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
@@ -17,13 +12,7 @@ import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -144,9 +133,9 @@ public class HeaderReaderIT extends AbstractIT {
   }
 
   @Test
-  public void testReadAllWithoutUtf8FlagAndWithoutCharsetForJapaneseCharactersMatches()
+  public void testReadAllWithoutUtf8FlagAndWithoutCharsetForJapaneseCharactersDoesNotMatch()
       throws IOException {
-    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", true, true, null);
+    testWithoutUtf8FileName("公ゃ的年社", "育ざどろめ", false, true, null);
   }
 
   @Test
