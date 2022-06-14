@@ -255,37 +255,37 @@ public class ZipOutputStreamIT extends AbstractIT {
   }
 
 
-    @Test
-    public void testPutNextEntryWithEmptyFileNameInZipParameters() throws IOException {
-      ZipParameters zParams = new ZipParameters();
-      zParams.setFileNameInZip("");
+  @Test
+  public void testPutNextEntryWithEmptyFileNameInZipParameters() throws IOException {
+    ZipParameters zParams = new ZipParameters();
+    zParams.setFileNameInZip("");
 
-      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
-        try {
-          zos.putNextEntry(zParams);
-          fail("Suppose to throw an exception");
-        } catch (Exception ex) {
-          assertThat(ex).isInstanceOf(IllegalArgumentException.class);
-          assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
-        }
+    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      try {
+        zos.putNextEntry(zParams);
+        fail("Suppose to throw an exception");
+      } catch (Exception ex) {
+        assertThat(ex).isInstanceOf(IllegalArgumentException.class);
+        assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
       }
     }
+  }
 
-    @Test
-    public void testPutNextEntryWithNullFileNameInZipParameters() throws IOException {
-      ZipParameters zParams = new ZipParameters();
-      zParams.setFileNameInZip(null);
+  @Test
+  public void testPutNextEntryWithNullFileNameInZipParameters() throws IOException {
+    ZipParameters zParams = new ZipParameters();
+    zParams.setFileNameInZip(null);
 
-      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
-        try {
-          zos.putNextEntry(zParams);
-          fail("Suppose to throw an exception");
-        } catch (Exception ex) {
-          assertThat(ex).isInstanceOf(IllegalArgumentException.class);
-          assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
-        }
+    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(generatedZipFile))) {
+      try {
+        zos.putNextEntry(zParams);
+        fail("Suppose to throw an exception");
+      } catch (Exception ex) {
+        assertThat(ex).isInstanceOf(IllegalArgumentException.class);
+        assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
       }
     }
+  }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,

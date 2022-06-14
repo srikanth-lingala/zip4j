@@ -363,11 +363,6 @@ public class ZipInputStream extends InputStream {
   }
 
   private void readUntilEndOfEntry() throws IOException {
-    if ((localFileHeader.isDirectory() || localFileHeader.getCompressedSize() == 0)
-        && !localFileHeader.isDataDescriptorExists()) {
-      return;
-    }
-
     if (endOfEntryBuffer == null) {
       endOfEntryBuffer = new byte[512];
     }

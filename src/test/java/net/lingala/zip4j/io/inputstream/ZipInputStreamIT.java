@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -335,6 +336,18 @@ public class ZipInputStreamIT extends AbstractIT {
 
     extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("unexpected-eof-when-reading-stream"),
         null, InternalZipConstants.BUFF_SIZE, false, 1);
+  }
+
+  @Test
+  public void readingJarFileWithCompressedSizeNotZeroForDirectoryIsSuccessful() throws IOException {
+    File zipFileToRead = getTestArchiveFromResources("content_in_entry_which_is_directory.jar");
+    try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFileToRead.toPath()))) {
+      int numberOfEntries = 0;
+      while (zipInputStream.getNextEntry() != null) {
+        numberOfEntries++;
+      }
+      assertThat(numberOfEntries).isEqualTo(345);
+    }
   }
 
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {
