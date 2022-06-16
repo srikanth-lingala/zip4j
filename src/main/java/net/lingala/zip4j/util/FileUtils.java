@@ -472,6 +472,15 @@ public class FileUtils {
     }
 
     DosFileAttributeView fileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+
+    //IntelliJ complains that fileAttributes can never be null. But apparently it can.
+    //See https://github.com/srikanth-lingala/zip4j/issues/435
+    //Even the javadoc of Files.getFileAttributeView says it can be null
+    //noinspection ConstantConditions
+    if (fileAttributes == null) {
+      return;
+    }
+
     try {
       fileAttributeView.setReadOnly(isBitSet(fileAttributes[0], 0));
       fileAttributeView.setHidden(isBitSet(fileAttributes[0], 1));
@@ -511,6 +520,11 @@ public class FileUtils {
     try {
       DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class,
           LinkOption.NOFOLLOW_LINKS);
+
+      if (dosFileAttributeView == null) {
+        return fileAttributes;
+      }
+
       DosFileAttributes dosFileAttributes = dosFileAttributeView.readAttributes();
 
       byte windowsAttribute = 0;
