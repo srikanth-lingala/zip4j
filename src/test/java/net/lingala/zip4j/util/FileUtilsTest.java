@@ -97,52 +97,28 @@ public class FileUtilsTest {
     expectedException.expectMessage("input path is null, cannot read files in the directory");
     expectedException.expect(ZipException.class);
 
-    FileUtils.getFilesInDirectoryRecursive(null, true, true);
+    FileUtils.getFilesInDirectoryRecursive(null, new ZipParameters());
   }
 
   @Test
-  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenInputFileIsNotDirectory() throws ZipException {
+  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenInputFileIsNotDirectory() throws IOException {
     File[] filesInDirectory = generateFilesForDirectory();
     testGetFilesInDirectory(false, true, filesInDirectory, 0, true, true);
   }
 
   @Test
-  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenCannotReadInputFile() throws ZipException {
+  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenCannotReadInputFile() throws IOException {
     File[] filesInDirectory = generateFilesForDirectory();
     testGetFilesInDirectory(true, false, filesInDirectory, 0, true, true);
   }
 
   @Test
-  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenFilesInDirIsNull() throws ZipException {
+  public void testGetFilesInDirectoryRecursiveReturnsEmptyWhenFilesInDirIsNull() throws IOException {
     testGetFilesInDirectory(true, true, null, 0, true, true);
   }
 
   @Test
-  public void testGetFilesInDirectoryRecursiveWithHiddenModeOnListsHiddenFiles() throws ZipException {
-    File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 6, true, true);
-  }
-
-  @Test
-  public void testGetFilesInDirectoryRecursiveWithHiddenModeOffDoesNotListsHiddenFiles() throws ZipException {
-    File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 5, false, true);
-  }
-
-  @Test
-  public void testGetFilesInDirectoryRecursiveWithHiddenModeOffDoesNotListsHiddenFolders() throws ZipException {
-    File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 4, true, false);
-  }
-
-  @Test
-  public void testGetFilesInDirectoryRecursiveWithHiddenModeOffForFilesAndFolders() throws ZipException {
-    File[] filesInDirectory = generateFilesForDirectory();
-    testGetFilesInDirectory(true, true, filesInDirectory, 3, false, false);
-  }
-
-  @Test
-  public void testGetFileNameWithoutExtensionWithoutExtensionReturnsSameName() throws ZipException {
+  public void testGetFileNameWithoutExtensionReturnsSameName() throws ZipException {
     String fileNameWithoutExtension = FileUtils.getFileNameWithoutExtension("somename");
     assertThat(fileNameWithoutExtension).isEqualTo("somename");
   }
@@ -400,19 +376,21 @@ public class FileUtilsTest {
 
   private void testGetFilesInDirectory(boolean isDirectory, boolean canRead, File[] filesInDirectory,
                                        int expectedReturnSize, boolean shouldReadHiddenFiles,
-                                       boolean shouldReadHiddenFolders) throws ZipException {
+                                       boolean shouldReadHiddenFolders) throws IOException {
     File file = mock(File.class);
     when(file.isDirectory()).thenReturn(isDirectory);
     when(file.canRead()).thenReturn(canRead);
     when(file.listFiles()).thenReturn(filesInDirectory);
 
-    List<File> returnedFiles = FileUtils.getFilesInDirectoryRecursive(file, shouldReadHiddenFiles,
-        shouldReadHiddenFolders);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setReadHiddenFiles(shouldReadHiddenFiles);
+    zipParameters.setReadHiddenFolders(shouldReadHiddenFolders);
+    List<File> returnedFiles = FileUtils.getFilesInDirectoryRecursive(file, zipParameters);
 
     assertThat(returnedFiles).hasSize(expectedReturnSize);
   }
 
-  private File[] generateFilesForDirectory() {
+  private File[] generateFilesForDirectory() throws IOException {
     return new File[]{
         mockFile(false, false),
         mockFile(false, false),
@@ -423,10 +401,14 @@ public class FileUtilsTest {
     };
   }
 
-  private File mockFile(boolean isHidden, boolean isDirectory) {
+  private File mockFile(boolean isHidden, boolean isDirectory) throws IOException {
     File file = mock(File.class);
+    Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
     when(file.isHidden()).thenReturn(isHidden);
     when(file.isDirectory()).thenReturn(isDirectory);
+    when(file.canRead()).thenReturn(true);
+    when(file.getCanonicalFile()).thenReturn(file);
     return file;
   }
 

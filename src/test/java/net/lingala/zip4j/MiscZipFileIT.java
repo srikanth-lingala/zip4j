@@ -416,7 +416,7 @@ public class MiscZipFileIT extends AbstractIT {
     File newFile = temporaryFolder.newFile("NEW_FILE_NAME.ZIP");
     String oldFile = generatedZipFile.getPath();
 
-    if(TestUtils.isWindows())
+    if(FileUtils.isWindows())
     {
       newFile.delete();
     }

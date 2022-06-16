@@ -1,6 +1,7 @@
 package net.lingala.zip4j.testutils;
 
 import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.CrcUtil;
 import net.lingala.zip4j.util.FileUtils;
@@ -47,7 +48,10 @@ public class ZipFileVerifier {
     zipFile.extractAll(outputFolder.getPath());
     assertThat(zipFile.getFileHeaders().size()).as("Number of file headers").isEqualTo(expectedNumberOfEntries);
 
-    List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setReadHiddenFiles(true);
+    zipParameters.setReadHiddenFolders(true);
+    List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, zipParameters);
     assertThat(extractedFiles).hasSize(expectedNumberOfEntries);
 
     if (verifyFileContents) {

@@ -35,11 +35,6 @@ public class TestUtils {
    return getFileFromResources(TEST_ARCHIVES_FOLDER_NAME, fileName);
   }
 
-  public static Boolean isWindows() {
-    String os = System.getProperty("os.name").toLowerCase();
-    return (os.contains("win"));
-  }
-
   /**
    * Splits files with extension .001, .002, etc
    * @param fileToSplit file to be split
@@ -86,10 +81,32 @@ public class TestUtils {
     Files.copy(sourceFile.toPath(), destinationFile.toPath());
   }
 
+  public static void copyFileToFolder(File sourceFile, File outputFolder) throws IOException {
+    File destinationFile = new File(outputFolder.getAbsolutePath(), sourceFile.getName());
+    copyFile(sourceFile, destinationFile);
+  }
+
   public static void copyFileToFolder(File sourceFile, File outputFolder, int numberOfCopiesToMake) throws IOException {
     for (int i = 0; i < numberOfCopiesToMake; i++) {
-      File destinationFile = Paths.get(outputFolder.getAbsolutePath(), i + ".pdf").toFile();
+      File destinationFile = new File(outputFolder.getAbsolutePath(), i + ".pdf");
       copyFile(sourceFile, destinationFile);
+    }
+  }
+
+  public static void copyDirectory(File sourceDirectory, File destinationDirectory) throws IOException {
+    if (!destinationDirectory.exists()) {
+      destinationDirectory.mkdir();
+    }
+    for (String f : sourceDirectory.list()) {
+      copyDirectoryCompatibilityMode(new File(sourceDirectory, f), new File(destinationDirectory, f));
+    }
+  }
+
+  public static void copyDirectoryCompatibilityMode(File source, File destination) throws IOException {
+    if (source.isDirectory()) {
+      copyDirectory(source, destination);
+    } else {
+      copyFile(source, destination);
     }
   }
 

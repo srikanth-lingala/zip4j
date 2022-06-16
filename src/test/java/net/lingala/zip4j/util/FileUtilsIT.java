@@ -6,7 +6,6 @@ import net.lingala.zip4j.model.ExcludeFileFilter;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.progress.ProgressMonitor;
-import net.lingala.zip4j.testutils.TestUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -23,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -50,7 +50,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesWhenStartIsSameAsEndDoesNothing() throws IOException {
-    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
+    File sourceFile = getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -63,7 +63,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesCopiesCompleteFile() throws IOException {
-    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
+    File sourceFile = getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -75,7 +75,7 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testCopyFilesCopiesPartOfFile() throws IOException {
-    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
+    File sourceFile = getTestFileFromResources("sample.pdf");
     File outputFile = temporaryFolder.newFile();
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -122,17 +122,19 @@ public class FileUtilsIT extends AbstractIT {
 
   @Test
   public void testGetFilesInDirectoryRecursiveWithExcludeFileFilter() throws IOException {
-    File rootFolder = TestUtils.getTestFileFromResources("");
+    File rootFolder = getTestFileFromResources("");
     final List<File> filesToExclude = Arrays.asList(
-        TestUtils.getTestFileFromResources("бореиская.txt"),
-        TestUtils.getTestFileFromResources("sample_directory/favicon.ico")
+        getTestFileFromResources("бореиская.txt"),
+        getTestFileFromResources("sample_directory/favicon.ico")
     );
-    List<File> allFiles = FileUtils.getFilesInDirectoryRecursive(rootFolder, true, true, new ExcludeFileFilter() {
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setExcludeFileFilter(new ExcludeFileFilter() {
       @Override
       public boolean isExcluded(File o) {
         return filesToExclude.contains(o);
       }
     });
+    List<File> allFiles = FileUtils.getFilesInDirectoryRecursive(rootFolder, zipParameters);
 
     assertThat(allFiles).hasSize(10);
     for (File file : allFiles) {
@@ -198,7 +200,7 @@ public class FileUtilsIT extends AbstractIT {
     expectedException.expectMessage("invalid offsets");
     expectedException.expect(ZipException.class);
 
-    File sourceFile = TestUtils.getTestFileFromResources("sample.pdf");
+    File sourceFile = getTestFileFromResources("sample.pdf");
     try(RandomAccessFile randomAccessFile = new RandomAccessFile(sourceFile, RandomAccessFileMode.READ.getValue());
         OutputStream outputStream = new FileOutputStream(temporaryFolder.newFile())) {
       FileUtils.copyFile(randomAccessFile, outputStream, start, offset, progressMonitor, BUFF_SIZE);

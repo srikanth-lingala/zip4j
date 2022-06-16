@@ -555,7 +555,7 @@ public class ExtractZipFileIT extends AbstractIT {
   public void testExtractZipFileWithEndOfCentralDirectoryNotAtExpectedPosition() throws IOException {
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("end_of_cen_dir_not_at_expected_position.zip"));
     zipFile.extractAll(outputFolder.getPath());
-    List<File> outputFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
+    List<File> outputFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, new ZipParameters());
 
     assertThat(outputFiles).hasSize(24);
     assertThat(zipFile.getFileHeaders()).hasSize(19);
@@ -594,7 +594,10 @@ public class ExtractZipFileIT extends AbstractIT {
 
     zipFile.extractFile("items/", outputFolderPath);
 
-    List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, false, false);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setReadHiddenFiles(false);
+    zipParameters.setReadHiddenFolders(false);
+    List<File> extractedFiles = FileUtils.getFilesInDirectoryRecursive(outputFolder, zipParameters);
     assertThat(extractedFiles).isNotEmpty();
     assertThat(extractedFiles).hasSize(3);
     assertThat(extractedFiles).contains(
@@ -747,7 +750,7 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   private File getFileWithNameFrom(File outputFolder, String fileName) throws ZipException {
-    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(outputFolder, true, true);
+    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(outputFolder, new ZipParameters());
     for (File file : filesInFolder) {
       if (file.getName().equals(fileName)) {
         return file;
@@ -795,7 +798,10 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   private List<File> getRegularFilesFromFolder(File folder) throws ZipException {
-    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(folder, false, false);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setReadHiddenFiles(false);
+    zipParameters.setReadHiddenFolders(false);
+    List<File> filesInFolder = FileUtils.getFilesInDirectoryRecursive(folder, zipParameters);
 
     List<File> regularFiles = new ArrayList<>();
     for (File file : filesInFolder) {
