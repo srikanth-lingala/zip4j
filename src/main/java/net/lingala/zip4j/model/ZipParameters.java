@@ -16,7 +16,11 @@
 
 package net.lingala.zip4j.model;
 
-import net.lingala.zip4j.model.enums.*;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.AesVersion;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 /**
  * Encapsulates the parameters that that control how Zip4J encodes data
