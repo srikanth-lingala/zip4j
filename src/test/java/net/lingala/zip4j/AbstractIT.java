@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
+import static net.lingala.zip4j.util.InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractIT {
@@ -80,11 +81,7 @@ public abstract class AbstractIT {
   }
 
   protected Zip4jConfig buildConfig(Charset charset) {
-    return new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE);
-  }
-
-  protected Zip4jConfig buildConfig(int bufferSize) {
-    return new Zip4jConfig(null, bufferSize);
+    return new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE, USE_UTF8_FOR_PASSWORD_ENCODING_DECODING);
   }
 
   private void cleanupDirectory(File directory) {

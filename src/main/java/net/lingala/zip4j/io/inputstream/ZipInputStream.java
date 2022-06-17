@@ -38,7 +38,9 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.CRC32;
 
+import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
 import static net.lingala.zip4j.util.Zip4jUtil.getCompressionMethod;
 
 public class ZipInputStream extends InputStream {
@@ -73,11 +75,11 @@ public class ZipInputStream extends InputStream {
   }
 
   public ZipInputStream(InputStream inputStream, char[] password, Charset charset) {
-    this(inputStream, password, new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE));
+    this(inputStream, password, new Zip4jConfig(charset, BUFF_SIZE, USE_UTF8_FOR_PASSWORD_ENCODING_DECODING));
   }
 
   public ZipInputStream(InputStream inputStream, PasswordCallback passwordCallback, Charset charset) {
-    this(inputStream, passwordCallback, new Zip4jConfig(charset, InternalZipConstants.BUFF_SIZE));
+    this(inputStream, passwordCallback, new Zip4jConfig(charset, BUFF_SIZE, USE_UTF8_FOR_PASSWORD_ENCODING_DECODING));
   }
 
   public ZipInputStream(InputStream inputStream, char[] password, Zip4jConfig zip4jConfig) {
@@ -253,9 +255,11 @@ public class ZipInputStream extends InputStream {
     }
 
     if (localFileHeader.getEncryptionMethod() == EncryptionMethod.AES) {
-      return new AesCipherInputStream(zipEntryInputStream, localFileHeader, password, zip4jConfig.getBufferSize());
+      return new AesCipherInputStream(zipEntryInputStream, localFileHeader, password, zip4jConfig.getBufferSize(),
+              zip4jConfig.isUseUtf8CharsetForPasswords());
     } else if (localFileHeader.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-      return new ZipStandardCipherInputStream(zipEntryInputStream, localFileHeader, password, zip4jConfig.getBufferSize());
+      return new ZipStandardCipherInputStream(zipEntryInputStream, localFileHeader, password, zip4jConfig.getBufferSize(),
+              zip4jConfig.isUseUtf8CharsetForPasswords());
     } else {
       final String message = String.format("Entry [%s] Strong Encryption not supported", localFileHeader.getFileName());
       throw new ZipException(message, ZipException.Type.UNSUPPORTED_ENCRYPTION);

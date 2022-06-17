@@ -37,17 +37,13 @@ public class PBKDF2Engine {
     this.prf = prf;
   }
 
-  public byte[] deriveKey(char[] inputPassword) {
-    return deriveKey(inputPassword, 0);
-  }
-
-  public byte[] deriveKey(char[] inputPassword, int dkLen) {
+  public byte[] deriveKey(char[] inputPassword, int dkLen, boolean useUtf8ForPassword) {
     byte p[];
     if (inputPassword == null) {
       throw new NullPointerException();
     }
 
-    p = convertCharArrayToByteArray(inputPassword);
+    p = convertCharArrayToByteArray(inputPassword, useUtf8ForPassword);
 
     assertPRF(p);
     if (dkLen == 0) {
@@ -56,33 +52,11 @@ public class PBKDF2Engine {
     return PBKDF2(prf, parameters.getSalt(), parameters.getIterationCount(), dkLen);
   }
 
-  public boolean verifyKey(char[] inputPassword) {
-    byte[] referenceKey = getParameters().getDerivedKey();
-    if (referenceKey == null || referenceKey.length == 0) {
-      return false;
-    }
-    byte[] inputKey = deriveKey(inputPassword, referenceKey.length);
-
-    if (inputKey == null || inputKey.length != referenceKey.length) {
-      return false;
-    }
-    for (int i = 0; i < inputKey.length; i++) {
-      if (inputKey[i] != referenceKey[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   private void assertPRF(byte[] P) {
     if (prf == null) {
       prf = new MacBasedPRF(parameters.getHashAlgorithm());
     }
     prf.init(P);
-  }
-
-  public PRF getPseudoRandomFunction() {
-    return prf;
   }
 
   private byte[] PBKDF2(PRF prf, byte[] S, int c, int dkLen) {

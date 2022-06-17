@@ -1,7 +1,6 @@
 package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.crypto.Decrypter;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
@@ -20,9 +19,9 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
   private LocalFileHeader localFileHeader;
 
   public CipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
-                           char[] password, int bufferSize) throws IOException {
+                           char[] password, int bufferSize, boolean useUtf8ForPassword) throws IOException {
     this.zipEntryInputStream = zipEntryInputStream;
-    this.decrypter = initializeDecrypter(localFileHeader, password);
+    this.decrypter = initializeDecrypter(localFileHeader, password, useUtf8ForPassword);
     this.localFileHeader = localFileHeader;
 
     if (Zip4jUtil.getCompressionMethod(localFileHeader).equals(CompressionMethod.DEFLATE)) {
@@ -93,5 +92,6 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     return localFileHeader;
   }
 
-  protected abstract T initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException, ZipException;
+  protected abstract T initializeDecrypter(LocalFileHeader localFileHeader, char[] password,
+                                           boolean useUtf8ForPassword) throws IOException;
 }

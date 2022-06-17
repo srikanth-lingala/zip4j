@@ -101,19 +101,10 @@ public class Zip4jUtil {
     return cal.getTime().getTime();
   }
 
-  public static byte[] convertCharArrayToByteArray(char[] charArray) {
-    try {
-      ByteBuffer buf = InternalZipConstants.CHARSET_UTF_8.encode(CharBuffer.wrap(charArray));
-      byte[] bytes = new byte[buf.limit()];
-      buf.get(bytes);
-      return bytes;
-    } catch (Exception e) {
-      byte[] bytes = new byte[charArray.length];
-      for (int i = 0; i < charArray.length; i++) {
-        bytes[i] = (byte) charArray[i];
-      }
-      return bytes;
-    }
+  public static byte[] convertCharArrayToByteArray(char[] charArray, boolean useUtf8Charset) {
+    return useUtf8Charset
+            ? convertCharArrayToByteArrayUsingUtf8(charArray)
+            : convertCharArrayToByteArrayUsingDefaultCharset(charArray);
   }
 
   public static CompressionMethod getCompressionMethod(AbstractFileHeader localFileHeader) throws ZipException {
@@ -210,6 +201,25 @@ public class Zip4jUtil {
     }
 
     return readLength;
+  }
+
+  private static byte[] convertCharArrayToByteArrayUsingUtf8(char[] charArray) {
+    try {
+      ByteBuffer buf = InternalZipConstants.CHARSET_UTF_8.encode(CharBuffer.wrap(charArray));
+      byte[] bytes = new byte[buf.limit()];
+      buf.get(bytes);
+      return bytes;
+    } catch (Exception e) {
+      return convertCharArrayToByteArrayUsingDefaultCharset(charArray);
+    }
+  }
+
+  private static byte[] convertCharArrayToByteArrayUsingDefaultCharset(char[] charArray) {
+    byte[] bytes = new byte[charArray.length];
+    for (int i = 0; i < charArray.length; i++) {
+      bytes[i] = (byte) charArray[i];
+    }
+    return bytes;
   }
 
 }

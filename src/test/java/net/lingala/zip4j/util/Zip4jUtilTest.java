@@ -110,10 +110,10 @@ public class Zip4jUtilTest {
   }
 
   @Test
-  public void testConvertCharArrayToByteArray() {
+  public void testConvertCharArrayToByteArrayWithoutUtf8() {
     char[] charArray = "CharArray".toCharArray();
 
-    byte[] byteArray = Zip4jUtil.convertCharArrayToByteArray(charArray);
+    byte[] byteArray = Zip4jUtil.convertCharArrayToByteArray(charArray, false);
 
     assertThat(byteArray.length).isEqualTo(charArray.length);
     assertThat(byteArray[0]).isEqualTo((byte)'C');
@@ -131,7 +131,7 @@ public class Zip4jUtilTest {
   public void testConvertCharArrayToByteArrayChineseChars() {
     char[] charArray = "你好".toCharArray();
 
-    byte[] byteArray = Zip4jUtil.convertCharArrayToByteArray(charArray);
+    byte[] byteArray = Zip4jUtil.convertCharArrayToByteArray(charArray, true);
 
     try {
       // Make sure that StandardCharsets exists on the classpath

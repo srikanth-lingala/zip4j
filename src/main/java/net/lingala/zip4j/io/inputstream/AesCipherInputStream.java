@@ -28,13 +28,15 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
   private int aes16ByteBlockReadLength = 0;
 
   public AesCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
-                              char[] password, int bufferSize) throws IOException {
-    super(zipEntryInputStream, localFileHeader, password, bufferSize);
+                              char[] password, int bufferSize, boolean useUtf8ForPassword) throws IOException {
+    super(zipEntryInputStream, localFileHeader, password, bufferSize, useUtf8ForPassword);
   }
 
   @Override
-  protected AESDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) throws IOException {
-    return new AESDecrypter(localFileHeader.getAesExtraDataRecord(), password, getSalt(localFileHeader), getPasswordVerifier());
+  protected AESDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password,
+                                             boolean useUtf8ForPassword) throws IOException {
+    return new AESDecrypter(localFileHeader.getAesExtraDataRecord(), password, getSalt(localFileHeader),
+            getPasswordVerifier(), useUtf8ForPassword);
   }
 
   @Override

@@ -9,11 +9,11 @@ class NoCipherInputStream extends CipherInputStream {
 
   public NoCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
                              char[] password, int bufferSize) throws IOException {
-    super(zipEntryInputStream, localFileHeader, password, bufferSize);
+    super(zipEntryInputStream, localFileHeader, password, bufferSize, true);
   }
 
   @Override
-  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password) {
+  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password, boolean useUtf8ForPassword) {
     return new NoDecrypter();
   }
 

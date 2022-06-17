@@ -49,7 +49,7 @@ public class AESEncrypter implements Encrypter {
   private byte[] derivedPasswordVerifier;
   private byte[] saltBytes;
 
-  public AESEncrypter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
+  public AESEncrypter(char[] password, AesKeyStrength aesKeyStrength, boolean useUtf8ForPassword) throws ZipException {
     if (password == null || password.length == 0) {
       throw new ZipException("input password is empty or null");
     }
@@ -61,12 +61,12 @@ public class AESEncrypter implements Encrypter {
     this.finished = false;
     counterBlock = new byte[AES_BLOCK_SIZE];
     iv = new byte[AES_BLOCK_SIZE];
-    init(password, aesKeyStrength);
+    init(password, aesKeyStrength, useUtf8ForPassword);
   }
 
-  private void init(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
+  private void init(char[] password, AesKeyStrength aesKeyStrength, boolean useUtf8ForPassword) throws ZipException {
     saltBytes = generateSalt(aesKeyStrength.getSaltLength());
-    byte[] derivedKey = derivePasswordBasedKey(saltBytes, password, aesKeyStrength);
+    byte[] derivedKey = derivePasswordBasedKey(saltBytes, password, aesKeyStrength, useUtf8ForPassword);
     derivedPasswordVerifier = derivePasswordVerifier(derivedKey, aesKeyStrength);
     aesEngine = getAESEngine(derivedKey, aesKeyStrength);
     mac = getMacBasedPRF(derivedKey, aesKeyStrength);

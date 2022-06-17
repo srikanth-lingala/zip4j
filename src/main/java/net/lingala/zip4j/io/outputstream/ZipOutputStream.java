@@ -24,6 +24,7 @@ import java.util.zip.CRC32;
 import static net.lingala.zip4j.util.FileUtils.isZipEntryDirectory;
 import static net.lingala.zip4j.util.InternalZipConstants.BUFF_SIZE;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
 
 public class ZipOutputStream extends OutputStream {
 
@@ -55,7 +56,10 @@ public class ZipOutputStream extends OutputStream {
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, Charset charset) throws IOException {
-    this(outputStream, password, new Zip4jConfig(charset, BUFF_SIZE), new ZipModel());
+    this(outputStream,
+            password,
+            new Zip4jConfig(charset, BUFF_SIZE, USE_UTF8_FOR_PASSWORD_ENCODING_DECODING),
+            new ZipModel());
   }
 
   public ZipOutputStream(OutputStream outputStream, char[] password, Zip4jConfig zip4jConfig,
@@ -208,9 +212,9 @@ public class ZipOutputStream extends OutputStream {
     }
 
     if (zipParameters.getEncryptionMethod() == EncryptionMethod.AES) {
-      return new AesCipherOutputStream(zipEntryOutputStream, zipParameters, password);
+      return new AesCipherOutputStream(zipEntryOutputStream, zipParameters, password, zip4jConfig.isUseUtf8CharsetForPasswords());
     } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD) {
-      return new ZipStandardCipherOutputStream(zipEntryOutputStream, zipParameters, password);
+      return new ZipStandardCipherOutputStream(zipEntryOutputStream, zipParameters, password, zip4jConfig.isUseUtf8CharsetForPasswords());
     } else if (zipParameters.getEncryptionMethod() == EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG) {
       throw new ZipException(EncryptionMethod.ZIP_STANDARD_VARIANT_STRONG + " encryption method is not supported");
     } else {

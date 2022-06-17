@@ -632,6 +632,63 @@ public class MiscZipFileIT extends AbstractIT {
     assertInputStreamsAreClosed(Collections.singletonList(inputStream));
   }
 
+  @Test
+  public void testAddAndExtractFilesToZipWithUtf8PasswordEncoding() throws IOException {
+    testAddAndExtractWithPasswordUtf8Encoding(true);
+  }
+
+  @Test
+  public void testAddAndExtractFilesToZipWithoutUtf8PasswordEncoding() throws IOException {
+    testAddAndExtractWithPasswordUtf8Encoding(false);
+  }
+
+  @Test
+  public void testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails() throws IOException {
+    testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(true, false);
+  }
+
+  @Test
+  public void testAddFilesWithoutUt8PasswordAndExtractFilesWithUtf8PasswordFails() throws IOException {
+    testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(false, true);
+  }
+
+  private void testAddAndExtractWithPasswordUtf8Encoding(boolean useUtf8ForPassword) throws IOException {
+    char[] password = "hun 焰".toCharArray();
+    ZipFile zipFile = new ZipFile(generatedZipFile, password);
+    zipFile.setUseUtf8CharsetForPasswords(useUtf8ForPassword);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    zipFile = new ZipFile(generatedZipFile, password);
+    zipFile.setUseUtf8CharsetForPasswords(useUtf8ForPassword);
+    zipFile.extractAll(outputFolder.getPath());
+    assertThat(zipFile.getFileHeaders()).hasSize(3);
+  }
+
+  private void testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(boolean useUtf8ForAddingFiles,
+                                                                                  boolean useUt8ForExtractingFiles)
+    throws IOException {
+
+    char[] password = "hun 焰".toCharArray();
+    ZipFile zipFile = new ZipFile(generatedZipFile, password);
+    zipFile.setUseUtf8CharsetForPasswords(useUtf8ForAddingFiles);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setEncryptFiles(true);
+    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+
+    zipFile.addFiles(FILES_TO_ADD, zipParameters);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Wrong Password");
+
+    zipFile = new ZipFile(generatedZipFile, password);
+    zipFile.setUseUtf8CharsetForPasswords(useUt8ForExtractingFiles);
+    zipFile.extractAll(outputFolder.getPath());
+  }
+
   private void assertInputStreamsAreClosed(List<InputStream> inputStreams) {
     for (InputStream inputStream : inputStreams) {
       try {

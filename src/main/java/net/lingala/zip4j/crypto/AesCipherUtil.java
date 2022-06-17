@@ -24,14 +24,16 @@ public class AesCipherUtil {
    * @return Derived Password-Based Key
    * @throws ZipException Thrown when Derived Key is not valid
    */
-  public static byte[] derivePasswordBasedKey(final byte[] salt, final char[] password, final AesKeyStrength aesKeyStrength) throws ZipException {
+  public static byte[] derivePasswordBasedKey(final byte[] salt, final char[] password,
+                                              final AesKeyStrength aesKeyStrength,
+                                              final boolean useUtf8ForPassword) throws ZipException {
     final PBKDF2Parameters parameters = new PBKDF2Parameters(AES_MAC_ALGORITHM, AES_HASH_CHARSET, salt, AES_HASH_ITERATIONS);
     final PBKDF2Engine engine = new PBKDF2Engine(parameters);
 
     final int keyLength = aesKeyStrength.getKeyLength();
     final int macLength = aesKeyStrength.getMacLength();
     final int derivedKeyLength = keyLength + macLength + AES_PASSWORD_VERIFIER_LENGTH;
-    final byte[] derivedKey = engine.deriveKey(password, derivedKeyLength);
+    final byte[] derivedKey = engine.deriveKey(password, derivedKeyLength, useUtf8ForPassword);
     if (derivedKey != null && derivedKey.length == derivedKeyLength) {
       return derivedKey;
     } else {

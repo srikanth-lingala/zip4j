@@ -17,7 +17,6 @@
 package net.lingala.zip4j.io.outputstream;
 
 import net.lingala.zip4j.crypto.Encrypter;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 
 import java.io.IOException;
@@ -28,10 +27,10 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
   private ZipEntryOutputStream zipEntryOutputStream;
   private T encrypter;
 
-  public CipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password)
-      throws IOException, ZipException {
+  public CipherOutputStream(ZipEntryOutputStream zipEntryOutputStream, ZipParameters zipParameters, char[] password,
+                            boolean useUtf8ForPassword) throws IOException {
     this.zipEntryOutputStream = zipEntryOutputStream;
-    this.encrypter = initializeEncrypter(zipEntryOutputStream, zipParameters, password);
+    this.encrypter = initializeEncrypter(zipEntryOutputStream, zipParameters, password, useUtf8ForPassword);
   }
 
   @Override
@@ -71,6 +70,6 @@ abstract class CipherOutputStream<T extends Encrypter> extends OutputStream {
     return encrypter;
   }
 
-  protected abstract T initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password)
-      throws IOException, ZipException;
+  protected abstract T initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters,
+                                           char[] password, boolean useUtf8ForPassword) throws IOException;
 }

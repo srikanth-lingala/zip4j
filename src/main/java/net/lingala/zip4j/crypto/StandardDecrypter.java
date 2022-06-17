@@ -26,9 +26,10 @@ public class StandardDecrypter implements Decrypter {
 
   private ZipCryptoEngine zipCryptoEngine;
 
-  public StandardDecrypter(char[] password, long crc, long lastModifiedFileTime, byte[] headerBytes) throws ZipException {
+  public StandardDecrypter(char[] password, long crc, long lastModifiedFileTime,
+                           byte[] headerBytes, boolean useUtf8ForPassword) throws ZipException {
     this.zipCryptoEngine = new ZipCryptoEngine();
-    init(headerBytes, password, lastModifiedFileTime, crc);
+    init(headerBytes, password, lastModifiedFileTime, crc, useUtf8ForPassword);
   }
 
   public int decryptData(byte[] buff, int start, int len) throws ZipException {
@@ -46,12 +47,13 @@ public class StandardDecrypter implements Decrypter {
     return len;
   }
 
-  private void init(byte[] headerBytes, char[] password, long lastModifiedFileTime, long crc) throws ZipException {
+  private void init(byte[] headerBytes, char[] password, long lastModifiedFileTime, long crc,
+                    boolean useUtf8ForPassword) throws ZipException {
     if (password == null || password.length <= 0) {
       throw new ZipException("Wrong password!", ZipException.Type.WRONG_PASSWORD);
     }
 
-    zipCryptoEngine.initKeys(password);
+    zipCryptoEngine.initKeys(password, useUtf8ForPassword);
 
     int result = headerBytes[0];
     for (int i = 0; i < STD_DEC_HDR_SIZE; i++) {

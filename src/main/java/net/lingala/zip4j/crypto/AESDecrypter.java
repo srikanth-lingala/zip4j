@@ -40,21 +40,22 @@ public class AESDecrypter implements Decrypter {
   private byte[] iv;
   private byte[] counterBlock;
 
-  public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt, byte[] passwordVerifier) throws ZipException {
+  public AESDecrypter(AESExtraDataRecord aesExtraDataRecord, char[] password, byte[] salt,
+                      byte[] passwordVerifier, boolean useUtf8ForPassword) throws ZipException {
     iv = new byte[AES_BLOCK_SIZE];
     counterBlock = new byte[AES_BLOCK_SIZE];
-    init(salt, passwordVerifier, password, aesExtraDataRecord);
+    init(salt, passwordVerifier, password, aesExtraDataRecord, useUtf8ForPassword);
   }
 
-  private void init(byte[] salt, byte[] passwordVerifier, char[] password, AESExtraDataRecord aesExtraDataRecord)
-      throws ZipException {
+  private void init(byte[] salt, byte[] passwordVerifier, char[] password,
+                    AESExtraDataRecord aesExtraDataRecord, boolean useUtf8ForPassword) throws ZipException {
 
     if (password == null || password.length <= 0) {
       throw new ZipException("empty or null password provided for AES decryption", WRONG_PASSWORD);
     }
 
     final AesKeyStrength aesKeyStrength = aesExtraDataRecord.getAesKeyStrength();
-    final byte[] derivedKey = AesCipherUtil.derivePasswordBasedKey(salt, password, aesKeyStrength);
+    final byte[] derivedKey = AesCipherUtil.derivePasswordBasedKey(salt, password, aesKeyStrength, useUtf8ForPassword);
     final byte[] derivedPasswordVerifier = AesCipherUtil.derivePasswordVerifier(derivedKey, aesKeyStrength);
     if (!Arrays.equals(passwordVerifier, derivedPasswordVerifier)) {
       throw new ZipException("Wrong Password", ZipException.Type.WRONG_PASSWORD);

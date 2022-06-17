@@ -99,6 +99,7 @@ public class ZipFile implements Closeable {
   private ExecutorService executorService;
   private int bufferSize = InternalZipConstants.BUFF_SIZE;
   private List<InputStream> openInputStreams = new ArrayList<>();
+  private boolean useUtf8CharsetForPasswords = InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -1233,6 +1234,14 @@ public class ZipFile implements Closeable {
   }
 
   private Zip4jConfig buildConfig() {
-    return new Zip4jConfig(charset, bufferSize);
+    return new Zip4jConfig(charset, bufferSize, useUtf8CharsetForPasswords);
+  }
+
+  public boolean isUseUtf8CharsetForPasswords() {
+    return useUtf8CharsetForPasswords;
+  }
+
+  public void setUseUtf8CharsetForPasswords(boolean useUtf8CharsetForPasswords) {
+    this.useUtf8CharsetForPasswords = useUtf8CharsetForPasswords;
   }
 }

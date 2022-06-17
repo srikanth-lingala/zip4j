@@ -9,16 +9,16 @@ import java.io.OutputStream;
 
 class ZipStandardCipherOutputStream extends CipherOutputStream<StandardEncrypter> {
 
-  public ZipStandardCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters, char[] password)
-      throws IOException {
-    super(outputStream, zipParameters, password);
+  public ZipStandardCipherOutputStream(ZipEntryOutputStream outputStream, ZipParameters zipParameters, char[] password,
+                                       boolean useUtf8ForPassword) throws IOException {
+    super(outputStream, zipParameters, password, useUtf8ForPassword);
   }
 
   @Override
   protected StandardEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters,
-                                                  char[] password) throws IOException {
+                                                  char[] password, boolean useUtf8ForPassword) throws IOException {
     long key = getEncryptionKey(zipParameters);
-    StandardEncrypter encrypter = new StandardEncrypter(password, key);
+    StandardEncrypter encrypter = new StandardEncrypter(password, key, useUtf8ForPassword);
     writeHeaders(encrypter.getHeaderBytes());
     return encrypter;
   }

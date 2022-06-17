@@ -37,11 +37,11 @@ public class ZipCryptoEngine {
     }
   }
 
-  public void initKeys(char[] password) {
+  public void initKeys(char[] password, boolean useUtf8ForPassword) {
     keys[0] = 305419896;
     keys[1] = 591751049;
     keys[2] = 878082192;
-    byte[] bytes = convertCharArrayToByteArray(password);
+    byte[] bytes = convertCharArrayToByteArray(password, useUtf8ForPassword);
     for (byte b : bytes) {
       updateKeys((byte) (b & 0xff));
     }

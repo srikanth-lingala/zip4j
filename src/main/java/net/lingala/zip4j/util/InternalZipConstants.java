@@ -68,4 +68,6 @@ public final class InternalZipConstants {
   public static final Charset ZIP4J_DEFAULT_CHARSET = CHARSET_UTF_8;
 
   public static final String SEVEN_ZIP_SPLIT_FILE_EXTENSION_PATTERN = ".zip.001";
+
+  public static final boolean USE_UTF8_FOR_PASSWORD_ENCODING_DECODING = true;
 }

@@ -35,6 +35,7 @@ import java.util.zip.ZipOutputStream;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyFileContent;
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
+import static net.lingala.zip4j.util.InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZipInputStreamIT extends AbstractIT {
@@ -45,7 +46,7 @@ public class ZipInputStreamIT extends AbstractIT {
   @Test
   public void testZipInputStreamConstructorThrowsExceptionWhenBufferSizeIsLessThanExpected() {
     InputStream inputStream = new ByteArrayInputStream(new byte[1]);
-    Zip4jConfig zip4jConfig = new Zip4jConfig(null, InternalZipConstants.MIN_BUFF_SIZE - 1);
+    Zip4jConfig zip4jConfig = new Zip4jConfig(null, InternalZipConstants.MIN_BUFF_SIZE - 1, USE_UTF8_FOR_PASSWORD_ENCODING_DECODING);
 
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("Buffer size cannot be less than " + MIN_BUFF_SIZE + " bytes");
