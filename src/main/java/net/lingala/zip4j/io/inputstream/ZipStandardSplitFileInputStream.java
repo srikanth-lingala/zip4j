@@ -6,27 +6,25 @@ import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 
-public abstract class SplitInputStream extends InputStream {
+/**
+ * A split input stream for zip file split as per zip specification. They end with .z01, .z02... .zip
+ */
+public class ZipStandardSplitFileInputStream extends SplitFileInputStream {
 
   protected RandomAccessFile randomAccessFile;
   protected File zipFile;
-
+  private int lastSplitZipFileNumber;
   private boolean isSplitZipArchive;
   private int currentSplitFileCounter = 0;
   private byte[] singleByteArray = new byte[1];
 
-  public SplitInputStream(File zipFile, boolean isSplitZipArchive, int lastSplitZipFileNumber) throws FileNotFoundException {
+  public ZipStandardSplitFileInputStream(File zipFile, boolean isSplitZipArchive, int lastSplitZipFileNumber) throws FileNotFoundException {
     this.randomAccessFile = new RandomAccessFile(zipFile, RandomAccessFileMode.READ.getValue());
     this.zipFile = zipFile;
     this.isSplitZipArchive = isSplitZipArchive;
-
-
-    if (isSplitZipArchive) {
-      currentSplitFileCounter = lastSplitZipFileNumber;
-    }
+    this.lastSplitZipFileNumber = lastSplitZipFileNumber;
   }
 
   @Override
@@ -60,6 +58,7 @@ public abstract class SplitInputStream extends InputStream {
     return readLen;
   }
 
+  @Override
   public void prepareExtractionForFileHeader(FileHeader fileHeader) throws IOException {
 
     if (isSplitZipArchive && (currentSplitFileCounter != fileHeader.getDiskNumberStart())) {
@@ -68,6 +67,13 @@ public abstract class SplitInputStream extends InputStream {
     }
 
     randomAccessFile.seek(fileHeader.getOffsetLocalHeader());
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (randomAccessFile != null) {
+      randomAccessFile.close();
+    }
   }
 
   protected void openRandomAccessFileForIndex(int zipFileIndex) throws IOException {
@@ -79,12 +85,18 @@ public abstract class SplitInputStream extends InputStream {
     randomAccessFile = new RandomAccessFile(nextSplitFile, RandomAccessFileMode.READ.getValue());
   }
 
-  protected abstract File getNextSplitFile(int zipFileIndex) throws IOException;
-
-  @Override
-  public void close() throws IOException {
-    if (randomAccessFile != null) {
-      randomAccessFile.close();
+  protected File getNextSplitFile(int zipFileIndex) throws IOException {
+    if (zipFileIndex == lastSplitZipFileNumber) {
+      return zipFile;
     }
+
+    String currZipFileNameWithPath = zipFile.getCanonicalPath();
+    String extensionSubString = ".z0";
+    if (zipFileIndex >= 9) {
+      extensionSubString = ".z";
+    }
+
+    return new File(currZipFileNameWithPath.substring(0,
+        currZipFileNameWithPath.lastIndexOf(".")) + extensionSubString + (zipFileIndex + 1));
   }
 }

@@ -2,7 +2,7 @@ package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.headers.HeaderUtil;
-import net.lingala.zip4j.io.inputstream.SplitInputStream;
+import net.lingala.zip4j.io.inputstream.SplitFileInputStream;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
@@ -26,7 +26,7 @@ import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAll
 public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskParameters> {
 
   private char[] password;
-  private SplitInputStream splitInputStream;
+  private SplitFileInputStream splitInputStream;
 
   public ExtractFileTask(ZipModel zipModel, char[] password, UnzipParameters unzipParameters,
                          AsyncTaskParameters asyncTaskParameters) {

@@ -3,9 +3,9 @@ package net.lingala.zip4j.util;
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.inputstream.NumberedSplitInputStream;
-import net.lingala.zip4j.io.inputstream.SplitInputStream;
-import net.lingala.zip4j.io.inputstream.ZipStandardSplitInputStream;
+import net.lingala.zip4j.io.inputstream.NumberedSplitFileInputStream;
+import net.lingala.zip4j.io.inputstream.SplitFileInputStream;
+import net.lingala.zip4j.io.inputstream.ZipStandardSplitFileInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.testutils.TestUtils;
@@ -109,9 +109,9 @@ public class UnzipUtilIT extends AbstractIT {
     ZipModel zipModel = createZipModel();
     zipModel.setZipFile(zipFile);
 
-    SplitInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
+    SplitFileInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
 
-    assertThat(splitInputStream).isInstanceOf(NumberedSplitInputStream.class);
+    assertThat(splitInputStream).isInstanceOf(NumberedSplitFileInputStream.class);
   }
 
   @Test
@@ -119,9 +119,9 @@ public class UnzipUtilIT extends AbstractIT {
     temporaryFolder.newFile(generatedZipFile.getName());
     ZipModel zipModel = createZipModel();
 
-    SplitInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
+    SplitFileInputStream splitInputStream = UnzipUtil.createSplitInputStream(zipModel);
 
-    assertThat(splitInputStream).isInstanceOf(ZipStandardSplitInputStream.class);
+    assertThat(splitInputStream).isInstanceOf(ZipStandardSplitFileInputStream.class);
   }
 
   private ZipFile createZipFile() throws ZipException {

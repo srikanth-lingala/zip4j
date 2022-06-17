@@ -516,7 +516,7 @@ public class ExtractZipFileIT extends AbstractIT {
   @Test
   public void testExtractZipFileOf7ZipFormatSplitWithoutEncryption() throws IOException {
     List<File> filesToAddToZip = new ArrayList<>(FILES_TO_ADD);
-    filesToAddToZip.add(getTestFileFromResources("file_PDF_1MB.pdf"));
+    filesToAddToZip.add(0, getTestFileFromResources("file_PDF_1MB.pdf"));
     File firstSplitFile = createZipFileAndSplit(filesToAddToZip, 102400, false, null);
     verifyZipFileByExtractingAllFiles(firstSplitFile, outputFolder, 4);
   }
@@ -524,7 +524,7 @@ public class ExtractZipFileIT extends AbstractIT {
   @Test
   public void testExtractZipFileOf7ZipFormatSplitWithAESEncryption() throws IOException {
     List<File> filesToAddToZip = new ArrayList<>(FILES_TO_ADD);
-    filesToAddToZip.add(getTestFileFromResources("file_PDF_1MB.pdf"));
+    filesToAddToZip.add(0, getTestFileFromResources("file_PDF_1MB.pdf"));
     File firstSplitFile = createZipFileAndSplit(filesToAddToZip, 102000, true, EncryptionMethod.AES);
     verifyZipFileByExtractingAllFiles(firstSplitFile, PASSWORD, outputFolder, 4);
   }
