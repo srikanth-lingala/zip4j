@@ -25,6 +25,10 @@ public class ZipStandardSplitFileInputStream extends SplitFileInputStream {
     this.zipFile = zipFile;
     this.isSplitZipArchive = isSplitZipArchive;
     this.lastSplitZipFileNumber = lastSplitZipFileNumber;
+
+    if (isSplitZipArchive) {
+      currentSplitFileCounter = lastSplitZipFileNumber;
+    }
   }
 
   @Override
