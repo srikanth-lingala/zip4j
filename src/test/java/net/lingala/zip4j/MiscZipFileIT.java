@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.concurrent.ThreadFactory;
 import static java.util.Collections.singletonList;
 import static net.lingala.zip4j.testutils.TestUtils.getFileNamesOfFiles;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
+import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -652,6 +655,24 @@ public class MiscZipFileIT extends AbstractIT {
     testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(false, true);
   }
 
+  @Test
+  public void testAddFileWithCustomLastModifiedFileTimeSetsInputTime() throws IOException, ParseException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    String string_date = "20-January-2020";
+    long expectedLastModifiedTimeInMillis = new SimpleDateFormat("dd-MMM-yyyy").parse(string_date).getTime();
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setLastModifiedFileTime(expectedLastModifiedTimeInMillis);
+    String fileToTestWith = "sample.pdf";
+
+    zipFile.addFile(getTestFileFromResources(fileToTestWith), zipParameters);
+
+    verifyLastModifiedFileTime(zipFile, fileToTestWith, expectedLastModifiedTimeInMillis);
+    // Test again by instantiating zip file again to make sure that the last modified file time is correctly stored and
+    // read via HeaderReader as well
+    zipFile = new ZipFile(generatedZipFile);
+    verifyLastModifiedFileTime(zipFile, fileToTestWith, expectedLastModifiedTimeInMillis);
+  }
+
   private void testAddAndExtractWithPasswordUtf8Encoding(boolean useUtf8ForPassword) throws IOException {
     char[] password = "hun 焰".toCharArray();
     ZipFile zipFile = new ZipFile(generatedZipFile, password);
@@ -745,5 +766,16 @@ public class MiscZipFileIT extends AbstractIT {
       }
     }
     return filteredThreads;
+  }
+
+  private void verifyLastModifiedFileTime(ZipFile zipFile, String entryNameInZipToVerify,
+                                          long expectedLastModifiedTimeInMillis) throws IOException {
+    FileHeader fileHeader = zipFile.getFileHeader(entryNameInZipToVerify);
+    assertThat(fileHeader.getLastModifiedTimeEpoch()).isEqualTo(expectedLastModifiedTimeInMillis);
+    assertThat(fileHeader.getLastModifiedTime()).isEqualTo(epochToExtendedDosTime(expectedLastModifiedTimeInMillis));
+    zipFile.extractAll(outputFolder.getPath());
+    File extractedFile = Paths.get(outputFolder.getPath(), entryNameInZipToVerify).toFile();
+    assertThat(extractedFile.exists()).isTrue();
+    assertThat(extractedFile.lastModified()).isEqualTo(expectedLastModifiedTimeInMillis);
   }
 }

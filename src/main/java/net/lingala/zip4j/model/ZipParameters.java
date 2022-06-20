@@ -57,7 +57,7 @@ public class ZipParameters {
   private long entryCRC;
   private String defaultFolderPath;
   private String fileNameInZip;
-  private long lastModifiedFileTime = System.currentTimeMillis();
+  private long lastModifiedFileTime = 0;
   private long entrySize = -1;
   private boolean writeExtendedLocalFileHeader = true;
   private boolean overrideExistingFilesInZip = true;

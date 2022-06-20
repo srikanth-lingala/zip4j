@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +41,6 @@ import static net.lingala.zip4j.progress.ProgressMonitor.Task.REMOVE_ENTRY;
 import static net.lingala.zip4j.util.CrcUtil.computeFileCrc;
 import static net.lingala.zip4j.util.FileUtils.assertFilesExist;
 import static net.lingala.zip4j.util.FileUtils.getRelativeFileName;
-import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 
 public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
 
@@ -200,25 +201,24 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws IOException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
-    clonedZipParameters.setLastModifiedFileTime(epochToExtendedDosTime((fileToAdd.lastModified())));
 
-    if (fileToAdd.isDirectory()) {
+    BasicFileAttributes fileAttributes = Files.readAttributes(fileToAdd.toPath(), BasicFileAttributes.class);
+    if (fileAttributes.isDirectory()) {
       clonedZipParameters.setEntrySize(0);
     } else {
-      clonedZipParameters.setEntrySize(fileToAdd.length());
+      clonedZipParameters.setEntrySize(fileAttributes.size());
     }
 
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
-    clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
 
     if (!Zip4jUtil.isStringNotNullAndNotEmpty(zipParameters.getFileNameInZip())) {
       String relativeFileName = getRelativeFileName(fileToAdd, zipParameters);
       clonedZipParameters.setFileNameInZip(relativeFileName);
     }
 
-    if (fileToAdd.isDirectory()) {
-      clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
-      clonedZipParameters.setEncryptionMethod(EncryptionMethod.NONE);
+    if (fileAttributes.isDirectory()) {
+      clonedZipParameters.setCompressionMethod(STORE);
+      clonedZipParameters.setEncryptionMethod(NONE);
       clonedZipParameters.setEncryptFiles(false);
     } else {
       if (clonedZipParameters.isEncryptFiles() && clonedZipParameters.getEncryptionMethod() == ZIP_STANDARD) {
@@ -227,8 +227,8 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 
-      if (fileToAdd.length() == 0) {
-        clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+      if (fileAttributes.size() == 0) {
+        clonedZipParameters.setCompressionMethod(STORE);
       }
     }
 
