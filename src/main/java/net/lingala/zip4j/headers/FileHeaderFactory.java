@@ -54,12 +54,7 @@ public class FileHeaderFactory {
     fileHeader.setFileName(fileName);
     fileHeader.setFileNameLength(determineFileNameLength(fileName, charset));
     fileHeader.setDiskNumberStart(isSplitZip ? currentDiskNumberStart : 0);
-
-    if (zipParameters.getLastModifiedFileTime() > 0) {
-      fileHeader.setLastModifiedTime(Zip4jUtil.epochToExtendedDosTime(zipParameters.getLastModifiedFileTime()));
-    } else {
-      fileHeader.setLastModifiedTime(Zip4jUtil.epochToExtendedDosTime(System.currentTimeMillis()));
-    }
+    fileHeader.setLastModifiedTime(Zip4jUtil.epochToExtendedDosTime(zipParameters.getLastModifiedFileTime()));
 
     boolean isDirectory = isZipEntryDirectory(fileName);
     fileHeader.setDirectory(isDirectory);

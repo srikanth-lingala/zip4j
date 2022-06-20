@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -198,15 +196,20 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
     headerWriter.updateLocalFileHeader(fileHeader, getZipModel(), splitOutputStream);
   }
 
+  // Suppressing warning to use BasicFileAttributes as this has trouble reading symlink's attributes
+  @SuppressWarnings("BulkFileAttributesRead")
   private ZipParameters cloneAndAdjustZipParameters(ZipParameters zipParameters, File fileToAdd,
                                                     ProgressMonitor progressMonitor) throws IOException {
     ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
 
-    BasicFileAttributes fileAttributes = Files.readAttributes(fileToAdd.toPath(), BasicFileAttributes.class);
-    if (fileAttributes.isDirectory()) {
+    if (fileToAdd.isDirectory()) {
       clonedZipParameters.setEntrySize(0);
     } else {
-      clonedZipParameters.setEntrySize(fileAttributes.size());
+      clonedZipParameters.setEntrySize(fileToAdd.length());
+    }
+
+    if (zipParameters.getLastModifiedFileTime() <= 0) {
+      clonedZipParameters.setLastModifiedFileTime(fileToAdd.lastModified());
     }
 
     clonedZipParameters.setWriteExtendedLocalFileHeader(false);
@@ -216,7 +219,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       clonedZipParameters.setFileNameInZip(relativeFileName);
     }
 
-    if (fileAttributes.isDirectory()) {
+    if (fileToAdd.isDirectory()) {
       clonedZipParameters.setCompressionMethod(STORE);
       clonedZipParameters.setEncryptionMethod(NONE);
       clonedZipParameters.setEncryptFiles(false);
@@ -227,7 +230,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
         progressMonitor.setCurrentTask(ADD_ENTRY);
       }
 
-      if (fileAttributes.size() == 0) {
+      if (fileToAdd.length() == 0) {
         clonedZipParameters.setCompressionMethod(STORE);
       }
     }

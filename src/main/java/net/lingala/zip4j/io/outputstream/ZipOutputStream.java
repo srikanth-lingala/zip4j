@@ -85,6 +85,10 @@ public class ZipOutputStream extends OutputStream {
       clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
       clonedZipParameters.setEncryptFiles(false);
       clonedZipParameters.setEntrySize(0);
+
+      if (zipParameters.getLastModifiedFileTime() <= 0) {
+        clonedZipParameters.setLastModifiedFileTime(System.currentTimeMillis());
+      }
     }
     initializeAndWriteFileHeader(clonedZipParameters);
 

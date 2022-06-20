@@ -760,7 +760,7 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
-  public void testAddStreamToWithStoreCompressionAndWithoutEncryption() throws IOException {
+  public void testAddStreamToZipWithStoreCompressionAndWithoutEncryption() throws IOException {
     File fileToAdd = TestUtils.getTestFileFromResources("бореиская.txt");
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
@@ -780,7 +780,7 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
-  public void testAddStreamToWithStoreCompressionAndZipStandardEncryption() throws IOException {
+  public void testAddStreamToZipWithStoreCompressionAndZipStandardEncryption() throws IOException {
     File fileToAdd = TestUtils.getTestFileFromResources("sample_text_large.txt");
     ZipParameters zipParameters = createZipParameters(EncryptionMethod.ZIP_STANDARD, null);
     zipParameters.setCompressionMethod(CompressionMethod.STORE);
