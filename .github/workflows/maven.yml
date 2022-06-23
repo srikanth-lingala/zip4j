@@ -32,4 +32,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
-        run: mvn -B clean verify --file pom.xml
+        run: mvn -B -Pskip-slow-tests clean verify --file pom.xml

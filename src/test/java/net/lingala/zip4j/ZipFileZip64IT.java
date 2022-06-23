@@ -8,7 +8,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.RandomAccessFileMode;
 import net.lingala.zip4j.testutils.HeaderVerifier;
 import net.lingala.zip4j.testutils.RandomInputStream;
-import net.lingala.zip4j.testutils.SlowTests;
+import net.lingala.zip4j.testutils.SlowTest;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.InternalZipConstants;
@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTests.class)
+@Category(SlowTest.class)
 public class ZipFileZip64IT extends AbstractIT {
 
   private byte[] readBuffer = new byte[2 * InternalZipConstants.BUFF_SIZE];
