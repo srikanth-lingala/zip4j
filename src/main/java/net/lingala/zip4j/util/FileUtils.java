@@ -110,10 +110,6 @@ public class FileUtils {
     }
 
     for (File file : filesAndDirs) {
-      if (!isFileRegularOrDirectoryOrSymlink(file)) {
-        continue;
-      }
-
       if (zipParameters.getExcludeFileFilter() != null && zipParameters.getExcludeFileFilter().isExcluded(file)) {
         continue;
       }
@@ -594,12 +590,5 @@ public class FileUtils {
     if (isBitSet(b, pos)) {
       posixFilePermissions.add(posixFilePermissionToAdd);
     }
-  }
-
-  private static boolean isFileRegularOrDirectoryOrSymlink(File file) {
-    byte[] fileAttributes = getFileAttributes(file);
-    return  BitUtils.isBitSet(fileAttributes[3], 5)
-            || BitUtils.isBitSet(fileAttributes[3], 6)
-            || BitUtils.isBitSet(fileAttributes[3], 7);
   }
 }
