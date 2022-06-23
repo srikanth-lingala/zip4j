@@ -23,6 +23,7 @@ jobs:
   test-on-windows:
     name: Run zip4j tests on Windows
     runs-on: windows-latest
+    if: ${{ false }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
