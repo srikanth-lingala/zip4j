@@ -336,7 +336,7 @@ Map<String, String> fileNamesMap = new HashMap<>();
 fileNamesMap.put("firstFile.txt", "newFileFirst.txt");
 fileNamesMap.put("secondFile.pdf", "newSecondFile.pdf");
 fileNamesMap.put("some-folder/thirdFile.bin", "some-folder/newThirdFile.bin");
-new ZipFile("filename.zip").renameFile("entry-to-be-changed.pdf", "new-file-name.pdf");
+new ZipFile("filename.zip").renameFiles(fileNamesMap);
 ```
 
 To modify an entry name which is inside a folder, the new file name should contain the complete parent path as well.
