@@ -2,11 +2,11 @@ package net.lingala.zip4j.testutils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class RandomInputStream extends InputStream {
 
-  private static final Random RANDOM = new Random();
+  private static final SecureRandom RANDOM = new SecureRandom();
 
   private long remaining;
   private boolean streamClosed;

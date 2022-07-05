@@ -27,7 +27,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -152,7 +152,7 @@ public class ZipInputStreamIT extends AbstractIT {
 
   @Test
   public void testExtractWithRandomLengthWithAesAndDeflateCompression() throws IOException {
-    Random random = new Random();
+    SecureRandom random = new SecureRandom();
     File createZipFile = createZipFile(CompressionMethod.DEFLATE, true, EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256, PASSWORD);
     LocalFileHeader localFileHeader;
     int readLen;
