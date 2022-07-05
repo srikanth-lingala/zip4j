@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 
 abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
 
@@ -24,7 +24,7 @@ abstract class AbstractModifyFileTask<T> extends AsyncZipTask<T> {
   }
 
   File getTemporaryFile(String zipPathWithName) {
-    Random random = new Random();
+    SecureRandom random = new SecureRandom();
     File tmpFile = new File(zipPathWithName + random.nextInt(10000));
 
     while (tmpFile.exists()) {
