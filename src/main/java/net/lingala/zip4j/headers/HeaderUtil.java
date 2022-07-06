@@ -103,26 +103,10 @@ public class HeaderUtil {
           + fileName);
     }
 
-    if (zipModel.getCentralDirectory().getFileHeaders() == null) {
-      throw new ZipException("file Headers are null, cannot determine file header with exact match for fileName: "
-          + fileName);
-    }
-
-    if (zipModel.getCentralDirectory().getFileHeaders().size() == 0) {
+    if (zipModel.getCentralDirectory().getFileNameHeaderMap().isEmpty()) {
       return null;
     }
 
-    for (FileHeader fileHeader : zipModel.getCentralDirectory().getFileHeaders()) {
-      String fileNameForHdr = fileHeader.getFileName();
-      if (!isStringNotNullAndNotEmpty(fileNameForHdr)) {
-        continue;
-      }
-
-      if (fileName.equals(fileNameForHdr)) {
-        return fileHeader;
-      }
-    }
-
-    return null;
+    return zipModel.getCentralDirectory().getFileNameHeaderMap().get(fileName);
   }
 }

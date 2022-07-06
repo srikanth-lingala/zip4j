@@ -57,7 +57,7 @@ public class RemoveFilesFromZipTask extends AbstractModifyFileTask<RemoveFilesFr
         if (shouldEntryBeRemoved(fileHeader, entriesToRemove)) {
           updateHeaders(sortedFileHeaders, fileHeader, lengthOfCurrentEntry);
 
-          if (!zipModel.getCentralDirectory().getFileHeaders().remove(fileHeader)) {
+          if (!zipModel.getCentralDirectory().remove(fileHeader)) {
             throw new ZipException("Could not remove entry from list of central directory headers");
           }
 
