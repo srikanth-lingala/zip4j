@@ -36,7 +36,7 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
   protected AESDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password,
                                              boolean useUtf8ForPassword) throws IOException {
     return new AESDecrypter(localFileHeader.getAesExtraDataRecord(), password, getSalt(localFileHeader),
-            getPasswordVerifier(), useUtf8ForPassword);
+            getPasswordVerifier());
   }
 
   @Override
