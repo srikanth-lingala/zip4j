@@ -201,11 +201,11 @@ public class ZipOutputStream extends OutputStream {
 
   private CompressedOutputStream initializeCompressedOutputStream(ZipParameters zipParameters) throws IOException {
     ZipEntryOutputStream zipEntryOutputStream = new ZipEntryOutputStream(countingOutputStream);
-    CipherOutputStream cipherOutputStream = initializeCipherOutputStream(zipEntryOutputStream, zipParameters);
+    CipherOutputStream<?> cipherOutputStream = initializeCipherOutputStream(zipEntryOutputStream, zipParameters);
     return initializeCompressedOutputStream(cipherOutputStream, zipParameters);
   }
 
-  private CipherOutputStream initializeCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream,
+  private CipherOutputStream<?> initializeCipherOutputStream(ZipEntryOutputStream zipEntryOutputStream,
                                                           ZipParameters zipParameters) throws IOException {
     if (!zipParameters.isEncryptFiles()) {
       return new NoCipherOutputStream(zipEntryOutputStream, zipParameters, null);
@@ -226,7 +226,7 @@ public class ZipOutputStream extends OutputStream {
     }
   }
 
-  private CompressedOutputStream initializeCompressedOutputStream(CipherOutputStream cipherOutputStream,
+  private CompressedOutputStream initializeCompressedOutputStream(CipherOutputStream<?> cipherOutputStream,
                                                                   ZipParameters zipParameters) {
     if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
       return new DeflaterOutputStream(cipherOutputStream, zipParameters.getCompressionLevel(), zip4jConfig.getBufferSize());

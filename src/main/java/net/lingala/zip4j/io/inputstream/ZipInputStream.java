@@ -244,11 +244,11 @@ public class ZipInputStream extends InputStream {
 
   private DecompressedInputStream initializeEntryInputStream(LocalFileHeader localFileHeader) throws IOException {
     ZipEntryInputStream zipEntryInputStream = new ZipEntryInputStream(inputStream, getCompressedSize(localFileHeader));
-    CipherInputStream cipherInputStream = initializeCipherInputStream(zipEntryInputStream, localFileHeader);
+    CipherInputStream<?> cipherInputStream = initializeCipherInputStream(zipEntryInputStream, localFileHeader);
     return initializeDecompressorForThisEntry(cipherInputStream, localFileHeader);
   }
 
-  private CipherInputStream initializeCipherInputStream(ZipEntryInputStream zipEntryInputStream,
+  private CipherInputStream<?> initializeCipherInputStream(ZipEntryInputStream zipEntryInputStream,
                                                         LocalFileHeader localFileHeader) throws IOException {
     if (!localFileHeader.isEncrypted()) {
       return new NoCipherInputStream(zipEntryInputStream, localFileHeader, password, zip4jConfig.getBufferSize());
@@ -266,7 +266,7 @@ public class ZipInputStream extends InputStream {
     }
   }
 
-  private DecompressedInputStream initializeDecompressorForThisEntry(CipherInputStream cipherInputStream,
+  private DecompressedInputStream initializeDecompressorForThisEntry(CipherInputStream<?> cipherInputStream,
                                                                      LocalFileHeader localFileHeader) throws ZipException {
     CompressionMethod compressionMethod = getCompressionMethod(localFileHeader);
 
