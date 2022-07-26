@@ -469,11 +469,11 @@ public class FileUtils {
 
     DosFileAttributeView fileAttributeView = Files.getFileAttributeView(file, DosFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
 
-    //IntelliJ complains that fileAttributes can never be null. But apparently it can.
+    //IntelliJ complains that fileAttributeView can never be null. But apparently it can.
     //See https://github.com/srikanth-lingala/zip4j/issues/435
     //Even the javadoc of Files.getFileAttributeView says it can be null
     //noinspection ConstantConditions
-    if (fileAttributes == null) {
+    if (fileAttributeView == null) {
       return;
     }
 
