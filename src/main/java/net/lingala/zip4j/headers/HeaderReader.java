@@ -697,16 +697,20 @@ public class HeaderReader {
   }
 
   private long locateOffsetOfEndOfCentralDirectoryByReverseSeek(RandomAccessFile randomAccessFile) throws IOException {
-    long currentFilePointer = randomAccessFile.length() - ENDHDR;
-    // reverse seek for a maximum of MAX_COMMENT_SIZE bytes
-    long numberOfBytesToRead = randomAccessFile.length() < MAX_COMMENT_SIZE ? randomAccessFile.length() : MAX_COMMENT_SIZE;
+    long currentFilePointer = randomAccessFile.length() - ENDHDR - 1;
 
-    while (numberOfBytesToRead > 0 && currentFilePointer > 0){
-      seekInCurrentPart(randomAccessFile, --currentFilePointer);
-      if (rawIO.readIntLittleEndian(randomAccessFile) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
+    // reverse seek for a maximum of MAX_COMMENT_SIZE bytes
+    int numberOfBytesToRead = randomAccessFile.length() < MAX_COMMENT_SIZE + ENDHDR ? (int) randomAccessFile.length() : MAX_COMMENT_SIZE + ENDHDR;
+
+    byte[] endOfCentralDirectoryScanRegion = new byte[numberOfBytesToRead];
+
+    seekInCurrentPart(randomAccessFile, randomAccessFile.length() - numberOfBytesToRead);
+    randomAccessFile.readFully(endOfCentralDirectoryScanRegion);
+
+    for (int i = numberOfBytesToRead - ENDHDR - 1; i >= 0 && currentFilePointer >= 0; i--, currentFilePointer--){
+      if (rawIO.readIntLittleEndian(endOfCentralDirectoryScanRegion, i) == HeaderSignature.END_OF_CENTRAL_DIRECTORY.getValue()) {
         return currentFilePointer;
       }
-      numberOfBytesToRead--;
     };
 
     throw new ZipException("Zip headers not found. Probably not a zip file");
