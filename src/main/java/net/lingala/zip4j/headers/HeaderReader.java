@@ -109,22 +109,24 @@ public class HeaderReader {
                                                                       Zip4jConfig zip4jConfig) throws IOException {
 
     long offsetEndOfCentralDirectory = locateOffsetOfEndOfCentralDirectory(zip4jRaf);
-    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectory + 4);
+    seekInCurrentPart(zip4jRaf, offsetEndOfCentralDirectory);
 
     EndOfCentralDirectoryRecord endOfCentralDirectoryRecord = new EndOfCentralDirectoryRecord();
+    byte[] eocdrBuff = new byte[0x16];
+    zip4jRaf.readFully(eocdrBuff);
     endOfCentralDirectoryRecord.setSignature(HeaderSignature.END_OF_CENTRAL_DIRECTORY);
-    endOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readShortLittleEndian(zip4jRaf));
-    endOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDir(rawIO.readShortLittleEndian(zip4jRaf));
+    endOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readShortLittleEndian(eocdrBuff, 0x04));
+    endOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDir(rawIO.readShortLittleEndian(eocdrBuff, 0x06));
     endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
-        rawIO.readShortLittleEndian(zip4jRaf));
-    endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(zip4jRaf));
-    endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+        rawIO.readShortLittleEndian(eocdrBuff, 0x08));
+    endOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readShortLittleEndian(eocdrBuff, 0x0a));
+    endOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readIntLittleEndian(eocdrBuff, 0x0c));
     endOfCentralDirectoryRecord.setOffsetOfEndOfCentralDirectory(offsetEndOfCentralDirectory);
 
-    zip4jRaf.readFully(intBuff);
+    System.arraycopy(eocdrBuff, 0x10, intBuff, 0, 4);
     endOfCentralDirectoryRecord.setOffsetOfStartOfCentralDirectory(rawIO.readLongLittleEndian(intBuff, 0));
 
-    int commentLength = rawIO.readShortLittleEndian(zip4jRaf);
+    int commentLength = rawIO.readShortLittleEndian(eocdrBuff, 0x14);
     endOfCentralDirectoryRecord.setComment(readZipComment(zip4jRaf, commentLength, zip4jConfig.getCharset()));
 
     zipModel.setSplitArchive(endOfCentralDirectoryRecord.getNumberOfThisDisk() > 0);
@@ -142,50 +144,54 @@ public class HeaderReader {
 
     byte[] shortBuff = new byte[2];
     byte[] intBuff = new byte[4];
+    byte[] headerBuff = new byte[0x2e];
 
     for (int i = 0; i < centralDirEntryCount; i++) {
       FileHeader fileHeader = new FileHeader();
-      if (rawIO.readIntLittleEndian(zip4jRaf) != HeaderSignature.CENTRAL_DIRECTORY.getValue()) {
+      zip4jRaf.readFully(headerBuff);
+      if (rawIO.readIntLittleEndian(headerBuff, 0x00) != HeaderSignature.CENTRAL_DIRECTORY.getValue()) {
         throw new ZipException("Expected central directory entry not found (#" + (i + 1) + ")");
       }
       fileHeader.setSignature(HeaderSignature.CENTRAL_DIRECTORY);
-      fileHeader.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
-      fileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
+      fileHeader.setVersionMadeBy(rawIO.readShortLittleEndian(headerBuff, 0x04));
+      fileHeader.setVersionNeededToExtract(rawIO.readShortLittleEndian(headerBuff, 0x06));
 
       byte[] generalPurposeFlags = new byte[2];
-      zip4jRaf.readFully(generalPurposeFlags);
+      System.arraycopy(headerBuff, 0x08, generalPurposeFlags, 0, 2);
       fileHeader.setEncrypted(isBitSet(generalPurposeFlags[0], 0));
       fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
       fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
       fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
 
       fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
-          zip4jRaf)));
-      fileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(zip4jRaf));
+        headerBuff, 0x0a)));
+      fileHeader.setLastModifiedTime(rawIO.readIntLittleEndian(headerBuff, 0x0c));
 
-      zip4jRaf.readFully(intBuff);
+      System.arraycopy(headerBuff, 0x10, intBuff, 0, 4);
       fileHeader.setCrc(rawIO.readLongLittleEndian(intBuff, 0));
 
-      fileHeader.setCompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
-      fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(zip4jRaf, 4));
+      System.arraycopy(headerBuff, 0x14, intBuff, 0, 4);
+      fileHeader.setCompressedSize(rawIO.readLongLittleEndian(intBuff, 0));
+      System.arraycopy(headerBuff, 0x18, intBuff, 0, 4);
+      fileHeader.setUncompressedSize(rawIO.readLongLittleEndian(intBuff, 0));
 
-      int fileNameLength = rawIO.readShortLittleEndian(zip4jRaf);
+      int fileNameLength = rawIO.readShortLittleEndian(headerBuff, 0x1c);
       fileHeader.setFileNameLength(fileNameLength);
 
-      fileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(zip4jRaf));
+      fileHeader.setExtraFieldLength(rawIO.readShortLittleEndian(headerBuff, 0x1e));
 
-      int fileCommentLength = rawIO.readShortLittleEndian(zip4jRaf);
+      int fileCommentLength = rawIO.readShortLittleEndian(headerBuff, 0x20);
       fileHeader.setFileCommentLength(fileCommentLength);
 
-      fileHeader.setDiskNumberStart(rawIO.readShortLittleEndian(zip4jRaf));
+      fileHeader.setDiskNumberStart(rawIO.readShortLittleEndian(headerBuff, 0x22));
 
-      zip4jRaf.readFully(shortBuff);
+      System.arraycopy(headerBuff, 0x24, shortBuff, 0, 2);
       fileHeader.setInternalFileAttributes(shortBuff.clone());
 
-      zip4jRaf.readFully(intBuff);
+      System.arraycopy(headerBuff, 0x26, intBuff, 0, 4);
       fileHeader.setExternalFileAttributes(intBuff.clone());
 
-      zip4jRaf.readFully(intBuff);
+      System.arraycopy(headerBuff, 0x2a, intBuff, 0, 4);
       fileHeader.setOffsetLocalHeader(rawIO.readLongLittleEndian(intBuff, 0));
 
       if (fileNameLength > 0) {
@@ -367,26 +373,29 @@ public class HeaderReader {
     zip4jRaf.seek(offSetStartOfZip64CentralDir);
 
     Zip64EndOfCentralDirectoryRecord zip64EndOfCentralDirectoryRecord = new Zip64EndOfCentralDirectoryRecord();
+    byte[] eocdrBuff = new byte[0x38];
 
-    int signature = rawIO.readIntLittleEndian(zip4jRaf);
+    zip4jRaf.readFully(eocdrBuff);
+    int signature = rawIO.readIntLittleEndian(eocdrBuff, 0x00);
     if (signature != HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD.getValue()) {
       throw new ZipException("invalid signature for zip64 end of central directory record");
     }
     zip64EndOfCentralDirectoryRecord.setSignature(HeaderSignature.ZIP64_END_CENTRAL_DIRECTORY_RECORD);
-    zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirectoryRecord(rawIO.readLongLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setVersionMadeBy(rawIO.readShortLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setVersionNeededToExtract(rawIO.readShortLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readIntLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(rawIO.readIntLittleEndian(zip4jRaf));
+    zip64EndOfCentralDirectoryRecord.setSizeOfZip64EndCentralDirectoryRecord(rawIO.readLongLittleEndian(eocdrBuff, 0x04));
+    zip64EndOfCentralDirectoryRecord.setVersionMadeBy(rawIO.readShortLittleEndian(eocdrBuff, 0x0c));
+    zip64EndOfCentralDirectoryRecord.setVersionNeededToExtract(rawIO.readShortLittleEndian(eocdrBuff, 0x0e));
+    zip64EndOfCentralDirectoryRecord.setNumberOfThisDisk(rawIO.readIntLittleEndian(eocdrBuff, 0x10));
+    zip64EndOfCentralDirectoryRecord.setNumberOfThisDiskStartOfCentralDirectory(rawIO.readIntLittleEndian(eocdrBuff, 0x14));
     zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectoryOnThisDisk(
-        rawIO.readLongLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
-    zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readLongLittleEndian(zip4jRaf));
+        rawIO.readLongLittleEndian(eocdrBuff, 0x18));
+    zip64EndOfCentralDirectoryRecord.setTotalNumberOfEntriesInCentralDirectory(rawIO.readLongLittleEndian(eocdrBuff, 0x20));
+    zip64EndOfCentralDirectoryRecord.setSizeOfCentralDirectory(rawIO.readLongLittleEndian(eocdrBuff, 0x28));
     zip64EndOfCentralDirectoryRecord.setOffsetStartCentralDirectoryWRTStartDiskNumber(
-        rawIO.readLongLittleEndian(zip4jRaf));
+        rawIO.readLongLittleEndian(eocdrBuff, 0x30));
 
     //zip64 extensible data sector
-    //44 is the size of fixed variables in this record
+    //56 is the size of fixed fields in this record
+    //central directory record size = FixedFieldsSize + VariableDataSize - 12 leading bytes
     long extDataSecSize = zip64EndOfCentralDirectoryRecord.getSizeOfZip64EndCentralDirectoryRecord() - 44;
     if (extDataSecSize > 0) {
       byte[] extDataSecRecBuf = new byte[(int) extDataSecSize];
