@@ -222,7 +222,7 @@ public class FileUtils {
           String rootPath = new File(fileToAdd.getParentFile().getCanonicalFile().getPath() + File.separator + fileToAdd.getCanonicalFile().getName()).getPath();
           tmpFileName = rootPath.substring(rootFolderFileRef.length());
         } else {
-          if (!fileCanonicalPath.startsWith(rootFolderFileRef)) {
+          if (!fileToAdd.getCanonicalFile().toPath().startsWith(rootFolderFileRef)) {
             tmpFileName = fileToAdd.getCanonicalFile().getParentFile().getName() + FILE_SEPARATOR + fileToAdd.getCanonicalFile().getName();
           } else {
             tmpFileName = fileCanonicalPath.substring(rootFolderFileRef.length());
