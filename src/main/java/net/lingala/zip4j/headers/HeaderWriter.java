@@ -221,7 +221,7 @@ public class HeaderWriter {
     }
 
     try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-      long offsetCentralDir = zipModel.getEndOfCentralDirectoryRecord().getOffsetOfStartOfCentralDirectory();
+      long offsetCentralDir = getOffsetOfCentralDirectory(zipModel);
       writeCentralDirectory(zipModel, byteArrayOutputStream, rawIO, charset);
       int sizeOfCentralDir = byteArrayOutputStream.size();
 
