@@ -77,8 +77,12 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       outputFileCanonicalPath = outputFileCanonicalPath + FILE_SEPARATOR;
     }
 
+    String outputCanonicalPath = (new File(outputPath).getCanonicalPath());
+    if (!outputCanonicalPath.endsWith(FILE_SEPARATOR)) {
+      outputCanonicalPath += FILE_SEPARATOR;
+    }
+
     // make sure no file is extracted outside the target directory (a.k.a. zip slip)
-    String outputCanonicalPath = (new File(outputPath).getCanonicalPath()) + File.separator;
     if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
       throw new ZipException("illegal file name that breaks out of the target directory: "
           + fileHeader.getFileName());
