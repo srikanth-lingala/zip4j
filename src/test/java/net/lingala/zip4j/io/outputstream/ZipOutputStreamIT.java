@@ -3,7 +3,9 @@ package net.lingala.zip4j.io.outputstream;
 import net.lingala.zip4j.AbstractIT;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -18,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -285,6 +288,25 @@ public class ZipOutputStreamIT extends AbstractIT {
         assertThat(ex).isInstanceOf(IllegalArgumentException.class);
         assertThat(ex).hasMessageContaining("fileNameInZip is null or empty");
       }
+    }
+  }
+
+  @Test
+  public void testLastModifiedTimeIsSetWhenItIsNotExplicitlySet() throws IOException {
+    long currentTime = System.currentTimeMillis();
+    ByteArrayOutputStream zip = new ByteArrayOutputStream();
+
+    try (ZipOutputStream zos = new ZipOutputStream(zip)) {
+      ZipParameters params = new ZipParameters();
+      params.setFileNameInZip("test");
+      zos.putNextEntry(params);
+      zos.closeEntry();
+    }
+
+    try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zip.toByteArray()))) {
+      LocalFileHeader fileHeader = zis.getNextEntry();
+      long zipTime = fileHeader.getLastModifiedTimeEpoch();
+      assertThat(currentTime).isLessThan(zipTime + 2000);
     }
   }
 

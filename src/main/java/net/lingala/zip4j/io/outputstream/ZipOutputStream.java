@@ -78,18 +78,7 @@ public class ZipOutputStream extends OutputStream {
 
   public void putNextEntry(ZipParameters zipParameters) throws IOException {
     verifyZipParameters(zipParameters);
-
-    ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
-    if (isZipEntryDirectory(zipParameters.getFileNameInZip())) {
-      clonedZipParameters.setWriteExtendedLocalFileHeader(false);
-      clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
-      clonedZipParameters.setEncryptFiles(false);
-      clonedZipParameters.setEntrySize(0);
-
-      if (zipParameters.getLastModifiedFileTime() <= 0) {
-        clonedZipParameters.setLastModifiedFileTime(System.currentTimeMillis());
-      }
-    }
+    ZipParameters clonedZipParameters = cloneAndPrepareZipParameters(zipParameters);
     initializeAndWriteFileHeader(clonedZipParameters);
 
     //Initialisation of below compressedOutputStream should happen after writing local file header
@@ -256,5 +245,22 @@ public class ZipOutputStream extends OutputStream {
     }
 
     return fileHeader.getAesExtraDataRecord().getAesVersion().equals(AesVersion.ONE);
+  }
+
+  private ZipParameters cloneAndPrepareZipParameters(ZipParameters zipParameters) {
+    ZipParameters clonedZipParameters = new ZipParameters(zipParameters);
+
+    if (isZipEntryDirectory(zipParameters.getFileNameInZip())) {
+      clonedZipParameters.setWriteExtendedLocalFileHeader(false);
+      clonedZipParameters.setCompressionMethod(CompressionMethod.STORE);
+      clonedZipParameters.setEncryptFiles(false);
+      clonedZipParameters.setEntrySize(0);
+    }
+
+    if (zipParameters.getLastModifiedFileTime() <= 0) {
+      clonedZipParameters.setLastModifiedFileTime(System.currentTimeMillis());
+    }
+
+    return clonedZipParameters;
   }
 }
