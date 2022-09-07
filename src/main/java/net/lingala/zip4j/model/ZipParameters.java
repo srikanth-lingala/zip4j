@@ -299,7 +299,8 @@ public void setEncryptFiles(boolean encryptFiles) {
    * @param lastModifiedFileTime the last modified time in milliseconds since the epoch
    */
   public void setLastModifiedFileTime(long lastModifiedFileTime) {
-    if (lastModifiedFileTime <= 0) {
+    if (lastModifiedFileTime < 0) {
+      this.lastModifiedFileTime = 0;
       return;
     }
 
