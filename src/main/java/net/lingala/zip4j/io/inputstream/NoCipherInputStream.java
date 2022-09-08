@@ -5,7 +5,7 @@ import net.lingala.zip4j.model.LocalFileHeader;
 
 import java.io.IOException;
 
-class NoCipherInputStream extends CipherInputStream {
+class NoCipherInputStream extends CipherInputStream<NoCipherInputStream.NoDecrypter> {
 
   public NoCipherInputStream(ZipEntryInputStream zipEntryInputStream, LocalFileHeader localFileHeader,
                              char[] password, int bufferSize) throws IOException {
@@ -13,7 +13,7 @@ class NoCipherInputStream extends CipherInputStream {
   }
 
   @Override
-  protected Decrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password, boolean useUtf8ForPassword) {
+  protected NoDecrypter initializeDecrypter(LocalFileHeader localFileHeader, char[] password, boolean useUtf8ForPassword) {
     return new NoDecrypter();
   }
 

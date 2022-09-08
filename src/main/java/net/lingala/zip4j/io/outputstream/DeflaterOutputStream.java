@@ -26,7 +26,7 @@ class DeflaterOutputStream extends CompressedOutputStream {
   private byte[] buff;
   protected Deflater deflater;
 
-  public DeflaterOutputStream(CipherOutputStream cipherOutputStream, CompressionLevel compressionLevel, int bufferSize) {
+  public DeflaterOutputStream(CipherOutputStream<?> cipherOutputStream, CompressionLevel compressionLevel, int bufferSize) {
     super(cipherOutputStream);
     deflater = new Deflater(compressionLevel.getLevel(), true);
     buff = new byte[bufferSize];
