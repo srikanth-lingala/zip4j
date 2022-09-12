@@ -127,7 +127,7 @@ public class HeaderWriter {
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (int) aesExtraDataRecord.getSignature().getValue());
         rawIO.writeShortLittleEndian(byteArrayOutputStream, aesExtraDataRecord.getDataSize());
         rawIO.writeShortLittleEndian(byteArrayOutputStream, aesExtraDataRecord.getAesVersion().getVersionNumber());
-        byteArrayOutputStream.write(aesExtraDataRecord.getVendorID().getBytes());
+        byteArrayOutputStream.write(getBytesFromString(aesExtraDataRecord.getVendorID(), charset));
 
         byte[] aesStrengthBytes = new byte[1];
         aesStrengthBytes[0] = (byte) aesExtraDataRecord.getAesKeyStrength().getRawCode();
@@ -496,7 +496,7 @@ public class HeaderWriter {
         rawIO.writeShortLittleEndian(byteArrayOutputStream, (int) aesExtraDataRecord.getSignature().getValue());
         rawIO.writeShortLittleEndian(byteArrayOutputStream, aesExtraDataRecord.getDataSize());
         rawIO.writeShortLittleEndian(byteArrayOutputStream, aesExtraDataRecord.getAesVersion().getVersionNumber());
-        byteArrayOutputStream.write(aesExtraDataRecord.getVendorID().getBytes());
+        byteArrayOutputStream.write(getBytesFromString(aesExtraDataRecord.getVendorID(), charset));
 
         byte[] aesStrengthBytes = new byte[1];
         aesStrengthBytes[0] = (byte) aesExtraDataRecord.getAesKeyStrength().getRawCode();
