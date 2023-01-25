@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -310,6 +312,28 @@ public class ZipOutputStreamIT extends AbstractIT {
     }
   }
 
+  @Test
+  public void testZipInputStreamWithDeflateAndAesEncryption() throws IOException {
+    byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+    int readLen;
+    File fileToAdd = getTestFileFromResources("file_PDF_1MB.pdf");
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedZipFile.toPath()), PASSWORD)) {
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zipParameters.setEncryptFiles(true);
+      zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+      zipOutputStream.putNextEntry(zipParameters);
+      try (InputStream inputStream = Files.newInputStream(fileToAdd.toPath())) {
+        while ((readLen = inputStream.read(buffer)) != -1) {
+          zipOutputStream.write(buffer, 0, readLen);
+        }
+      }
+    }
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true);
+    extractZipFileWithInputStream(generatedZipFile);
+  }
+
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,
                                    EncryptionMethod encryptionMethod, AesKeyStrength aesKeyStrength,
                                    AesVersion aesVersion)
@@ -512,5 +536,20 @@ public class ZipOutputStreamIT extends AbstractIT {
     zipParameters.setFileNameInZip(fileName);
     zipOutputStream.putNextEntry(zipParameters);
     zipOutputStream.closeEntry();
+  }
+
+  private void extractZipFileWithInputStream(File zipFile) throws IOException {
+    byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+    int readLen;
+    LocalFileHeader lfh;
+    try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile.toPath()), PASSWORD)) {
+      while ((lfh = zipInputStream.getNextEntry()) != null) {
+        while ((readLen = zipInputStream.read(buffer)) != -1) {
+          try (OutputStream outputStream = Files.newOutputStream(Paths.get(outputFolder.getPath(), lfh.getFileName()))) {
+            outputStream.write(buffer, 0, readLen);
+          }
+        }
+      }
+    }
   }
 }

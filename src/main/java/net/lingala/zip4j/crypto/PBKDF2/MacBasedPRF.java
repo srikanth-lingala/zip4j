@@ -16,10 +16,15 @@
 
 package net.lingala.zip4j.crypto.PBKDF2;
 
+import net.lingala.zip4j.util.InternalZipConstants;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+
+import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
 
 /*
  * Source referred from Matthias Gartner's PKCS#5 implementation -
@@ -30,9 +35,11 @@ public class MacBasedPRF implements PRF {
   private Mac mac;
   private int hLen;
   private String macAlgorithm;
+  private ByteArrayOutputStream macCache;
 
   public MacBasedPRF(String macAlgorithm) {
     this.macAlgorithm = macAlgorithm;
+    this.macCache = new ByteArrayOutputStream(InternalZipConstants.BUFF_SIZE);
     try {
       mac = Mac.getInstance(macAlgorithm);
       hLen = mac.getMacLength();
@@ -42,10 +49,20 @@ public class MacBasedPRF implements PRF {
   }
 
   public byte[] doFinal(byte[] M) {
+    if (macCache.size() > 0) {
+      doMacUpdate(0);
+    }
     return mac.doFinal(M);
   }
 
   public byte[] doFinal() {
+    return doFinal(0);
+  }
+
+  public byte[] doFinal(int numberOfBytesToPushbackForMac) {
+    if (macCache.size() > 0) {
+      doMacUpdate(numberOfBytesToPushbackForMac);
+    }
     return mac.doFinal();
   }
 
@@ -61,19 +78,29 @@ public class MacBasedPRF implements PRF {
     }
   }
 
-  public void update(byte[] U) {
+  public void update(byte[] u) {
+    update(u, 0, u.length);
+  }
+
+  public void update(byte[] u, int start, int len) {
     try {
-      mac.update(U);
+      if (macCache.size() + len > InternalZipConstants.BUFF_SIZE) {
+        doMacUpdate(0);
+      }
+      macCache.write(u, start, len);
     } catch (IllegalStateException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void update(byte[] U, int start, int len) {
-    try {
-      mac.update(U, start, len);
-    } catch (IllegalStateException e) {
-      throw new RuntimeException(e);
+  private void doMacUpdate(int numberOfBytesToPushBack) {
+    byte[] macBytes = macCache.toByteArray();
+    int numberOfBytesToRead = macBytes.length - numberOfBytesToPushBack;
+    int updateLength;
+    for (int i = 0; i < numberOfBytesToRead; i += InternalZipConstants.AES_BLOCK_SIZE) {
+      updateLength = (i + AES_BLOCK_SIZE) <= numberOfBytesToRead ? AES_BLOCK_SIZE : numberOfBytesToRead - i;
+      mac.update(macBytes, i, updateLength);
     }
+    macCache.reset();
   }
 }

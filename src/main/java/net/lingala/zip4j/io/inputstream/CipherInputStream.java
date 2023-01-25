@@ -80,7 +80,7 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     return decrypter;
   }
 
-  protected void endOfEntryReached(InputStream inputStream) throws IOException {
+  protected void endOfEntryReached(InputStream inputStream, int numberOfBytesPushedBack) throws IOException {
     // is optional but useful for AES
   }
 

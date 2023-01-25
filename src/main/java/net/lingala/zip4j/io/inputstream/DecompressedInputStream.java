@@ -39,12 +39,13 @@ abstract class DecompressedInputStream extends InputStream {
     cipherInputStream.close();
   }
 
-  public void endOfEntryReached(InputStream inputStream) throws IOException {
-    cipherInputStream.endOfEntryReached(inputStream);
+  public void endOfEntryReached(InputStream inputStream, int numberOfBytesPushedBack) throws IOException {
+    cipherInputStream.endOfEntryReached(inputStream, numberOfBytesPushedBack);
   }
 
-  public void pushBackInputStreamIfNecessary(PushbackInputStream pushbackInputStream) throws IOException {
+  public int pushBackInputStreamIfNecessary(PushbackInputStream pushbackInputStream) throws IOException {
     // Do nothing by default
+    return 0;
   }
 
   protected byte[] getLastReadRawDataCache() {

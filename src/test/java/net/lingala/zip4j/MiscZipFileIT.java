@@ -673,6 +673,16 @@ public class MiscZipFileIT extends AbstractIT {
     verifyLastModifiedFileTime(zipFile, fileToTestWith, expectedLastModifiedTimeInMillis);
   }
 
+  @Test
+  public void testExtractFileWithExtraDataRecordAndCorruptMac() throws ZipException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("aes_with_extra_data_record_and_corrupt_mac.zip"), PASSWORD);
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("java.io.IOException: Reached end of data for this entry, but aes verification failed");
+
+    zipFile.extractAll(outputFolder.getPath());
+  }
+
   private void testAddAndExtractWithPasswordUtf8Encoding(boolean useUtf8ForPassword) throws IOException {
     char[] password = "hun 焰".toCharArray();
     ZipFile zipFile = new ZipFile(generatedZipFile, password);

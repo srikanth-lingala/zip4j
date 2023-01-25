@@ -55,21 +55,22 @@ public class InflaterInputStream extends DecompressedInputStream {
   }
 
   @Override
-  public void endOfEntryReached(InputStream inputStream) throws IOException {
+  public void endOfEntryReached(InputStream inputStream, int numberOfBytesPushedBack) throws IOException {
     if (inflater != null) {
       inflater.end();
       inflater = null;
     }
-    super.endOfEntryReached(inputStream);
+    super.endOfEntryReached(inputStream, numberOfBytesPushedBack);
   }
 
   @Override
-  public void pushBackInputStreamIfNecessary(PushbackInputStream pushbackInputStream) throws IOException {
+  public int pushBackInputStreamIfNecessary(PushbackInputStream pushbackInputStream) throws IOException {
     int n = inflater.getRemaining();
     if (n > 0) {
       byte[] rawDataCache = getLastReadRawDataCache();
       pushbackInputStream.unread(rawDataCache, len - n, n);
     }
+    return n;
   }
 
   @Override

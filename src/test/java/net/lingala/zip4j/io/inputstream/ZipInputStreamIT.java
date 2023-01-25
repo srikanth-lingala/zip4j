@@ -24,10 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.security.SecureRandom;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -349,6 +349,15 @@ public class ZipInputStreamIT extends AbstractIT {
       }
       assertThat(numberOfEntries).isEqualTo(345);
     }
+  }
+
+  @Test
+  public void testExtractZipFileWithExtraDataRecordAndCorruptAesMacFails() throws IOException {
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("Reached end of data for this entry, but aes verification failed");
+
+    extractZipFileWithInputStreams(TestUtils.getTestArchiveFromResources("aes_with_extra_data_record_and_corrupt_mac.zip"),
+            PASSWORD, InternalZipConstants.BUFF_SIZE, false, 1);
   }
 
   private void extractZipFileWithInputStreams(File zipFile, char[] password) throws IOException {

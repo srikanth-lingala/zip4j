@@ -86,7 +86,7 @@ public class AESDecrypter implements Decrypter {
     return len;
   }
 
-  public byte[] getCalculatedAuthenticationBytes() {
-    return mac.doFinal();
+  public byte[] getCalculatedAuthenticationBytes(int numberOfBytesPushedBack) {
+    return mac.doFinal(numberOfBytesPushedBack);
   }
 }

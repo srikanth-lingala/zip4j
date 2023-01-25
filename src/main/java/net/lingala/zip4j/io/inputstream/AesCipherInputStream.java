@@ -117,12 +117,12 @@ class AesCipherInputStream extends CipherInputStream<AESDecrypter> {
   }
 
   @Override
-  protected void endOfEntryReached(InputStream inputStream) throws IOException {
-    verifyContent(readStoredMac(inputStream));
+  protected void endOfEntryReached(InputStream inputStream, int numberOfBytesPushedBack) throws IOException {
+    verifyContent(readStoredMac(inputStream), numberOfBytesPushedBack);
   }
 
-  private void verifyContent(byte[] storedMac) throws IOException {
-    byte[] calculatedMac = getDecrypter().getCalculatedAuthenticationBytes();
+  private void verifyContent(byte[] storedMac, int numberOfBytesPushedBack) throws IOException {
+    byte[] calculatedMac = getDecrypter().getCalculatedAuthenticationBytes(numberOfBytesPushedBack);
     byte[] first10BytesOfCalculatedMac = new byte[AES_AUTH_LENGTH];
     System.arraycopy(calculatedMac, 0, first10BytesOfCalculatedMac, 0, InternalZipConstants.AES_AUTH_LENGTH);
 
