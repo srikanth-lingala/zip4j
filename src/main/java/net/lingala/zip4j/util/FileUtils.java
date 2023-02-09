@@ -558,9 +558,17 @@ public class FileUtils {
           LinkOption.NOFOLLOW_LINKS);
       Set<PosixFilePermission> posixFilePermissions = posixFileAttributeView.readAttributes().permissions();
 
-      fileAttributes[3] = setBitIfApplicable(Files.isRegularFile(file), fileAttributes[3], 7);
-      fileAttributes[3] = setBitIfApplicable(Files.isDirectory(file), fileAttributes[3], 6);
-      fileAttributes[3] = setBitIfApplicable(Files.isSymbolicLink(file), fileAttributes[3], 5);
+      boolean isSymlink = Files.isSymbolicLink(file);
+      if (isSymlink) {
+        // Mark as a regular file and not a directory if file is a symlink and even if the symlink points to a directory
+        fileAttributes[3] = BitUtils.setBit(fileAttributes[3], 7);
+        fileAttributes[3] = BitUtils.unsetBit(fileAttributes[3], 6);
+      } else {
+        fileAttributes[3] = setBitIfApplicable(Files.isRegularFile(file), fileAttributes[3], 7);
+        fileAttributes[3] = setBitIfApplicable(Files.isDirectory(file), fileAttributes[3], 6);
+      }
+
+      fileAttributes[3] = setBitIfApplicable(isSymlink, fileAttributes[3], 5);
       fileAttributes[3] = setBitIfApplicable(posixFilePermissions.contains(OWNER_READ), fileAttributes[3], 0);
       fileAttributes[2] = setBitIfApplicable(posixFilePermissions.contains(OWNER_WRITE), fileAttributes[2], 7);
       fileAttributes[2] = setBitIfApplicable(posixFilePermissions.contains(OWNER_EXECUTE), fileAttributes[2], 6);

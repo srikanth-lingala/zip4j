@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -326,6 +327,22 @@ public class ExtractZipFileIT extends AbstractIT {
 
     verifyNumberOfFilesInOutputFolder(outputFolder, 1);
     assertThat(outputFolder.listFiles()[0].getName()).isEqualTo(newFileName);
+  }
+
+  @Test
+  public void testSymlinkToDirectoryMaintainsSymlink() throws IOException {
+    verifyZipFileByExtractingAllFiles(getTestArchiveFromResources("zipWithLinkToDirAndFolder.zip"), null, outputFolder, 5, false);
+
+    Path aDirectory = Paths.get(outputFolder.getPath(), "a");
+    Path symlinkToDir = Paths.get(outputFolder.getPath(), "b");
+    Path aFile = Paths.get(outputFolder.getPath(), "c");
+    Path symlinkToFile = Paths.get(outputFolder.getPath(), "d");
+    assertThat(aDirectory).isDirectory();
+    assertThat(Files.isSymbolicLink(symlinkToDir)).isTrue();
+    assertThat(aFile).isRegularFile();
+    assertThat(symlinkToFile).isSymbolicLink();
+    assertThat(Files.readSymbolicLink(symlinkToDir)).isEqualTo(aDirectory.getFileName());
+    assertThat(Files.readSymbolicLink(symlinkToFile)).isEqualTo(aFile.getFileName());
   }
 
   @Test

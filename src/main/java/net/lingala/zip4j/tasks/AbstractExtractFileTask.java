@@ -59,14 +59,16 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
           throw new ZipException("Could not create directory: " + outputFile);
         }
       }
-    } else if (isSymbolicLink(fileHeader)) {
+    } else if (isSymbolicLink) {
       createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
     } else {
       checkOutputDirectoryStructure(outputFile);
       unzipFile(zipInputStream, outputFile, progressMonitor, readBuff);
     }
 
-    UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+    if (!isSymbolicLink) {
+      UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+    }
   }
 
   private void assertCanonicalPathsAreSame(File outputFile, String outputPath, FileHeader fileHeader)
@@ -128,6 +130,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
     try {
       Path linkTarget = Paths.get(symLinkPath);
+      if (outputFile.exists()) {
+        if (!outputFile.delete()) {
+          throw new ZipException("Could not delete existing symlink " + outputFile);
+        }
+      }
       Files.createSymbolicLink(outputFile.toPath(), linkTarget);
     } catch (NoSuchMethodError error) {
       try (OutputStream outputStream = new FileOutputStream(outputFile)) {
