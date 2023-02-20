@@ -950,6 +950,22 @@ public class AddFilesToZipIT extends AbstractIT {
   }
 
   @Test
+  public void testAddStreamToAnEmptyFileDoesNotThrowException() throws IOException {
+    if (!generatedZipFile.createNewFile()) {
+      throw new RuntimeException("Cannot create an empty file to test");
+    }
+    File fileToAdd = TestUtils.getTestFileFromResources("sample.pdf");
+    try (ZipFile zipFile = new ZipFile(generatedZipFile);
+          InputStream inputStream = Files.newInputStream(fileToAdd.toPath())) {
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zipFile.addStream(inputStream, zipParameters);
+    }
+
+    ZipFileVerifier.verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 1);
+  }
+
+  @Test
   public void testAddFolderWithCustomBufferSize() throws IOException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     zipFile.setBufferSize(16 * 1024);

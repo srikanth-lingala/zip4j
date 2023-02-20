@@ -66,6 +66,10 @@ public class HeaderReader {
 
   public ZipModel readAllHeaders(RandomAccessFile zip4jRaf, Zip4jConfig zip4jConfig) throws IOException {
 
+    if (zip4jRaf.length() == 0) {
+      return new ZipModel();
+    }
+
     if (zip4jRaf.length() < ENDHDR) {
       throw new ZipException("Zip file size less than minimum expected zip file size. " +
           "Probably not a zip file or a corrupted zip file");
