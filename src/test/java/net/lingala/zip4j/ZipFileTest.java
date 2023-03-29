@@ -12,7 +12,9 @@ import org.junit.rules.ExpectedException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
+import java.util.List;
 
 import static net.lingala.zip4j.util.InternalZipConstants.MIN_BUFF_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +70,7 @@ public class ZipFileTest {
     expectedException.expect(ZipException.class);
     expectedException.expectMessage("input file List is null, cannot create zip file");
 
-    zipFile.createSplitZipFile(null, new ZipParameters(), true, 10000);
+    zipFile.createSplitZipFile((List<File>) null, new ZipParameters(), true, 10000);
   }
 
   @Test
@@ -77,6 +79,14 @@ public class ZipFileTest {
     expectedException.expectMessage("input file List is null, cannot create zip file");
 
     zipFile.createSplitZipFile(Collections.<File>emptyList(), new ZipParameters(), true, 10000);
+  }
+
+  @Test
+  public void testCreateZipFileFromStreamThrowsExceptionIfStreamIsNull() throws IOException {
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("input stream is null, cannot create zip file");
+
+    zipFile.createSplitZipFile((InputStream) null, new ZipParameters(), true, 512000);
   }
 
   @Test
