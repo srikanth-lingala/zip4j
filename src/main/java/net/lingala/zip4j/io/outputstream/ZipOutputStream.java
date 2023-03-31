@@ -119,7 +119,7 @@ public class ZipOutputStream extends OutputStream {
     }
 
     zipModel.getLocalFileHeaders().add(localFileHeader);
-    zipModel.getCentralDirectory().getFileHeaders().add(fileHeader);
+    zipModel.getCentralDirectory().add(fileHeader);
 
     if (localFileHeader.isDataDescriptorExists()) {
       headerWriter.writeExtendedLocalHeader(localFileHeader, countingOutputStream);

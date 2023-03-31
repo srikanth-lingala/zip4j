@@ -146,6 +146,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
 
     fileHeaderToBeChanged.setFileName(newFileName);
     fileHeaderToBeChanged.setFileNameLength(newFileNameBytes.length);
+    zipModel.getCentralDirectory().rename(fileHeaderToBeChanged);
 
     updateOffsetsForAllSubsequentFileHeaders(sortedFileHeaders, zipModel, fileHeaderToBeChanged, headersOffset);
 

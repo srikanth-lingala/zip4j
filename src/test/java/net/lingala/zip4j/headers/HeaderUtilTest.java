@@ -57,17 +57,14 @@ public class HeaderUtilTest {
   }
 
   @Test
-  public void testGetFileHeaderWithNullFileHeadersThrowsException() throws ZipException {
-    expectedException.expect(ZipException.class);
-    expectZipException("file Headers are null, cannot determine file header with exact match for fileName: "
-        + FILE_NAME);
-
+  public void testGetFileHeaderWithNullFileHeadersReturnsNull() throws ZipException {
     ZipModel zipModel = new ZipModel();
     CentralDirectory centralDirectory = new CentralDirectory();
     centralDirectory.setFileHeaders(null);
     zipModel.setCentralDirectory(centralDirectory);
 
     HeaderUtil.getFileHeader(zipModel, FILE_NAME);
+    assertThat(HeaderUtil.getFileHeader(zipModel, FILE_NAME)).isNull();
   }
 
   @Test

@@ -19,13 +19,13 @@ public class HeaderUtil {
   public static FileHeader getFileHeader(ZipModel zipModel, String fileName) throws ZipException {
     FileHeader fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
 
-    if (fileHeader == null) {
-      fileName = fileName.replaceAll("\\\\", "/");
-      fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+    String backslashReplaced;
+    if (fileHeader == null && !(backslashReplaced = fileName.replaceAll("\\\\", "/")).equals(fileName)) {
+      fileHeader = getFileHeaderWithExactMatch(zipModel, backslashReplaced);
 
-      if (fileHeader == null) {
-        fileName = fileName.replaceAll("/", "\\\\");
-        fileHeader = getFileHeaderWithExactMatch(zipModel, fileName);
+      String slashesReplaced;
+      if (fileHeader == null && !(slashesReplaced = backslashReplaced.replaceAll("/", "\\\\")).equals(backslashReplaced)) {
+        fileHeader = getFileHeaderWithExactMatch(zipModel, slashesReplaced);
       }
     }
 
@@ -103,26 +103,10 @@ public class HeaderUtil {
           + fileName);
     }
 
-    if (zipModel.getCentralDirectory().getFileHeaders() == null) {
-      throw new ZipException("file Headers are null, cannot determine file header with exact match for fileName: "
-          + fileName);
-    }
-
-    if (zipModel.getCentralDirectory().getFileHeaders().size() == 0) {
+    if (zipModel.getCentralDirectory().getFileNameHeaderMap().isEmpty()) {
       return null;
     }
 
-    for (FileHeader fileHeader : zipModel.getCentralDirectory().getFileHeaders()) {
-      String fileNameForHdr = fileHeader.getFileName();
-      if (!isStringNotNullAndNotEmpty(fileNameForHdr)) {
-        continue;
-      }
-
-      if (fileName.equals(fileNameForHdr)) {
-        return fileHeader;
-      }
-    }
-
-    return null;
+    return zipModel.getCentralDirectory().getFileNameHeaderMap().get(fileName);
   }
 }
