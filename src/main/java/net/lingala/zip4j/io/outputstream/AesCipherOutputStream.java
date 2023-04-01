@@ -21,7 +21,7 @@ class AesCipherOutputStream extends CipherOutputStream<AESEncrypter> {
   @Override
   protected AESEncrypter initializeEncrypter(OutputStream outputStream, ZipParameters zipParameters, char[] password,
                                              boolean useUtf8ForPassword) throws IOException {
-    AESEncrypter encrypter = new AESEncrypter(password, zipParameters.getAesKeyStrength(), useUtf8ForPassword);
+    AESEncrypter encrypter = new AESEncrypter(password, zipParameters.getAesKeyStrength());
     writeAesEncryptionHeaderData(encrypter);
     return encrypter;
   }

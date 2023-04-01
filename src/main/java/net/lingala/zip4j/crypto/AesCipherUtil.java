@@ -1,13 +1,17 @@
 package net.lingala.zip4j.crypto;
 
 import net.lingala.zip4j.crypto.PBKDF2.MacBasedPRF;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Engine;
-import net.lingala.zip4j.crypto.PBKDF2.PBKDF2Parameters;
-import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 
-import static net.lingala.zip4j.util.InternalZipConstants.AES_HASH_CHARSET;
+import java.security.spec.KeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import static net.lingala.zip4j.util.InternalZipConstants.AES_HASH_ITERATIONS;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_MAC_ALGORITHM;
 import static net.lingala.zip4j.util.InternalZipConstants.AES_PASSWORD_VERIFIER_LENGTH;
@@ -25,15 +29,18 @@ public class AesCipherUtil {
    * @throws ZipException Thrown when Derived Key is not valid
    */
   public static byte[] derivePasswordBasedKey(final byte[] salt, final char[] password,
-                                              final AesKeyStrength aesKeyStrength,
-                                              final boolean useUtf8ForPassword) throws ZipException {
-    final PBKDF2Parameters parameters = new PBKDF2Parameters(AES_MAC_ALGORITHM, AES_HASH_CHARSET, salt, AES_HASH_ITERATIONS);
-    final PBKDF2Engine engine = new PBKDF2Engine(parameters);
-
+                                              final AesKeyStrength aesKeyStrength) throws ZipException {
     final int keyLength = aesKeyStrength.getKeyLength();
     final int macLength = aesKeyStrength.getMacLength();
     final int derivedKeyLength = keyLength + macLength + AES_PASSWORD_VERIFIER_LENGTH;
-    final byte[] derivedKey = engine.deriveKey(password, derivedKeyLength, useUtf8ForPassword);
+    final byte[] derivedKey;
+    try {
+      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2With" + AES_MAC_ALGORITHM);
+      KeySpec keyspec = new PBEKeySpec(password, salt, AES_HASH_ITERATIONS, derivedKeyLength * 8);
+      derivedKey = factory.generateSecret(keyspec).getEncoded();
+    } catch (Exception e) {
+      throw new ZipException("Failed to derive zip key.");
+    }
     if (derivedKey != null && derivedKey.length == derivedKeyLength) {
       return derivedKey;
     } else {
@@ -77,14 +84,23 @@ public class AesCipherUtil {
    *
    * @param derivedKey Derived Key
    * @param aesKeyStrength AES Key Strength
+   * @param opmode the operation mode of this cipher (this is one of
+   * the following:
+   * {@code ENCRYPT_MODE}, {@code DECRYPT_MODE},
+   * {@code WRAP_MODE} or {@code UNWRAP_MODE})
    * @return AES Engine configured with AES Key
    * @throws ZipException Thrown on AESEngine initialization failures
    */
-  public static AESEngine getAESEngine(final byte[] derivedKey, final AesKeyStrength aesKeyStrength) throws ZipException {
+  public static Cipher getAESEngine(final byte[] derivedKey, final AesKeyStrength aesKeyStrength, int optMode) throws ZipException {
     final int keyLength = aesKeyStrength.getKeyLength();
-    final byte[] aesKey = new byte[keyLength];
-    System.arraycopy(derivedKey, START_INDEX, aesKey, START_INDEX, keyLength);
-    return new AESEngine(aesKey);
+    try {
+      final SecretKey aesKey = new SecretKeySpec(derivedKey, START_INDEX, keyLength, "AES");
+      Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+      cipher.init(optMode, aesKey);
+      return cipher;
+    } catch (Exception e) {
+      throw new ZipException("Failed to init cipher.", e);
+    }
   }
 
   public static void prepareBuffAESIVBytes(byte[] buff, int nonce) {
