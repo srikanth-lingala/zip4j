@@ -22,7 +22,8 @@ public class ZipVersionUtils {
   public static VersionNeededToExtract determineVersionNeededToExtract(ZipParameters zipParameters) {
     VersionNeededToExtract versionRequired = VersionNeededToExtract.DEFAULT;
 
-    if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
+    if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE ||
+        zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE64) {
       versionRequired = VersionNeededToExtract.DEFLATE_COMPRESSED;
     }
 

@@ -114,20 +114,27 @@ public class FileHeaderFactory {
       firstByte = setBit(firstByte, 0);
     }
 
-    if (CompressionMethod.DEFLATE.equals(zipParameters.getCompressionMethod())) {
-      if (CompressionLevel.NORMAL.equals(zipParameters.getCompressionLevel())) {
-        firstByte = unsetBit(firstByte, 1);
-        firstByte = unsetBit(firstByte, 2);
-      } else if (CompressionLevel.MAXIMUM.equals(zipParameters.getCompressionLevel())) {
-        firstByte = setBit(firstByte, 1);
-        firstByte = unsetBit(firstByte, 2);
-      } else if (CompressionLevel.FAST.equals(zipParameters.getCompressionLevel())) {
-        firstByte = unsetBit(firstByte, 1);
-        firstByte = setBit(firstByte, 2);
-      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())
-          || CompressionLevel.ULTRA.equals(zipParameters.getCompressionLevel())) {
-        firstByte = setBit(firstByte, 1);
-        firstByte = setBit(firstByte, 2);
+    if (zipParameters.getCompressionMethod() != null) {
+      switch (zipParameters.getCompressionMethod()) {
+        case DEFLATE:
+        case DEFLATE64:
+          if (CompressionLevel.NORMAL.equals(zipParameters.getCompressionLevel())) {
+            firstByte = unsetBit(firstByte, 1);
+            firstByte = unsetBit(firstByte, 2);
+          } else if (CompressionLevel.MAXIMUM.equals(zipParameters.getCompressionLevel())) {
+            firstByte = setBit(firstByte, 1);
+            firstByte = unsetBit(firstByte, 2);
+          } else if (CompressionLevel.FAST.equals(zipParameters.getCompressionLevel())) {
+            firstByte = unsetBit(firstByte, 1);
+            firstByte = setBit(firstByte, 2);
+          } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())
+              || CompressionLevel.ULTRA.equals(zipParameters.getCompressionLevel())) {
+            firstByte = setBit(firstByte, 1);
+            firstByte = setBit(firstByte, 2);
+          }
+          break;
+        default:
+          // do nothing
       }
     }
 
