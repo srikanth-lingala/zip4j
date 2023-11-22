@@ -2,7 +2,6 @@ package net.lingala.zip4j.io.inputstream;
 
 import net.lingala.zip4j.crypto.Decrypter;
 import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.io.IOException;
@@ -24,8 +23,12 @@ abstract class CipherInputStream<T extends Decrypter> extends InputStream {
     this.decrypter = initializeDecrypter(localFileHeader, password, useUtf8ForPassword);
     this.localFileHeader = localFileHeader;
 
-    if (Zip4jUtil.getCompressionMethod(localFileHeader).equals(CompressionMethod.DEFLATE)) {
-      lastReadRawDataCache = new byte[bufferSize];
+    switch (Zip4jUtil.getCompressionMethod(localFileHeader)) {
+      case DEFLATE:
+      case DEFLATE64:
+        lastReadRawDataCache = new byte[bufferSize];
+        break;
+      default:
     }
   }
 
