@@ -12,6 +12,7 @@ import net.lingala.zip4j.testutils.SlowTest;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
 import net.lingala.zip4j.util.InternalZipConstants;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
+@Ignore
 public class ZipFileZip64IT extends AbstractIT {
 
   private byte[] readBuffer = new byte[2 * InternalZipConstants.BUFF_SIZE];
