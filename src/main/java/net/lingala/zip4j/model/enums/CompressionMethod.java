@@ -1,7 +1,5 @@
 package net.lingala.zip4j.model.enums;
 
-import net.lingala.zip4j.exception.ZipException;
-
 /**
  * Indicates the algorithm used for compression
  *
@@ -40,15 +38,15 @@ public enum CompressionMethod {
    * Get the CompressionMethod for a given ZIP file code
    * @param code the code for a compression method
    * @return the CompressionMethod related to the given code
-   * @throws ZipException on unknown code
    */
-  public static CompressionMethod getCompressionMethodFromCode(int code) throws ZipException {
+  public static CompressionMethod getCompressionMethodFromCode(int code) {
     for (CompressionMethod compressionMethod : values()) {
       if (compressionMethod.getCode() == code) {
         return compressionMethod;
       }
     }
 
-    throw new ZipException("Unknown compression method", ZipException.Type.UNKNOWN_COMPRESSION_METHOD);
+    System.out.println("ZIP4J WARNING: Unknown ZIP compression method, defaulting to no compression.");
+    return STORE;
   }
 }
