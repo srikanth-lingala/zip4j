@@ -125,7 +125,7 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
       String> fileNamesMap) {
 
     for (Map.Entry<String, String> fileHeaderToBeRenamed : fileNamesMap.entrySet()) {
-      if (fileHeaderToBeChecked.getFileName().startsWith(fileHeaderToBeRenamed.getKey())) {
+      if (fileHeaderToBeChecked.getFileName().equals(fileHeaderToBeRenamed.getKey())) {
         return fileHeaderToBeRenamed;
       }
     }
