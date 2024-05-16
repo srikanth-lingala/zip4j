@@ -502,6 +502,54 @@ public class ZipFile implements Closeable {
   }
 
   /**
+   * Extracts all the files in the given zip file to the input destination path.
+   * If zip file does not exist or destination path is invalid then an
+   * exception is thrown.
+   * <br><br>
+   * newFileNameMap is used to rename the files in the zip file.
+   *
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileNameMap map of old file name to new file name for the files to be extracted
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractAll(String destinationPath, Map<String, String> newFileNameMap) throws ZipException {
+    extractAll(destinationPath, newFileNameMap, new UnzipParameters());
+  }
+
+  /**
+   * Extracts all entries in the zip file to the destination path considering the options defined in
+   * UnzipParameters
+   * <br><br>
+   * newFileNameMap is used to rename the files in the zip file.
+   *
+   * @param destinationPath path to which the entries of the zip are to be extracted
+   * @param newFileNameMap map of old file name to new file name for the files to be extracted
+   * @param unzipParameters parameters to be considered during extraction
+   * @throws ZipException when an issue occurs during extraction
+   */
+  public void extractAll(String destinationPath, Map<String, String> newFileNameMap, UnzipParameters unzipParameters) throws ZipException {
+    if (!isStringNotNullAndNotEmpty(destinationPath)) {
+      throw new ZipException("output path is null or invalid");
+    }
+
+    if (!Zip4jUtil.createDirectoryIfNotExists(new File(destinationPath))) {
+      throw new ZipException("invalid output path");
+    }
+
+    if (zipModel == null) {
+      readZipInfo();
+    }
+
+    // Throw an exception if zipModel is still null
+    if (zipModel == null) {
+      throw new ZipException("Internal error occurred when extracting zip file");
+    }
+
+    new ExtractAllFilesTask(zipModel, password, newFileNameMap, unzipParameters, buildAsyncParameters()).execute(
+            new ExtractAllFilesTaskParameters(destinationPath, buildConfig()));
+  }
+
+  /**
    * Extracts a specific file from the zip file to the destination path.
    * If destination path is invalid, then this method throws an exception.
    * <br><br>
