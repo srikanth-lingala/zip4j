@@ -539,6 +539,15 @@ public class ZipInputStreamExample {
 }
 ```
 
+### Adding an empty folder with ZipOutputStream
+
+```java
+// To add an empty folder to the zip, make sure the name ends with a /
+zipParameters.setFileNameInZip("empty folder/");
+zipOutputStream.putNextEntry(zipParameters);
+zipOutputStream.closeEntry();
+```
+
 ## Working with Progress Monitor
 
 ProgressMonitor makes it easier for applications (especially user facing) to integrate Zip4j. It is useful to show
