@@ -171,13 +171,14 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     if (!fileHeader.getFileName().equals(localFileHeader.getFileName())) {
       String fileHeaderFileName = getFileFixedName(fileHeader);
       String localFileHeaderFileName = getFileFixedName(localFileHeader);
-
       if (fileHeaderFileName != null && localFileHeaderFileName != null) {
         if (!fileHeaderFileName.equals(localFileHeaderFileName)) {
           throw new ZipException("File header and local file header mismatch (even with UTF-8 names)");
         }
+        else {
+          return;
+        }
       }
-
       throw new ZipException("File header and local file header mismatch");
     }
   }
