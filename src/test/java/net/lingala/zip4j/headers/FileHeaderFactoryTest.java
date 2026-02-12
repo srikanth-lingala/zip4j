@@ -201,16 +201,6 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testGenerateFileHeaderWithCompressionLeveUltra() throws ZipException {
-    ZipParameters zipParameters = generateZipParameters();
-    zipParameters.setCompressionLevel(CompressionLevel.ULTRA);
-
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
-
-    verifyCompressionLevelGridForDeflate(CompressionLevel.ULTRA, fileHeader.getGeneralPurposeFlag()[0]);
-  }
-
-  @Test
   public void testGenerateFileHeaderWithCompressionLevelMaximum() throws ZipException {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.MAXIMUM);
@@ -297,6 +287,7 @@ public class FileHeaderFactoryTest {
     assertThat(clonedFileHeader.getVersionNeededToExtract()).isEqualTo(fileHeader.getVersionNeededToExtract());
     assertThat(clonedFileHeader.getGeneralPurposeFlag()).isEqualTo(fileHeader.getGeneralPurposeFlag());
     assertThat(clonedFileHeader.getCompressionMethod()).isEqualTo(fileHeader.getCompressionMethod());
+    assertThat(clonedFileHeader.getCompressionLevel()).isEqualTo(fileHeader.getCompressionLevel());
     assertThat(clonedFileHeader.getLastModifiedTime()).isEqualTo(fileHeader.getLastModifiedTime());
     assertThat(clonedFileHeader.getCrc()).isEqualTo(fileHeader.getCrc());
     assertThat(clonedFileHeader.getCompressedSize()).isEqualTo(fileHeader.getCompressedSize());
@@ -365,6 +356,7 @@ public class FileHeaderFactoryTest {
     fileHeader.setOffsetLocalHeader(400);
     fileHeader.setFileNameUTF8Encoded(true);
     fileHeader.setDirectory(true);
+    fileHeader.setCompressionLevel(CompressionLevel.MAXIMUM);
 
     AESExtraDataRecord aesExtraDataRecord = new AESExtraDataRecord();
     aesExtraDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
@@ -487,8 +479,7 @@ public class FileHeaderFactoryTest {
     } else if (CompressionLevel.FAST.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isFalse();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
-    } else if (CompressionLevel.FASTEST.equals(compressionLevel)
-        || CompressionLevel.ULTRA.equals(compressionLevel)) {
+    } else if (CompressionLevel.FASTEST.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isTrue();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
     } else {

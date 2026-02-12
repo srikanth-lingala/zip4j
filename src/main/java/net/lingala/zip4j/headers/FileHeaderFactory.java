@@ -83,6 +83,7 @@ public class FileHeaderFactory {
     localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
     localFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
     localFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
+    localFileHeader.setCompressionLevel(fileHeader.getCompressionLevel());
     localFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
     localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
     localFileHeader.setFileNameLength(fileHeader.getFileNameLength());
@@ -109,6 +110,7 @@ public class FileHeaderFactory {
     cloneFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
     cloneFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
     cloneFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
+    cloneFileHeader.setCompressionLevel(fileHeader.getCompressionLevel());
     cloneFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
     cloneFileHeader.setCrc(fileHeader.getCrc());
     cloneFileHeader.setCompressedSize(fileHeader.getCompressedSize());
@@ -161,8 +163,7 @@ public class FileHeaderFactory {
       } else if (CompressionLevel.FAST.equals(zipParameters.getCompressionLevel())) {
         firstByte = unsetBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
-      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())
-          || CompressionLevel.ULTRA.equals(zipParameters.getCompressionLevel())) {
+      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())) {
         firstByte = setBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
       }

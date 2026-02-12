@@ -12,6 +12,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.testutils.ZipFileVerifier;
+import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import org.assertj.core.data.Offset;
@@ -262,36 +263,6 @@ public class CreateZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testCreateZipFileWithFasterCompressionLevel() throws IOException {
-    createZipFileWithCompressionLevel(CompressionLevel.FASTER);
-    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
-  }
-
-  @Test
-  public void testCreateZipFileWithMediumFastCompressionLevel() throws IOException {
-    createZipFileWithCompressionLevel(CompressionLevel.MEDIUM_FAST);
-    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
-  }
-
-  @Test
-  public void testCreateZipFileWithHigherCompressionLevel() throws IOException {
-    createZipFileWithCompressionLevel(CompressionLevel.HIGHER);
-    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
-  }
-
-  @Test
-  public void testCreateZipFileWithPreUltraCompressionLevel() throws IOException {
-    createZipFileWithCompressionLevel(CompressionLevel.PRE_ULTRA);
-    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
-  }
-
-  @Test
-  public void testCreateZipFileWithDeflateNoCompressionLevel() throws IOException {
-    createZipFileWithCompressionLevel(CompressionLevel.NO_COMPRESSION);
-    verifyZipFileByExtractingAllFiles(generatedZipFile, outputFolder, 3);
-  }
-
-  @Test
   public void testCreateZipFileFromStreamThrowsExceptionIfZipFileExists() throws IOException {
     try (ZipFile zipFile = new ZipFile(generatedZipFile)) {
       zipFile.addFile(TestUtils.getTestFileFromResources("sample.pdf"));
@@ -372,6 +343,52 @@ public class CreateZipFileIT extends AbstractIT {
     assertThat(fileHeaders.get(0).getExtraDataRecords().get(0).getHeader()).isEqualTo(SPLIT_ZIP.getValue());
     assertThat(fileHeaders.get(1).getExtraDataRecords().get(0).getHeader()).isEqualTo(DIGITAL_SIGNATURE.getValue());
     assertThat(fileHeaders.get(2).getExtraDataRecords()).isNull();
+  }
+
+  @Test
+  public void testCreateZipFileWithFastestCompressionLevel() throws IOException {
+    testCreateZipFileWithCompressionLevel(CompressionLevel.FASTEST);
+  }
+
+  @Test
+  public void testCreateZipFileWithFastCompressionLevel() throws IOException {
+    testCreateZipFileWithCompressionLevel(CompressionLevel.FAST);
+  }
+
+  @Test
+  public void testCreateZipFileWithMaximumCompressionLevel() throws IOException {
+    testCreateZipFileWithCompressionLevel(CompressionLevel.MAXIMUM);
+  }
+
+  @Test
+  public void testCreateZipFileWithNormalCompressionLevel() throws IOException {
+    testCreateZipFileWithCompressionLevel(CompressionLevel.NORMAL);
+  }
+
+  private void testCreateZipFileWithCompressionLevel(CompressionLevel compressionLevel) throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setCompressionLevel(compressionLevel);
+    Path fileToAdd = TestUtils.getTestFileFromResources("sample.pdf").toPath();
+
+    zipFile.addFile(fileToAdd.toFile(), zipParameters);
+
+    zipFile = new ZipFile(generatedZipFile);
+    byte firstGeneralPurposeByte = zipFile.getFileHeader("sample.pdf").getGeneralPurposeFlag()[0];
+
+    if (compressionLevel == CompressionLevel.FASTEST) {
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 1)).isTrue();
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 2)).isTrue();
+    } else if (compressionLevel == CompressionLevel.FAST) {
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 1)).isFalse();
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 2)).isTrue();
+    } else if (compressionLevel == CompressionLevel.MAXIMUM) {
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 1)).isTrue();
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 2)).isFalse();
+    } else {
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 1)).isFalse();
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 2)).isFalse();
+    }
   }
 
   private ExtraDataRecord generateExtraDataRecord(long headerSignature) {
