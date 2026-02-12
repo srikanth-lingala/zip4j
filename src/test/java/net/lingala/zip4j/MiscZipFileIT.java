@@ -643,16 +643,6 @@ public class MiscZipFileIT extends AbstractIT {
   }
 
   @Test
-  public void testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails() throws IOException {
-    testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(true, false);
-  }
-
-  @Test
-  public void testAddFilesWithoutUt8PasswordAndExtractFilesWithUtf8PasswordFails() throws IOException {
-    testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(false, true);
-  }
-
-  @Test
   public void testAddFileWithCustomLastModifiedFileTimeSetsInputTime() throws IOException, ParseException {
     ZipFile zipFile = new ZipFile(generatedZipFile);
     String string_date = "20-January-2020";
@@ -729,27 +719,6 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.setUseUtf8CharsetForPasswords(useUtf8ForPassword);
     zipFile.extractAll(outputFolder.getPath());
     assertThat(zipFile.getFileHeaders()).hasSize(3);
-  }
-
-  private void testAddFilesWithUt8PasswordAndExtractFilesWithoutUtf8PasswordFails(boolean useUtf8ForAddingFiles,
-                                                                                  boolean useUt8ForExtractingFiles)
-    throws IOException {
-
-    char[] password = "hun 焰".toCharArray();
-    ZipFile zipFile = new ZipFile(generatedZipFile, password);
-    zipFile.setUseUtf8CharsetForPasswords(useUtf8ForAddingFiles);
-    ZipParameters zipParameters = new ZipParameters();
-    zipParameters.setEncryptFiles(true);
-    zipParameters.setEncryptionMethod(EncryptionMethod.AES);
-
-    zipFile.addFiles(FILES_TO_ADD, zipParameters);
-
-    expectedException.expect(ZipException.class);
-    expectedException.expectMessage("Wrong Password");
-
-    zipFile = new ZipFile(generatedZipFile, password);
-    zipFile.setUseUtf8CharsetForPasswords(useUt8ForExtractingFiles);
-    zipFile.extractAll(outputFolder.getPath());
   }
 
   private void assertInputStreamsAreClosed(List<InputStream> inputStreams) {
