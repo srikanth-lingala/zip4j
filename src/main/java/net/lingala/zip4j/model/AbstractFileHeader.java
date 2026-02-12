@@ -26,6 +26,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private boolean fileNameUTF8Encoded;
   private List<ExtraDataRecord> extraDataRecords;
   private boolean isDirectory;
+  // FileHeaderFactory.clone() method has to be modified if any new fields are added here
 
   public int getVersionNeededToExtract() {
     return versionNeededToExtract;

@@ -1,6 +1,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -14,11 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -681,6 +678,41 @@ public class MiscZipFileIT extends AbstractIT {
     expectedException.expectMessage("java.io.IOException: Reached end of data for this entry, but aes verification failed");
 
     zipFile.extractAll(outputFolder.getPath());
+  }
+
+  // This test was added as part of github issue #581 where a file header was modified before completely writing
+  // a zip file. Any edited file header should not be written to a zip file as this can potentially corrupt the
+  // zip file headers
+  @Test
+  public void testUpdatingFileHeaderBeforeFinalizingDoesNotWriteEditedInformationToZip() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    final ZipParameters params = new ZipParameters();
+    addStreamToZipAndUpdateFileHeader("Hello.txt", zipFile, params);
+    addStreamToZipAndUpdateFileHeader("World.txt", zipFile, params);
+    zipFile.close();
+
+    zipFile = new ZipFile(generatedZipFile);
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    for (FileHeader fileHeader : fileHeaders) {
+      assertThat(fileHeader.getExtraDataRecords()).isNull();
+    }
+  }
+
+  private void addStreamToZipAndUpdateFileHeader(
+      final String entryName,
+      final ZipFile zipFile,
+      final ZipParameters params
+  ) throws ZipException {
+    params.setFileNameInZip(entryName);
+    zipFile.addStream(new ByteArrayInputStream(new byte[256]), params);
+    FileHeader fileHeader = zipFile.getFileHeader(entryName);
+    List<ExtraDataRecord> extraDataRecords = new ArrayList<>();
+    ExtraDataRecord dr = new ExtraDataRecord();
+    dr.setHeader(0x4341);
+    dr.setData(new byte[20]);
+    dr.setSizeOfData(20);
+    extraDataRecords.add(dr);
+    fileHeader.setExtraDataRecords(extraDataRecords);
   }
 
   private void testAddAndExtractWithPasswordUtf8Encoding(boolean useUtf8ForPassword) throws IOException {

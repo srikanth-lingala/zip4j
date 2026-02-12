@@ -1,7 +1,9 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.HeaderSignature;
 import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.ExtraDataRecord;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -21,11 +23,15 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import static net.lingala.zip4j.headers.HeaderSignature.DIGITAL_SIGNATURE;
+import static net.lingala.zip4j.headers.HeaderSignature.SPLIT_ZIP;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.testutils.ZipFileVerifier.verifyZipFileByExtractingAllFiles;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -345,10 +351,40 @@ public class CreateZipFileIT extends AbstractIT {
     verifySplitZip(generatedZipFile, 1, 512000);
   }
 
+  @Test
+  public void testCreateZipFileAddsExtraDataRecordsFromZipParameters() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+
+    Path fileToAdd = TestUtils.getTestFileFromResources("file_PDF_1MB.pdf").toPath();
+    zipParameters.setExtraDataRecords(Collections.singletonList(generateExtraDataRecord(SPLIT_ZIP.getValue())));
+    zipFile.addFile(fileToAdd.toFile(), zipParameters);
+
+    fileToAdd = TestUtils.getTestFileFromResources("sample.pdf").toPath();
+    zipParameters.setExtraDataRecords(Collections.singletonList(generateExtraDataRecord(DIGITAL_SIGNATURE.getValue())));
+    zipFile.addFile(fileToAdd.toFile(), zipParameters);
+
+    fileToAdd = TestUtils.getTestFileFromResources("sample_text1.txt").toPath();
+    zipParameters.setExtraDataRecords(null);
+    zipFile.addFile(fileToAdd.toFile(), zipParameters);
+
+    List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+    assertThat(fileHeaders.get(0).getExtraDataRecords().get(0).getHeader()).isEqualTo(SPLIT_ZIP.getValue());
+    assertThat(fileHeaders.get(1).getExtraDataRecords().get(0).getHeader()).isEqualTo(DIGITAL_SIGNATURE.getValue());
+    assertThat(fileHeaders.get(2).getExtraDataRecords()).isNull();
+  }
+
+  private ExtraDataRecord generateExtraDataRecord(long headerSignature) {
+    ExtraDataRecord extraDataRecord = new ExtraDataRecord();
+    extraDataRecord.setHeader(headerSignature);
+    extraDataRecord.setSizeOfData(5);
+    extraDataRecord.setData("12345".getBytes());
+    return extraDataRecord;
+  }
+
   private void verifySplitZip(File zipFile, int numberOfExpectedSplitFiles, long splitLength) throws ZipException {
     assertNumberOfSplitFile(zipFile, numberOfExpectedSplitFiles);
     assertSplitFileSizes(zipFile, numberOfExpectedSplitFiles, splitLength);
-
   }
 
   private void assertSplitFileSizes(File zipFile, int numberOfExpectedSplitFiles, long splitLength) {
