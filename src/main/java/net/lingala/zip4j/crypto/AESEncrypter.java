@@ -17,11 +17,12 @@
 package net.lingala.zip4j.crypto;
 
 import net.lingala.zip4j.crypto.PBKDF2.MacBasedPRF;
-import net.lingala.zip4j.crypto.engine.AESEngine;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 
 import java.security.SecureRandom;
+
+import javax.crypto.Cipher;
 
 import static net.lingala.zip4j.crypto.AesCipherUtil.derivePasswordBasedKey;
 import static net.lingala.zip4j.crypto.AesCipherUtil.derivePasswordVerifier;
@@ -35,7 +36,7 @@ import static net.lingala.zip4j.util.InternalZipConstants.AES_BLOCK_SIZE;
  */
 public class AESEncrypter implements Encrypter {
 
-  private AESEngine aesEngine;
+  private Cipher aes;
   private MacBasedPRF mac;
   private final SecureRandom random = new SecureRandom();
 
@@ -45,11 +46,10 @@ public class AESEncrypter implements Encrypter {
   private int loopCount = 0;
 
   private final byte[] iv;
-  private final byte[] counterBlock;
   private byte[] derivedPasswordVerifier;
   private byte[] saltBytes;
 
-  public AESEncrypter(char[] password, AesKeyStrength aesKeyStrength, boolean useUtf8ForPassword) throws ZipException {
+  public AESEncrypter(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
     if (password == null || password.length == 0) {
       throw new ZipException("input password is empty or null");
     }
@@ -59,16 +59,15 @@ public class AESEncrypter implements Encrypter {
     }
 
     this.finished = false;
-    counterBlock = new byte[AES_BLOCK_SIZE];
     iv = new byte[AES_BLOCK_SIZE];
-    init(password, aesKeyStrength, useUtf8ForPassword);
+    init(password, aesKeyStrength);
   }
 
-  private void init(char[] password, AesKeyStrength aesKeyStrength, boolean useUtf8ForPassword) throws ZipException {
+  private void init(char[] password, AesKeyStrength aesKeyStrength) throws ZipException {
     saltBytes = generateSalt(aesKeyStrength.getSaltLength());
-    byte[] derivedKey = derivePasswordBasedKey(saltBytes, password, aesKeyStrength, useUtf8ForPassword);
+    byte[] derivedKey = derivePasswordBasedKey(saltBytes, password, aesKeyStrength);
     derivedPasswordVerifier = derivePasswordVerifier(derivedKey, aesKeyStrength);
-    aesEngine = getAESEngine(derivedKey, aesKeyStrength);
+    aes = getAESEngine(derivedKey, aesKeyStrength, Cipher.ENCRYPT_MODE);
     mac = getMacBasedPRF(derivedKey, aesKeyStrength);
   }
 
@@ -97,7 +96,7 @@ public class AESEncrypter implements Encrypter {
           AES_BLOCK_SIZE : ((start + len) - j);
 
       prepareBuffAESIVBytes(iv, nonce);
-      aesEngine.processBlock(iv, counterBlock);
+      byte[] counterBlock = aes.update(iv);
 
       for (int k = 0; k < loopCount; k++) {
         buff[j + k] = (byte) (buff[j + k] ^ counterBlock[k]);
@@ -111,27 +110,12 @@ public class AESEncrypter implements Encrypter {
   }
 
   private byte[] generateSalt(int size) throws ZipException {
-
     if (size != 8 && size != 16) {
       throw new ZipException("invalid salt size, cannot generate salt");
     }
 
-    int rounds;
-
-    if (size == 8) {
-      rounds = 2;
-    } else {
-      rounds = 4;
-    }
-
     byte[] salt = new byte[size];
-    for (int j = 0; j < rounds; j++) {
-      int i = random.nextInt();
-      salt[j * 4] = (byte) (i >> 24);
-      salt[1 + j * 4] = (byte) (i >> 16);
-      salt[2 + j * 4] = (byte) (i >> 8);
-      salt[3 + j * 4] = (byte) i;
-    }
+    random.nextBytes(salt);
     return salt;
   }
 
