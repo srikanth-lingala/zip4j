@@ -29,6 +29,7 @@ public class FileHeader extends AbstractFileHeader {
   private byte[] externalFileAttributes;
   private long offsetLocalHeader;
   private String fileComment;
+  // FileHeaderFactory.clone() method has to be modified if any new fields are added here
 
   public FileHeader() {
     setSignature(HeaderSignature.CENTRAL_DIRECTORY);

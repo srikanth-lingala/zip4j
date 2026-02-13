@@ -71,7 +71,7 @@ Zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is mis
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
-    <version>2.11.5</version>
+    <version>2.11.6</version>
 </dependency>
 ```
 
@@ -537,6 +537,15 @@ public class ZipInputStreamExample {
     }
   }
 }
+```
+
+### Adding an empty folder with ZipOutputStream
+
+```java
+// To add an empty folder to the zip, make sure the name ends with a /
+zipParameters.setFileNameInZip("empty folder/");
+zipOutputStream.putNextEntry(zipParameters);
+zipOutputStream.closeEntry();
 ```
 
 ## Working with Progress Monitor

@@ -125,9 +125,11 @@ public class RenameFilesTask extends AbstractModifyFileTask<RenameFilesTask.Rena
       String> fileNamesMap) {
 
     for (Map.Entry<String, String> fileHeaderToBeRenamed : fileNamesMap.entrySet()) {
-      if (fileHeaderToBeChecked.getFileName().startsWith(fileHeaderToBeRenamed.getKey())) {
-        return fileHeaderToBeRenamed;
-      }
+        if (fileHeaderToBeRenamed.getKey().endsWith(InternalZipConstants.ZIP_FILE_SEPARATOR) && fileHeaderToBeChecked.getFileName().startsWith(fileHeaderToBeRenamed.getKey())) {
+        	return fileHeaderToBeRenamed;
+        } else if (fileHeaderToBeChecked.getFileName().equals(fileHeaderToBeRenamed.getKey())) {
+        	return fileHeaderToBeRenamed;
+        }
     }
 
     return null;

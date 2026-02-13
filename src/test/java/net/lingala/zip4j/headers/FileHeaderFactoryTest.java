@@ -1,15 +1,8 @@
 package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.*;
+import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.RawIO;
@@ -20,9 +13,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.List;
 
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
 import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileHeaderFactoryTest {
@@ -205,16 +201,6 @@ public class FileHeaderFactoryTest {
   }
 
   @Test
-  public void testGenerateFileHeaderWithCompressionLeveUltra() throws ZipException {
-    ZipParameters zipParameters = generateZipParameters();
-    zipParameters.setCompressionLevel(CompressionLevel.ULTRA);
-
-    FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
-
-    verifyCompressionLevelGridForDeflate(CompressionLevel.ULTRA, fileHeader.getGeneralPurposeFlag()[0]);
-  }
-
-  @Test
   public void testGenerateFileHeaderWithCompressionLevelMaximum() throws ZipException {
     ZipParameters zipParameters = generateZipParameters();
     zipParameters.setCompressionLevel(CompressionLevel.MAXIMUM);
@@ -292,6 +278,39 @@ public class FileHeaderFactoryTest {
     testVersionMadeBy(generateZipParameters(), 819);
   }
 
+  @Test
+  public void testCloneFileHeader() {
+    FileHeader fileHeader = generateCompleteFileHeader();
+    FileHeader clonedFileHeader = fileHeaderFactory.clone(fileHeader);
+
+    assertThat(clonedFileHeader.getSignature()).isEqualTo(fileHeader.getSignature());
+    assertThat(clonedFileHeader.getVersionNeededToExtract()).isEqualTo(fileHeader.getVersionNeededToExtract());
+    assertThat(clonedFileHeader.getGeneralPurposeFlag()).isEqualTo(fileHeader.getGeneralPurposeFlag());
+    assertThat(clonedFileHeader.getCompressionMethod()).isEqualTo(fileHeader.getCompressionMethod());
+    assertThat(clonedFileHeader.getCompressionLevel()).isEqualTo(fileHeader.getCompressionLevel());
+    assertThat(clonedFileHeader.getLastModifiedTime()).isEqualTo(fileHeader.getLastModifiedTime());
+    assertThat(clonedFileHeader.getCrc()).isEqualTo(fileHeader.getCrc());
+    assertThat(clonedFileHeader.getCompressedSize()).isEqualTo(fileHeader.getCompressedSize());
+    assertThat(clonedFileHeader.getUncompressedSize()).isEqualTo(fileHeader.getUncompressedSize());
+    assertThat(clonedFileHeader.getFileNameLength()).isEqualTo(fileHeader.getFileNameLength());
+    assertThat(clonedFileHeader.getFileName()).isEqualTo(fileHeader.getFileName());
+    assertThat(clonedFileHeader.isEncrypted()).isEqualTo(fileHeader.isEncrypted());
+    assertThat(clonedFileHeader.getEncryptionMethod()).isEqualTo(fileHeader.getEncryptionMethod());
+    assertThat(clonedFileHeader.isDataDescriptorExists()).isEqualTo(fileHeader.isDataDescriptorExists());
+    assertThat(clonedFileHeader.getZip64ExtendedInfo()).isEqualTo(fileHeader.getZip64ExtendedInfo());
+    assertThat(clonedFileHeader.getAesExtraDataRecord()).isEqualTo(fileHeader.getAesExtraDataRecord());
+    assertThat(clonedFileHeader.isFileNameUTF8Encoded()).isEqualTo(fileHeader.isFileNameUTF8Encoded());
+    assertThat(clonedFileHeader.getExtraDataRecords()).isEqualTo(fileHeader.getExtraDataRecords());
+    assertThat(clonedFileHeader.isDirectory()).isEqualTo(fileHeader.isDirectory());
+    assertThat(clonedFileHeader.getVersionMadeBy()).isEqualTo(fileHeader.getVersionMadeBy());
+    assertThat(clonedFileHeader.getFileCommentLength()).isEqualTo(fileHeader.getFileCommentLength());
+    assertThat(clonedFileHeader.getDiskNumberStart()).isEqualTo(fileHeader.getDiskNumberStart());
+    assertThat(clonedFileHeader.getInternalFileAttributes()).isEqualTo(fileHeader.getInternalFileAttributes());
+    assertThat(clonedFileHeader.getExternalFileAttributes()).isEqualTo(fileHeader.getExternalFileAttributes());
+    assertThat(clonedFileHeader.getOffsetLocalHeader()).isEqualTo(fileHeader.getOffsetLocalHeader());
+    assertThat(clonedFileHeader.getFileComment()).isEqualTo(fileHeader.getFileComment());
+  }
+
   private void testVersionMadeBy(ZipParameters zipParameters, int expectedVersionMadeBy) {
     try {
       FileHeader fileHeader = fileHeaderFactory.generateFileHeader(zipParameters, false, 0, InternalZipConstants.CHARSET_UTF_8, rawIO);
@@ -323,6 +342,38 @@ public class FileHeaderFactoryTest {
     fileHeader.setGeneralPurposeFlag(new byte[] {2, 28});
     fileHeader.setDataDescriptorExists(true);
     fileHeader.setExtraFieldLength(190);
+    return fileHeader;
+  }
+
+  private FileHeader generateCompleteFileHeader() {
+    FileHeader fileHeader = generateFileHeader(System.currentTimeMillis());
+    fileHeader.setVersionMadeBy(10);
+    fileHeader.setFileComment("test");
+    fileHeader.setFileCommentLength(4);
+    fileHeader.setDiskNumberStart(2);
+    fileHeader.setInternalFileAttributes("Internal".getBytes());
+    fileHeader.setExternalFileAttributes("External".getBytes());
+    fileHeader.setOffsetLocalHeader(400);
+    fileHeader.setFileNameUTF8Encoded(true);
+    fileHeader.setDirectory(true);
+    fileHeader.setCompressionLevel(CompressionLevel.MAXIMUM);
+
+    AESExtraDataRecord aesExtraDataRecord = new AESExtraDataRecord();
+    aesExtraDataRecord.setSignature(HeaderSignature.AES_EXTRA_DATA_RECORD);
+    aesExtraDataRecord.setAesVersion(AesVersion.TWO);
+    aesExtraDataRecord.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+    fileHeader.setAesExtraDataRecord(aesExtraDataRecord);
+
+    Zip64ExtendedInfo zip64ExtendedInfo = new Zip64ExtendedInfo();
+    zip64ExtendedInfo.setSignature(HeaderSignature.ZIP64_EXTRA_FIELD_SIGNATURE);
+    zip64ExtendedInfo.setDiskNumberStart(2);
+    fileHeader.setZip64ExtendedInfo(zip64ExtendedInfo);
+
+    ExtraDataRecord extraDataRecord = new ExtraDataRecord();
+    extraDataRecord.setSignature(HeaderSignature.EXTRA_DATA_RECORD);
+    extraDataRecord.setSizeOfData(5);
+    extraDataRecord.setData("12345".getBytes());
+    fileHeader.setExtraDataRecords(Collections.singletonList(extraDataRecord));
     return fileHeader;
   }
 
@@ -383,10 +434,6 @@ public class FileHeaderFactoryTest {
     } else {
       assertThat(fileHeader.getExternalFileAttributes()).isEqualTo(new byte[4]);
     }
-
-
-
-
   }
 
   private void verifyCompressionMethod(FileHeader fileHeader, ZipParameters zipParameters) {
@@ -432,8 +479,7 @@ public class FileHeaderFactoryTest {
     } else if (CompressionLevel.FAST.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isFalse();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
-    } else if (CompressionLevel.FASTEST.equals(compressionLevel)
-        || CompressionLevel.ULTRA.equals(compressionLevel)) {
+    } else if (CompressionLevel.FASTEST.equals(compressionLevel)) {
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 1)).isTrue();
       assertThat(isBitSet(firstByteOfGeneralPurposeBytes, 2)).isTrue();
     } else {

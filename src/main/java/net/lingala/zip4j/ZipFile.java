@@ -17,6 +17,7 @@
 package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.headers.FileHeaderFactory;
 import net.lingala.zip4j.headers.HeaderReader;
 import net.lingala.zip4j.headers.HeaderUtil;
 import net.lingala.zip4j.headers.HeaderWriter;
@@ -66,6 +67,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.stream.Collectors;
 
 import static net.lingala.zip4j.util.FileUtils.isNumberedSplitFile;
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF_8;
@@ -100,6 +102,7 @@ public class ZipFile implements Closeable {
   private int bufferSize = InternalZipConstants.BUFF_SIZE;
   private List<InputStream> openInputStreams = new ArrayList<>();
   private boolean useUtf8CharsetForPasswords = InternalZipConstants.USE_UTF8_FOR_PASSWORD_ENCODING_DECODING;
+  private FileHeaderFactory fileHeaderFactory = new FileHeaderFactory();
 
   /**
    * Creates a new ZipFile instance with the zip file at the location specified in zipFile.
@@ -328,7 +331,7 @@ public class ZipFile implements Closeable {
    */
   public void addFiles(List<File> filesToAdd, ZipParameters parameters) throws ZipException {
 
-    if (filesToAdd == null || filesToAdd.size() == 0) {
+    if (filesToAdd == null || filesToAdd.isEmpty()) {
       throw new ZipException("input file List is null or empty");
     }
 
@@ -715,7 +718,11 @@ public class ZipFile implements Closeable {
     if (zipModel == null || zipModel.getCentralDirectory() == null) {
       return Collections.emptyList();
     }
-    return zipModel.getCentralDirectory().getFileHeaders();
+    List<FileHeader> fileHeaders = zipModel.getCentralDirectory().getFileHeaders();
+    return fileHeaders
+        .stream()
+        .map(fileHeader -> fileHeaderFactory.clone(fileHeader))
+        .collect(Collectors.toCollection(ArrayList::new));
   }
 
   /**
@@ -736,7 +743,7 @@ public class ZipFile implements Closeable {
       return null;
     }
 
-    return HeaderUtil.getFileHeader(zipModel, fileName);
+    return fileHeaderFactory.clone(HeaderUtil.getFileHeader(zipModel, fileName));
   }
 
   /**
