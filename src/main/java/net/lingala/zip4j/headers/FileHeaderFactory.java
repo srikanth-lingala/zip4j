@@ -1,10 +1,7 @@
 package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -15,6 +12,8 @@ import net.lingala.zip4j.util.RawIO;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import static net.lingala.zip4j.util.BitUtils.setBit;
 import static net.lingala.zip4j.util.BitUtils.unsetBit;
@@ -73,6 +72,9 @@ public class FileHeaderFactory {
     fileHeader.setGeneralPurposeFlag(determineGeneralPurposeBitFlag(fileHeader.isEncrypted(), zipParameters, charset));
     fileHeader.setDataDescriptorExists(zipParameters.isWriteExtendedLocalFileHeader());
     fileHeader.setFileComment(zipParameters.getFileComment());
+
+    addExtraDataRecordsFromZipParameters(zipParameters, fileHeader);
+
     return fileHeader;
   }
 
@@ -81,6 +83,7 @@ public class FileHeaderFactory {
     localFileHeader.setSignature(HeaderSignature.LOCAL_FILE_HEADER);
     localFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
     localFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
+    localFileHeader.setCompressionLevel(fileHeader.getCompressionLevel());
     localFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
     localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
     localFileHeader.setFileNameLength(fileHeader.getFileNameLength());
@@ -93,7 +96,43 @@ public class FileHeaderFactory {
     localFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
     localFileHeader.setDataDescriptorExists(fileHeader.isDataDescriptorExists());
     localFileHeader.setExtraFieldLength(fileHeader.getExtraFieldLength());
+    localFileHeader.setExtraDataRecords(fileHeader.getExtraDataRecords());
     return localFileHeader;
+  }
+
+  public FileHeader clone(FileHeader fileHeader) {
+    if (fileHeader == null) {
+      return null;
+    }
+
+    FileHeader cloneFileHeader = new FileHeader();
+    cloneFileHeader.setSignature(fileHeader.getSignature());
+    cloneFileHeader.setVersionNeededToExtract(fileHeader.getVersionNeededToExtract());
+    cloneFileHeader.setGeneralPurposeFlag(fileHeader.getGeneralPurposeFlag().clone());
+    cloneFileHeader.setCompressionMethod(fileHeader.getCompressionMethod());
+    cloneFileHeader.setCompressionLevel(fileHeader.getCompressionLevel());
+    cloneFileHeader.setLastModifiedTime(fileHeader.getLastModifiedTime());
+    cloneFileHeader.setCrc(fileHeader.getCrc());
+    cloneFileHeader.setCompressedSize(fileHeader.getCompressedSize());
+    cloneFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
+    cloneFileHeader.setFileNameLength(fileHeader.getFileNameLength());
+    cloneFileHeader.setFileName(fileHeader.getFileName());
+    cloneFileHeader.setEncrypted(fileHeader.isEncrypted());
+    cloneFileHeader.setEncryptionMethod(fileHeader.getEncryptionMethod());
+    cloneFileHeader.setDataDescriptorExists(fileHeader.isDataDescriptorExists());
+    cloneFileHeader.setZip64ExtendedInfo(fileHeader.getZip64ExtendedInfo());
+    cloneFileHeader.setAesExtraDataRecord(fileHeader.getAesExtraDataRecord());
+    cloneFileHeader.setFileNameUTF8Encoded(fileHeader.isFileNameUTF8Encoded());
+    cloneFileHeader.setExtraDataRecords(fileHeader.getExtraDataRecords());
+    cloneFileHeader.setDirectory(fileHeader.isDirectory());
+    cloneFileHeader.setVersionMadeBy(fileHeader.getVersionMadeBy());
+    cloneFileHeader.setFileCommentLength(fileHeader.getFileCommentLength());
+    cloneFileHeader.setDiskNumberStart(fileHeader.getDiskNumberStart());
+    cloneFileHeader.setInternalFileAttributes(fileHeader.getInternalFileAttributes());
+    cloneFileHeader.setExternalFileAttributes(fileHeader.getExternalFileAttributes());
+    cloneFileHeader.setOffsetLocalHeader(fileHeader.getOffsetLocalHeader());
+    cloneFileHeader.setFileComment(fileHeader.getFileComment());
+    return cloneFileHeader;
   }
 
   private byte[] determineGeneralPurposeBitFlag(boolean isEncrypted, ZipParameters zipParameters, Charset charset) {
@@ -124,8 +163,7 @@ public class FileHeaderFactory {
       } else if (CompressionLevel.FAST.equals(zipParameters.getCompressionLevel())) {
         firstByte = unsetBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
-      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())
-          || CompressionLevel.ULTRA.equals(zipParameters.getCompressionLevel())) {
+      } else if (CompressionLevel.FASTEST.equals(zipParameters.getCompressionLevel())) {
         firstByte = setBit(firstByte, 1);
         firstByte = setBit(firstByte, 2);
       }
@@ -168,5 +206,20 @@ public class FileHeaderFactory {
 
   private int determineFileNameLength(String fileName, Charset charset) {
     return HeaderUtil.getBytesFromString(fileName, charset).length;
+  }
+
+  private void addExtraDataRecordsFromZipParameters(ZipParameters parameters, FileHeader fileHeader)
+      throws ZipException {
+
+    if (parameters.getExtraDataRecords() == null || parameters.getExtraDataRecords().isEmpty()) {
+      return;
+    }
+
+    if (fileHeader.getExtraDataRecords() != null && !fileHeader.getExtraDataRecords().isEmpty()) {
+      fileHeader.getExtraDataRecords().addAll(parameters.getExtraDataRecords());
+    } else {
+      fileHeader.setExtraDataRecords(parameters.getExtraDataRecords());
+    }
+
   }
 }

@@ -32,10 +32,7 @@ import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
 import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
 import net.lingala.zip4j.model.Zip64ExtendedInfo;
 import net.lingala.zip4j.model.ZipModel;
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.util.RawIO;
 
 import java.io.IOException;
@@ -162,6 +159,7 @@ public class HeaderReader {
       fileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
       fileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
       fileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
+      fileHeader.setCompressionLevel(determineCompressionLevel(generalPurposeFlags[0]));
 
       fileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(rawIO.readShortLittleEndian(
           zip4jRaf)));
@@ -539,6 +537,7 @@ public class HeaderReader {
     localFileHeader.setDataDescriptorExists(isBitSet(generalPurposeFlags[0], 3));
     localFileHeader.setFileNameUTF8Encoded(isBitSet(generalPurposeFlags[1], 3));
     localFileHeader.setGeneralPurposeFlag(generalPurposeFlags.clone());
+    localFileHeader.setCompressionLevel(determineCompressionLevel(generalPurposeFlags[0]));
 
     localFileHeader.setCompressionMethod(CompressionMethod.getCompressionMethodFromCode(
         rawIO.readShortLittleEndian(inputStream)));
@@ -741,5 +740,19 @@ public class HeaderReader {
     }
 
     return fileName != null && (fileName.endsWith("/") || fileName.endsWith("\\"));
+  }
+
+  private CompressionLevel determineCompressionLevel(byte generalPurposeFlag) {
+    boolean isFirstBitSet = isBitSet(generalPurposeFlag, 1);
+    boolean isSecondBitSet = isBitSet(generalPurposeFlag, 2);
+    if (!isFirstBitSet && !isSecondBitSet) {
+      return CompressionLevel.NORMAL;
+    } else if (!isSecondBitSet) {
+      return CompressionLevel.MAXIMUM;
+    } else if (!isFirstBitSet) {
+      return CompressionLevel.FAST;
+    } else  {
+      return CompressionLevel.FASTEST;
+    }
   }
 }
