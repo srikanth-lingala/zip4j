@@ -2,10 +2,7 @@ package net.lingala.zip4j.tasks;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.UnzipParameters;
-import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.UnzipUtil;
@@ -15,6 +12,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -170,8 +169,34 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     if (!fileHeader.getFileName().equals(localFileHeader.getFileName())) {
+      String fileHeaderFileName = getFileFixedName(fileHeader);
+      String localFileHeaderFileName = getFileFixedName(localFileHeader);
+
+      if (fileHeaderFileName != null && localFileHeaderFileName != null) {
+        if (!fileHeaderFileName.equals(localFileHeaderFileName)) {
+          throw new ZipException("File header and local file header mismatch (even with UTF-8 names)");
+        }
+      }
+
       throw new ZipException("File header and local file header mismatch");
     }
+  }
+
+  private String getFileFixedName(AbstractFileHeader fileHeader) {
+    if (fileHeader.getExtraDataRecords() != null) {
+      for (ExtraDataRecord extraDataRecord : fileHeader.getExtraDataRecords()) {
+        long identifier = extraDataRecord.getHeader();
+        if (identifier == 0x7075) {
+          byte[] bytes = extraDataRecord.getData();
+          ByteBuffer buffer = ByteBuffer.wrap(bytes);
+          byte version = buffer.get();
+          if (version == 1) {
+              return new String(bytes, 5, bytes.length - 5, StandardCharsets.UTF_8);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private void checkOutputDirectoryStructure(File outputFile) throws ZipException {

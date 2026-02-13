@@ -11,6 +11,7 @@ import net.lingala.zip4j.tasks.ExtractAllFilesTask.ExtractAllFilesTaskParameters
 import net.lingala.zip4j.util.UnzipUtil;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static net.lingala.zip4j.headers.HeaderUtil.getTotalUncompressedSizeOfAllFileHeaders;
 
@@ -18,11 +19,20 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
 
   private final char[] password;
   private SplitFileInputStream splitInputStream;
+  private final Map<String, String> newFileNameMap;
 
   public ExtractAllFilesTask(ZipModel zipModel, char[] password, UnzipParameters unzipParameters,
                              AsyncTaskParameters asyncTaskParameters) {
     super(zipModel, unzipParameters, asyncTaskParameters);
     this.password = password;
+    this.newFileNameMap = null;
+  }
+
+  public ExtractAllFilesTask(ZipModel zipModel, char[] password, Map<String, String> newFileNameMap, UnzipParameters unzipParameters,
+                             AsyncTaskParameters asyncTaskParameters) {
+    super(zipModel, unzipParameters, asyncTaskParameters);
+    this.password = password;
+    this.newFileNameMap = newFileNameMap;
   }
 
   @Override
@@ -38,7 +48,7 @@ public class ExtractAllFilesTask extends AbstractExtractFileTask<ExtractAllFiles
         splitInputStream.prepareExtractionForFileHeader(fileHeader);
 
         byte[] readBuff = new byte[taskParameters.zip4jConfig.getBufferSize()];
-        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, null, progressMonitor, readBuff);
+        extractFile(zipInputStream, fileHeader, taskParameters.outputPath, newFileNameMap != null ? newFileNameMap.get(fileHeader.getFileName()) : null, progressMonitor, readBuff);
         verifyIfTaskIsCancelled();
       }
     } finally {
