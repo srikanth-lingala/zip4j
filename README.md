@@ -1,5 +1,5 @@
-[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
+[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)net.lingala.zip4j
+![Maven Central Version](https://img.shields.io/maven-central/v/net.lingala.zip4j/zip4j)
 
 [![Build Status](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml/badge.svg)](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml)
 [![Android Build Status](https://circleci.com/gh/srikanth-lingala/zip4j-android-test.svg?style=svg)](https://circleci.com/gh/srikanth-lingala/zip4j-android-test)
