@@ -8,10 +8,7 @@ import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.LocalFileHeader;
 import net.lingala.zip4j.model.Zip4jConfig;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.AesKeyStrength;
-import net.lingala.zip4j.model.enums.AesVersion;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
+import net.lingala.zip4j.model.enums.*;
 import net.lingala.zip4j.testutils.TestUtils;
 import net.lingala.zip4j.util.BitUtils;
 import net.lingala.zip4j.util.FileUtils;
@@ -332,6 +329,33 @@ public class ZipOutputStreamIT extends AbstractIT {
 
     verifyZipFileByExtractingAllFiles(generatedZipFile, PASSWORD, outputFolder, 1, true);
     extractZipFileWithInputStream(generatedZipFile);
+  }
+
+  @Test
+  public void testZipOutputStreamWithFastCompressionLevel() throws IOException {
+    byte[] buffer = new byte[InternalZipConstants.BUFF_SIZE];
+    int readLen;
+    File fileToAdd = getTestFileFromResources("file_PDF_1MB.pdf");
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedZipFile.toPath()))) {
+      ZipParameters zipParameters = new ZipParameters();
+      zipParameters.setFileNameInZip(fileToAdd.getName());
+      zipParameters.setCompressionLevel(CompressionLevel.FAST);
+      zipOutputStream.putNextEntry(zipParameters);
+      try (InputStream inputStream = Files.newInputStream(fileToAdd.toPath())) {
+        while ((readLen = inputStream.read(buffer)) != -1) {
+          zipOutputStream.write(buffer, 0, readLen);
+        }
+      }
+    }
+
+    verifyZipFileByExtractingAllFiles(generatedZipFile, null, outputFolder, 1, true);
+    LocalFileHeader lfh;
+    try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(generatedZipFile.toPath()))) {
+      lfh = zipInputStream.getNextEntry();
+      byte firstGeneralPurposeByte = lfh.getGeneralPurposeFlag()[0];
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 1)).isFalse();
+      assertThat(BitUtils.isBitSet(firstGeneralPurposeByte, 2)).isTrue();
+    }
   }
 
   private void testZipOutputStream(CompressionMethod compressionMethod, boolean encrypt,

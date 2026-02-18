@@ -1,5 +1,5 @@
-[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.lingala.zip4j/zip4j)
+[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)net.lingala.zip4j
+![Maven Central Version](https://img.shields.io/maven-central/v/net.lingala.zip4j/zip4j)
 
 [![Build Status](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml/badge.svg)](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml)
 [![Android Build Status](https://circleci.com/gh/srikanth-lingala/zip4j-android-test.svg?style=svg)](https://circleci.com/gh/srikanth-lingala/zip4j-android-test)
@@ -71,7 +71,7 @@ Zip4j supports JDK 7 as well. In cases where the feature/class from JDK 8 is mis
 <dependency>
     <groupId>net.lingala.zip4j</groupId>
     <artifactId>zip4j</artifactId>
-    <version>2.11.5</version>
+    <version>2.11.6</version>
 </dependency>
 ```
 
@@ -537,6 +537,15 @@ public class ZipInputStreamExample {
     }
   }
 }
+```
+
+### Adding an empty folder with ZipOutputStream
+
+```java
+// To add an empty folder to the zip, make sure the name ends with a /
+zipParameters.setFileNameInZip("empty folder/");
+zipOutputStream.putNextEntry(zipParameters);
+zipOutputStream.closeEntry();
 ```
 
 ## Working with Progress Monitor
