@@ -22,6 +22,9 @@ import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Encapsulates the parameters that that control how Zip4J encodes data
  */
@@ -66,6 +69,7 @@ public class ZipParameters {
   private SymbolicLinkAction symbolicLinkAction = SymbolicLinkAction.INCLUDE_LINKED_FILE_ONLY;
   private ExcludeFileFilter excludeFileFilter;
   private boolean unixMode;
+  private List<ExtraDataRecord> extraDataRecords = new ArrayList<>();
 
   /**
    * Create a ZipParameters instance with default values;
@@ -103,6 +107,7 @@ public class ZipParameters {
     this.symbolicLinkAction = zipParameters.getSymbolicLinkAction();
     this.excludeFileFilter = zipParameters.getExcludeFileFilter();
     this.unixMode = zipParameters.isUnixMode();
+    this.extraDataRecords = zipParameters.getExtraDataRecords();
   }
 
   /**
@@ -412,5 +417,13 @@ public void setEncryptFiles(boolean encryptFiles) {
    */
   public void setUnixMode(boolean unixMode) {
     this.unixMode = unixMode;
+  }
+
+  public List<ExtraDataRecord> getExtraDataRecords() {
+    return extraDataRecords;
+  }
+
+  public void setExtraDataRecords(List<ExtraDataRecord> extraDataRecords) {
+    this.extraDataRecords = extraDataRecords;
   }
 }

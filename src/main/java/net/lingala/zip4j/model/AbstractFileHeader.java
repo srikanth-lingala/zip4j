@@ -1,5 +1,6 @@
 package net.lingala.zip4j.model;
 
+import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.util.Zip4jUtil;
@@ -11,6 +12,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private int versionNeededToExtract;
   private byte[] generalPurposeFlag;
   private CompressionMethod compressionMethod;
+  private CompressionLevel compressionLevel;
   private long lastModifiedTime;
   private long crc = 0;
   private long compressedSize = 0;
@@ -26,6 +28,7 @@ public abstract class AbstractFileHeader extends ZipHeader {
   private boolean fileNameUTF8Encoded;
   private List<ExtraDataRecord> extraDataRecords;
   private boolean isDirectory;
+  // FileHeaderFactory.clone() method has to be modified if any new fields are added here
 
   public int getVersionNeededToExtract() {
     return versionNeededToExtract;
@@ -49,6 +52,14 @@ public abstract class AbstractFileHeader extends ZipHeader {
 
   public void setCompressionMethod(CompressionMethod compressionMethod) {
     this.compressionMethod = compressionMethod;
+  }
+
+  public CompressionLevel getCompressionLevel() {
+    return compressionLevel;
+  }
+
+  public void setCompressionLevel(CompressionLevel compressionLevel) {
+    this.compressionLevel = compressionLevel;
   }
 
   public long getLastModifiedTime() {
