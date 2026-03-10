@@ -1108,10 +1108,22 @@ public class ZipFile implements Closeable {
    */
   @Override
   public void close() throws IOException {
-    for (InputStream inputStream : openInputStreams) {
-      inputStream.close();
-    }
-    openInputStreams.clear();
+      IOException first = null;
+      for (InputStream inputStream : openInputStreams) {
+          try {
+              inputStream.close();
+          } catch (IOException e) {
+              if (first == null) {
+                  first = e;
+              } else {
+                  first.addSuppressed(e);
+              }
+          }
+      }
+      openInputStreams.clear();
+      if (first != null) {
+          throw first;
+      }
   }
 
   /**
