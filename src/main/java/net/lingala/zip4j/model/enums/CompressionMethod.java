@@ -18,6 +18,11 @@ public enum CompressionMethod {
    */
   DEFLATE(8),
   /**
+   * The Deflate enhanced or deflate64 compression is used.
+   * @see org.apache.commons.compress.compressors.deflate64.Deflate64CompressorInputStream
+   */
+  DEFLATE64(9),
+  /**
    * For internal use in Zip4J
    */
   AES_INTERNAL_ONLY(99);

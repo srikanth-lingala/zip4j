@@ -270,8 +270,15 @@ public class ZipInputStream extends InputStream {
                                                                      LocalFileHeader localFileHeader) throws ZipException {
     CompressionMethod compressionMethod = getCompressionMethod(localFileHeader);
 
-    if (compressionMethod == CompressionMethod.DEFLATE) {
-      return new InflaterInputStream(cipherInputStream, zip4jConfig.getBufferSize());
+    if (compressionMethod != null) {
+      switch (compressionMethod) {
+        case DEFLATE:
+          return new InflaterInputStream(cipherInputStream, zip4jConfig.getBufferSize());
+        case DEFLATE64:
+          return new Inflater64InputStream(cipherInputStream, zip4jConfig.getBufferSize());
+        default:
+          // do nothing
+      }
     }
 
     return new StoreInputStream(cipherInputStream);

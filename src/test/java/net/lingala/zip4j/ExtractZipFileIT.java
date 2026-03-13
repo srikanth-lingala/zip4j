@@ -531,6 +531,14 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testExtractZipFileDeflate64() throws IOException {
+    ZipFile zipFile = new ZipFile(getTestArchiveFromResources("archive_deflate64_1_file.zip"));
+    zipFile.extractAll(outputFolder.getPath());
+    assertThat(outputFolder.listFiles()).contains(
+            new File(outputFolder, "test-simple.pdf"));
+  }
+
+  @Test
   public void testExtractZipFileOf7ZipFormatSplitWithoutEncryption() throws IOException {
     List<File> filesToAddToZip = new ArrayList<>(FILES_TO_ADD);
     filesToAddToZip.add(0, getTestFileFromResources("file_PDF_1MB.pdf"));

@@ -216,9 +216,16 @@ public class ZipOutputStream extends OutputStream {
   }
 
   private CompressedOutputStream initializeCompressedOutputStream(CipherOutputStream<?> cipherOutputStream,
-                                                                  ZipParameters zipParameters) {
-    if (zipParameters.getCompressionMethod() == CompressionMethod.DEFLATE) {
-      return new DeflaterOutputStream(cipherOutputStream, zipParameters.getCompressionLevel(), zip4jConfig.getBufferSize());
+                                                                  ZipParameters zipParameters) throws ZipException {
+    if (zipParameters.getCompressionMethod() != null) {
+      switch (zipParameters.getCompressionMethod()) {
+        case DEFLATE:
+          return new DeflaterOutputStream(cipherOutputStream, zipParameters.getCompressionLevel(), zip4jConfig.getBufferSize());
+        case DEFLATE64:
+          throw new ZipException("Deflate64 not supported for compression");
+        default:
+          // do nothing
+      }
     }
 
     return new StoreOutputStream(cipherOutputStream);

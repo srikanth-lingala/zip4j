@@ -29,7 +29,7 @@ import java.util.List;
 import static net.lingala.zip4j.headers.HeaderUtil.getFileHeader;
 import static net.lingala.zip4j.model.ZipParameters.SymbolicLinkAction.INCLUDE_LINK_AND_LINKED_FILE;
 import static net.lingala.zip4j.model.ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY;
-import static net.lingala.zip4j.model.enums.CompressionMethod.DEFLATE;
+import static net.lingala.zip4j.model.enums.CompressionMethod.AES_INTERNAL_ONLY;
 import static net.lingala.zip4j.model.enums.CompressionMethod.STORE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.NONE;
 import static net.lingala.zip4j.model.enums.EncryptionMethod.ZIP_STANDARD;
@@ -175,7 +175,7 @@ public abstract class AbstractAddFileToZipTask<T> extends AsyncZipTask<T> {
       throw new ZipException("cannot validate zip parameters");
     }
 
-    if (parameters.getCompressionMethod() != STORE && parameters.getCompressionMethod() != DEFLATE) {
+    if (parameters.getCompressionMethod() == null || parameters.getCompressionMethod() == AES_INTERNAL_ONLY) {
       throw new ZipException("unsupported compression type");
     }
 
