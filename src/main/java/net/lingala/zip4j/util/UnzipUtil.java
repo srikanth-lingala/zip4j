@@ -41,10 +41,13 @@ public class UnzipUtil {
   }
 
   public static void applyFileAttributes(FileHeader fileHeader, File file) {
-
-    try {
       Path path = file.toPath();
       setFileAttributes(path, fileHeader.getExternalFileAttributes());
+  }
+
+  public static void applyLastModifiedTime(FileHeader fileHeader, File file) {
+    try {
+      Path path = file.toPath();
       setFileLastModifiedTime(path, fileHeader.getLastModifiedTime());
     } catch (NoSuchMethodError e) {
       setFileLastModifiedTimeWithoutNio(file, fileHeader.getLastModifiedTime());

@@ -67,7 +67,10 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     if (!isSymbolicLink) {
-      UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+      if (unzipParameters.setFileAttributes()) {
+        UnzipUtil.applyFileAttributes(fileHeader, outputFile);
+      }
+      UnzipUtil.applyLastModifiedTime(fileHeader, outputFile);
     }
   }
 
