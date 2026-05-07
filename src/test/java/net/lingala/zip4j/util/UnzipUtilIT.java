@@ -56,10 +56,8 @@ public class UnzipUtilIT extends AbstractIT {
   @Test
   public void testApplyFileAttributes() {
     byte[] externalFileAttributes = new byte[] {12, 34, 0, 0};
-    long currentTime = System.currentTimeMillis();
     FileHeader fileHeader = new FileHeader();
     fileHeader.setExternalFileAttributes(externalFileAttributes);
-    fileHeader.setLastModifiedTime(currentTime);
 
     File file = mock(File.class);
     Path path = mock(Path.class);
@@ -70,18 +68,31 @@ public class UnzipUtilIT extends AbstractIT {
     UnzipUtil.applyFileAttributes(fileHeader, file);
 
     verifyStatic(FileUtils.class);
-    FileUtils.setFileLastModifiedTime(path, currentTime);
-
-    verifyStatic(FileUtils.class);
     FileUtils.setFileAttributes(path, externalFileAttributes);
   }
 
   @Test
-  public void testApplyFileFileAttributesSetsLastModifiedTimeWithoutNio() {
-    byte[] externalFileAttributes = new byte[] {12, 34, 0, 0};
+  public void testApplyFileLastModifiedTime() {
     long currentTime = System.currentTimeMillis();
     FileHeader fileHeader = new FileHeader();
-    fileHeader.setExternalFileAttributes(externalFileAttributes);
+    fileHeader.setLastModifiedTime(currentTime);
+
+    File file = mock(File.class);
+    Path path = mock(Path.class);
+    when(file.toPath()).thenReturn(path);
+
+    PowerMockito.mockStatic(FileUtils.class);
+
+    UnzipUtil.applyLastModifiedTime(fileHeader, file);
+
+    verifyStatic(FileUtils.class);
+    FileUtils.setFileLastModifiedTime(path, currentTime);
+  }
+
+  @Test
+  public void testApplyFileFileAttributesSetsLastModifiedTimeWithoutNio() {
+    long currentTime = System.currentTimeMillis();
+    FileHeader fileHeader = new FileHeader();
     fileHeader.setLastModifiedTime(currentTime);
 
     File file = mock(File.class);
@@ -90,13 +101,10 @@ public class UnzipUtilIT extends AbstractIT {
 
     PowerMockito.mockStatic(FileUtils.class);
 
-    UnzipUtil.applyFileAttributes(fileHeader, file);
+    UnzipUtil.applyLastModifiedTime(fileHeader, file);
 
     verifyStatic(FileUtils.class, never());
     FileUtils.setFileLastModifiedTime(path, currentTime);
-
-    verifyStatic(FileUtils.class, never());
-    FileUtils.setFileAttributes(path, externalFileAttributes);
 
     verifyStatic(FileUtils.class);
     FileUtils.setFileLastModifiedTimeWithoutNio(file, currentTime);
