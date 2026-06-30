@@ -1,5 +1,5 @@
-[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)net.lingala.zip4j
-![Maven Central Version](https://img.shields.io/maven-central/v/net.lingala.zip4j/zip4j)
+[![javadoc](https://javadoc.io/badge2/net.lingala.zip4j/zip4j/javadoc.svg)](https://javadoc.io/doc/net.lingala.zip4j/zip4j)
+[![Maven Central Version](https://img.shields.io/maven-central/v/net.lingala.zip4j/zip4j)](https://central.sonatype.com/artifact/net.lingala.zip4j/zip4j)
 
 [![Build Status](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml/badge.svg)](https://github.com/srikanth-lingala/zip4j/actions/workflows/maven.yml)
 [![Android Build Status](https://circleci.com/gh/srikanth-lingala/zip4j-android-test.svg?style=svg)](https://circleci.com/gh/srikanth-lingala/zip4j-android-test)
@@ -634,7 +634,7 @@ I am pretty sure that there are things to be improved), please let me know by op
 [3]: https://stackoverflow.com/questions/166340/recommendations-on-a-free-library-to-be-used-for-zipping-files
 [4]: https://stackoverflow.com/questions/18201279/file-compression-library-for-java/18201553
 [5]: https://www.baeldung.com/java-compress-and-uncompress
-[6]: https://mvnrepository.com/artifact/net.lingala.zip4j/zip4j
+[6]: https://central.sonatype.com/artifact/net.lingala.zip4j/zip4j
 [7]: https://javadoc.io/doc/net.lingala.zip4j/zip4j/latest/net/lingala/zip4j/model/ZipParameters.html#ZipParameters--
 [8]: https://www.baeldung.com/java-storing-passwords
 [9]: https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
