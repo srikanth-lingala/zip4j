@@ -31,6 +31,7 @@ import static net.lingala.zip4j.testutils.TestUtils.getFileNamesOfFiles;
 import static net.lingala.zip4j.testutils.TestUtils.getTestFileFromResources;
 import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 public class MiscZipFileIT extends AbstractIT {
@@ -462,6 +463,84 @@ public class MiscZipFileIT extends AbstractIT {
     zipFile.addFiles(FILES_TO_ADD);
     zipFile.extractAll(new File(outputFolder.getPath(),
             ".." + InternalZipConstants.FILE_SEPARATOR + outputFolder.getName()).getAbsolutePath());
+  }
+
+  @Test
+  public void testZipSlipFileDotEntryIsRoot() throws IOException {
+    ZipFile zip = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip(".");
+    zip.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"), zipParameters);
+
+    assertThatThrownBy(() -> zip.extractAll(outputFolder.getAbsolutePath()))
+        .isInstanceOf(ZipException.class)
+        .hasMessage("illegal file name that refers to output directory itself: .");
+
+    // Output folder should not have been modified
+    assertThat(outputFolder).isEmptyDirectory();
+  }
+
+  @Test
+  public void testZipSlipFileEntryWithParentIsRoot() throws IOException {
+    ZipFile zip = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("file/..");
+    zip.addFile(TestUtils.getTestFileFromResources("sample_text1.txt"), zipParameters);
+
+    assertThatThrownBy(() -> zip.extractAll(outputFolder.getAbsolutePath()))
+        .isInstanceOf(ZipException.class)
+        .message().isIn(
+            "illegal file name that refers to output directory itself: file/..",
+            // On Linux `File#isDirectory()` is false for 'file/..', so this triggers the regular Zip Slip exception
+            "illegal file name that breaks out of the target directory: file/.."
+        );
+
+    // Output folder should not have been modified
+    assertThat(outputFolder).isEmptyDirectory();
+  }
+
+  @Test
+  public void testZipSlipDirEntryWithParentIsRoot() throws IOException {
+    ZipFile zip = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("dir/../");
+    File emptyFolder = temporaryFolder.newFolder();
+    zip.addFolder(emptyFolder, zipParameters);
+
+    assertThatThrownBy(() -> zip.extractAll(outputFolder.getAbsolutePath()))
+        .isInstanceOf(ZipException.class)
+        .message().isIn(
+            "illegal file name that refers to output directory itself: dir/../",
+            // On Linux `File#isDirectory()` is false for 'dir/../', so this triggers the regular Zip Slip exception
+            "illegal file name that breaks out of the target directory: dir/../"
+        );
+
+    // Output folder should not have been modified
+    assertThat(outputFolder).isEmptyDirectory();
+  }
+
+  /**
+   * Tests how a {@code '/'} entry is processed.
+   * It should simply be ignored, without causing any modifications (e.g. permission changes) to the output directory.
+   */
+  @Test
+  public void testRootDirEntry() throws IOException {
+    ZipFile zip = new ZipFile(generatedZipFile);
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("/");
+    File emptyFolder = temporaryFolder.newFolder();
+    zip.addFolder(emptyFolder, zipParameters);
+
+    // Note: Ideally also verify that file permissions cannot be changed, but cannot easily create a ZIP file
+    // here whose entry has custom file permissions
+    zip.extractAll(outputFolder.getPath());
+
+    // Output folder should not have been modified
+    assertThat(outputFolder).isEmptyDirectory();
   }
 
   @Test

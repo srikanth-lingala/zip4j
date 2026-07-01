@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.util.InternalZipConstants;
 import net.lingala.zip4j.util.UnzipUtil;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -47,9 +48,10 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
 
     File outputFile = determineOutputFile(fileHeader, outputPath, newFileName);
+    if (outputFile == null) {
+      return;
+    }
     progressMonitor.setFileName(outputFile.getAbsolutePath());
-
-    assertCanonicalPathsAreSame(outputFile, outputPath, fileHeader);
 
     verifyNextEntry(zipInputStream, fileHeader);
 
@@ -68,26 +70,6 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
     if (!isSymbolicLink) {
       UnzipUtil.applyFileAttributes(fileHeader, outputFile);
-    }
-  }
-
-  private void assertCanonicalPathsAreSame(File outputFile, String outputPath, FileHeader fileHeader)
-      throws IOException {
-
-    String outputFileCanonicalPath = outputFile.getCanonicalPath();
-    if (outputFile.isDirectory() && !outputFileCanonicalPath.endsWith(FILE_SEPARATOR)) {
-      outputFileCanonicalPath = outputFileCanonicalPath + FILE_SEPARATOR;
-    }
-
-    String outputCanonicalPath = (new File(outputPath).getCanonicalPath());
-    if (!outputCanonicalPath.endsWith(FILE_SEPARATOR)) {
-      outputCanonicalPath += FILE_SEPARATOR;
-    }
-
-    // make sure no file is extracted outside the target directory (a.k.a. zip slip)
-    if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
-      throw new ZipException("illegal file name that breaks out of the target directory: "
-          + fileHeader.getFileName());
     }
   }
 
@@ -180,12 +162,58 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     }
   }
 
-  private File determineOutputFile(FileHeader fileHeader, String outputPath, String newFileName) {
+  /**
+   * Determines the resolved output file path inside the {@code outputPath} directory.
+   * The file name being used is either {@code newFileName} or if null or empty it is the entry name from the
+   * {@code fileHeader}.
+   *
+   * <p>An exception is thrown if the resolved file path escapes the output directory.
+   *
+   * @throws IOException if resolving the path fails, or if the path escapes the output directory
+   * @return the resolved file path, or {@code null} if the file should be skipped
+   */
+  private File determineOutputFile(FileHeader fileHeader, String outputPath, String newFileName) throws IOException {
     String outputFileName = fileHeader.getFileName();
     if (Zip4jUtil.isStringNotNullAndNotEmpty(newFileName)) {
       outputFileName = newFileName;
     }
-    return new File(outputPath, getFileNameWithSystemFileSeparators(outputFileName));
+    File outputFile = new File(outputPath, getFileNameWithSystemFileSeparators(outputFileName));
+
+    // Perform validation
+    {
+      String outputFileCanonicalPath = outputFile.getCanonicalPath();
+      // Appending FILE_SEPARATOR both for the output directory and the output file is necessary:
+      // - to detect Zip Slip into sibling directory with same prefix, e.g. `outdir-sibling/file.txt` instead of `outdir/`
+      // - on Windows because there are quirks where `getCanonicalPath()` for the same path can have a trailing slash
+      //   in one case and is missing it in another case, e.g. `new File(dir, " ").getCanonicalPath()` refers to the
+      //   same directory as `dir` but has an unexpected trailing '\'
+      if (outputFile.isDirectory() && !outputFileCanonicalPath.endsWith(FILE_SEPARATOR)) {
+        outputFileCanonicalPath += FILE_SEPARATOR;
+      }
+
+      String outputCanonicalPath = (new File(outputPath).getCanonicalPath());
+      if (!outputCanonicalPath.endsWith(FILE_SEPARATOR)) {
+        outputCanonicalPath += FILE_SEPARATOR;
+      }
+
+      // make sure no file is extracted outside the target directory (a.k.a. zip slip)
+      if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
+        throw new ZipException("illegal file name that breaks out of the target directory: "
+                + outputFileName);
+      }
+
+      if (outputFileCanonicalPath.equals(outputCanonicalPath)) {
+        // Assume a redundant `/` entry is non-malicious but skip processing it to avoid modifying output
+        // directory in some way (e.g. changing file permissions)
+        if (outputFileName.equals(InternalZipConstants.ZIP_FILE_SEPARATOR)) {
+          return null;
+        }
+
+        throw new ZipException("illegal file name that refers to output directory itself: " + outputFileName);
+      }
+    }
+
+    return outputFile;
   }
 
   private String getFileNameWithSystemFileSeparators(String fileNameToReplace) {
