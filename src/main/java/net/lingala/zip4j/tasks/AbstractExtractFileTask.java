@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipModel;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.BitUtils;
+import net.lingala.zip4j.util.FileUtils;
 import net.lingala.zip4j.util.UnzipUtil;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -103,6 +104,12 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
 
   private void unzipFile(ZipInputStream inputStream, File outputFile, ProgressMonitor progressMonitor, byte[] buff)
       throws IOException {
+
+    // a symlink extracted by an earlier entry may point outside the output path, replace it instead of writing
+    // through it (a dangling symlink is not resolved by getCanonicalPath, so the zip slip check does not catch it)
+    if (FileUtils.isSymbolicLink(outputFile) && !outputFile.delete()) {
+      throw new ZipException("Could not delete existing symlink " + outputFile);
+    }
 
     int readLength;
     try (OutputStream outputStream = new FileOutputStream(outputFile)) {

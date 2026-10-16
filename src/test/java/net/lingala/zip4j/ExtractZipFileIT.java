@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -343,6 +344,28 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(symlinkToFile).isSymbolicLink();
     assertThat(Files.readSymbolicLink(symlinkToDir)).isEqualTo(aDirectory.getFileName());
     assertThat(Files.readSymbolicLink(symlinkToFile)).isEqualTo(aFile.getFileName());
+  }
+
+  @Test
+  public void testExtractAllDoesNotWriteThroughDanglingSymlinkFromEarlierEntry() throws IOException {
+    File fileOutsideOutputFolder = temporaryFolder.newFile("outside.txt");
+    assertThat(fileOutsideOutputFolder.delete()).isTrue();
+    File danglingSymlink = TestUtils.createSymlink(fileOutsideOutputFolder, temporaryFolder.getRoot());
+
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+    zipFile.addFile(danglingSymlink, zipParameters);
+    zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("./" + danglingSymlink.getName());
+    zipFile.addStream(new ByteArrayInputStream("content".getBytes()), zipParameters);
+
+    zipFile.extractAll(outputFolder.getPath());
+
+    assertThat(fileOutsideOutputFolder).doesNotExist();
+    File extractedFile = new File(outputFolder, danglingSymlink.getName());
+    assertThat(Files.isSymbolicLink(extractedFile.toPath())).isFalse();
+    assertThat(extractedFile).hasContent("content");
   }
 
   @Test
