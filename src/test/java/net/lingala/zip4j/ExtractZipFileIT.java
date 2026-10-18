@@ -2,6 +2,7 @@ package net.lingala.zip4j;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipParameters;
@@ -16,8 +17,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -343,6 +346,43 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(symlinkToFile).isSymbolicLink();
     assertThat(Files.readSymbolicLink(symlinkToDir)).isEqualTo(aDirectory.getFileName());
     assertThat(Files.readSymbolicLink(symlinkToFile)).isEqualTo(aFile.getFileName());
+  }
+
+  @Test
+  public void testExtractAllThrowsExceptionWhenAesMacOfSymlinkEntryDoesNotMatch() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    zipParameters.setFileNameInZip("symlink.link");
+    zipParameters.setEntrySize(6);
+    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(generatedZipFile), PASSWORD)) {
+      zipOutputStream.putNextEntry(zipParameters);
+      zipOutputStream.write("target".getBytes());
+      zipOutputStream.closeEntry();
+    }
+
+    try (RandomAccessFile randomAccessFile = new RandomAccessFile(generatedZipFile, "rw")) {
+      // mark the entry as a symlink (unix mode 0120777) in the external file attributes of its central directory
+      // header, as archivers which encrypt symlink entries do
+      randomAccessFile.seek(randomAccessFile.length() - 22 + 16);
+      long centralDirectoryOffset = Integer.reverseBytes(randomAccessFile.readInt()) & 0xFFFFFFFFL;
+      randomAccessFile.seek(centralDirectoryOffset + 40);
+      randomAccessFile.write(new byte[] {(byte) 0xFF, (byte) 0xA1});
+
+      // flip a bit in the first encrypted byte, after the 16 byte salt and 2 byte password verifier
+      randomAccessFile.seek(26);
+      int fileNameLength = randomAccessFile.read() | (randomAccessFile.read() << 8);
+      int extraFieldLength = randomAccessFile.read() | (randomAccessFile.read() << 8);
+      long firstEncryptedByteOffset = 30 + fileNameLength + extraFieldLength + 16 + 2;
+      randomAccessFile.seek(firstEncryptedByteOffset);
+      int encryptedByte = randomAccessFile.read();
+      randomAccessFile.seek(firstEncryptedByteOffset);
+      randomAccessFile.write(encryptedByte ^ 0x01);
+    }
+
+    expectedException.expect(IOException.class);
+    expectedException.expectMessage("aes verification failed");
+
+    new ZipFile(generatedZipFile, PASSWORD).extractAll(outputFolder.getPath());
   }
 
   @Test

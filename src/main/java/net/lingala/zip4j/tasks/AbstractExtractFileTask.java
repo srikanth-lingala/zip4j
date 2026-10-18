@@ -152,6 +152,11 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
       throw new ZipException("Could not read complete entry");
     }
 
+    // read until end of entry, so that crc or aes mac of the entry is verified
+    if (zipInputStream.read(new byte[1]) != -1) {
+      throw new ZipException("Entry has more data than its uncompressed size");
+    }
+
     progressMonitor.updateWorkCompleted(b.length);
     return b;
   }
