@@ -151,6 +151,10 @@ public class SplitOutputStream extends OutputStream implements OutputStreamWithS
       throw new ZipException("negative buffersize for checkBufferSizeAndStartNextSplitFile");
     }
 
+    if (splitLength >= MIN_SPLIT_LENGTH && bufferSize > splitLength) {
+      throw new ZipException("Buffer size " + bufferSize + " exceeds split length " + splitLength);
+    }
+
     if (!isBufferSizeFitForCurrSplitFile(bufferSize)) {
       try {
         startNextSplitFile();

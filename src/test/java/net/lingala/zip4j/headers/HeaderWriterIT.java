@@ -37,6 +37,7 @@ import java.util.List;
 
 import static net.lingala.zip4j.util.Zip4jUtil.epochToExtendedDosTime;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class HeaderWriterIT extends AbstractIT {
 
@@ -57,6 +58,21 @@ public class HeaderWriterIT extends AbstractIT {
   private RawIO rawIO = new RawIO();
   private HeaderWriter headerWriter = new HeaderWriter();
   private HeaderReader headerReader = new HeaderReader();
+
+  @Test
+  public void testCentralDirectoryLargerThanSplitLengthFailsWithoutRollover() throws IOException {
+    ZipModel zipModel = createZipModel(1000);
+    File headersFile = new File(temporaryFolder.getRoot(), "headers.zip");
+
+    try (SplitOutputStream splitOutputStream = new SplitOutputStream(headersFile, 65536);
+         CountingOutputStream outputStream = new CountingOutputStream(splitOutputStream)) {
+      assertThatThrownBy(() -> headerWriter.finalizeZipFile(zipModel, outputStream, InternalZipConstants.CHARSET_UTF_8))
+          .isInstanceOf(ZipException.class)
+          .hasMessageContaining("exceeds split length");
+      assertThat(splitOutputStream.getCurrentSplitFileCounter()).isZero();
+    }
+    assertThat(new File(temporaryFolder.getRoot(), "headers.z01")).doesNotExist();
+  }
 
   @Test
   public void testWriteLocalFileHeaderSimpleLocalFileHeaderSuccessScenario() throws IOException {
