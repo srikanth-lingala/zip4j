@@ -60,7 +60,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
         }
       }
     } else if (isSymbolicLink) {
-      createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
+      createSymLink(zipInputStream, fileHeader, outputFile, outputPath, progressMonitor);
     } else {
       checkOutputDirectoryStructure(outputFile);
       unzipFile(zipInputStream, outputFile, progressMonitor, readBuff);
@@ -120,12 +120,21 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
   }
 
   private void createSymLink(ZipInputStream zipInputStream, FileHeader fileHeader, File outputFile,
-                             ProgressMonitor progressMonitor) throws IOException {
+                             String outputPath, ProgressMonitor progressMonitor) throws IOException {
 
     String symLinkPath = new String(readCompleteEntry(zipInputStream, fileHeader, progressMonitor));
 
     if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
       throw new ZipException("Could not create parent directories");
+    }
+
+    // the link target must also stay inside the extraction directory (CWE-61)
+    Path extractionRoot = new File(outputPath).getCanonicalFile().toPath();
+    Path resolvedTarget = outputFile.getCanonicalFile().getParentFile().toPath()
+        .resolve(symLinkPath).normalize();
+    if (!resolvedTarget.startsWith(extractionRoot)) {
+      throw new ZipException("illegal symlink target that breaks out of the target directory: "
+          + fileHeader.getFileName());
     }
 
     try {
