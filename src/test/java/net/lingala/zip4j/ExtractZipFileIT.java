@@ -698,6 +698,30 @@ public class ExtractZipFileIT extends AbstractIT {
     testExtractZipFileThrowsExceptionOfTypeWrongPasswordForNullOrEmptyAesPassword("".toCharArray());
   }
 
+  @Test
+  public void testExtractFileThrowsExceptionWhenLocalFileHeaderOfEncryptedEntryIsNotEncrypted() throws IOException {
+    ZipParameters zipParameters = createZipParameters(EncryptionMethod.AES, AesKeyStrength.KEY_STRENGTH_256);
+    zipParameters.setCompressionMethod(CompressionMethod.STORE);
+    ZipFile zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    zipFile.addFile(getTestFileFromResources("sample.pdf"), zipParameters);
+
+    // Rewrite the local file header as an unencrypted stored entry, leaving the central directory marking it as AES
+    byte[] zipBytes = Files.readAllBytes(generatedZipFile.toPath());
+    zipBytes[6] &= ~1;
+    zipBytes[8] = 0;
+    zipBytes[9] = 0;
+    Files.write(generatedZipFile.toPath(), zipBytes);
+
+    zipFile = new ZipFile(generatedZipFile, PASSWORD);
+    assertThat(zipFile.getFileHeader("sample.pdf").isEncrypted()).isTrue();
+
+    expectedException.expect(ZipException.class);
+    expectedException.expectMessage("Encryption flag in local file header does not match central directory for entry: "
+        + "sample.pdf");
+
+    zipFile.extractFile("sample.pdf", outputFolder.getPath());
+  }
+
   private void addFileToZip(ZipFile zipFile, String fileName, EncryptionMethod encryptionMethod, String password) throws ZipException {
     ZipParameters zipParameters = new ZipParameters();
     zipParameters.setEncryptFiles(encryptionMethod != null);

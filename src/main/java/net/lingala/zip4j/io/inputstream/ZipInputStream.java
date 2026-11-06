@@ -126,6 +126,11 @@ public class ZipInputStream extends InputStream {
     crc32.reset();
 
     if (fileHeader != null) {
+      if (localFileHeader.isEncrypted() != fileHeader.isEncrypted()) {
+        throw new ZipException("Encryption flag in local file header does not match central directory for entry: "
+            + localFileHeader.getFileName());
+      }
+
       localFileHeader.setCrc(fileHeader.getCrc());
       localFileHeader.setCompressedSize(fileHeader.getCompressedSize());
       localFileHeader.setUncompressedSize(fileHeader.getUncompressedSize());
