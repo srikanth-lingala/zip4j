@@ -91,7 +91,7 @@ public class ExtractFileTask extends AbstractExtractFileTask<ExtractFileTaskPara
       fileSeparator = "";
     }
 
-    return fileHeaderBeingExtracted.getFileName().replaceFirst(fileNameToExtract, newFileName + fileSeparator);
+    return newFileName + fileSeparator + fileHeaderBeingExtracted.getFileName().substring(fileNameToExtract.length());
   }
 
   public static class ExtractFileTaskParameters extends AbstractZipTaskParameters {

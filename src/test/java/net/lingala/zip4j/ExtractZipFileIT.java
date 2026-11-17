@@ -605,6 +605,19 @@ public class ExtractZipFileIT extends AbstractIT {
   }
 
   @Test
+  public void testExtractFileHeaderIsDirectoryAndRenameFileWithRegexCharactersInNames() throws IOException {
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("dir(1)/sample.pdf");
+    zipFile.addFile(TestUtils.getTestFileFromResources("sample.pdf"), zipParameters);
+
+    zipFile.extractFile("dir(1)/", outputFolder.getPath(), "new$1_folder");
+    File outputFile = Paths.get(outputFolder.getPath(), "new$1_folder", "sample.pdf").toFile();
+    assertThat(outputFile).exists();
+    ZipFileVerifier.verifyFileContent(TestUtils.getTestFileFromResources("sample.pdf"), outputFile);
+  }
+
+  @Test
   public void testExtractFileWhichIsAFolderExtractsContentsEvenWhenFolderEntryIsNotInZip() throws IOException {
     ZipFile zipFile = new ZipFile(getTestArchiveFromResources("archive-with-no-dir-entries.zip"));
     String outputFolderPath = outputFolder.getPath();
