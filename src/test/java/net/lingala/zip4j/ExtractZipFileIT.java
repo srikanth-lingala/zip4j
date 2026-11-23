@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -343,6 +344,51 @@ public class ExtractZipFileIT extends AbstractIT {
     assertThat(symlinkToFile).isSymbolicLink();
     assertThat(Files.readSymbolicLink(symlinkToDir)).isEqualTo(aDirectory.getFileName());
     assertThat(Files.readSymbolicLink(symlinkToFile)).isEqualTo(aFile.getFileName());
+  }
+
+  @Test
+  public void testExtractAllDoesNotWriteThroughSymlinkCreatedFromSameArchive() throws IOException {
+    File outsideFile = new File(temporaryFolder.newFolder("outside"), "escaped.txt");
+    File danglingLink = new File(temporaryFolder.newFolder("links"), "x");
+    Files.createSymbolicLink(danglingLink.toPath(), outsideFile.toPath());
+
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setSymbolicLinkAction(ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY);
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addFile(danglingLink, zipParameters);
+    ZipParameters streamParameters = new ZipParameters();
+    streamParameters.setFileNameInZip("y");
+    zipFile.addStream(new ByteArrayInputStream("test".getBytes()), streamParameters);
+    zipFile.renameFile("y", "x");
+
+    try {
+      new ZipFile(generatedZipFile).extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e.getMessage()).contains("symbolic link");
+    }
+
+    assertThat(outsideFile).doesNotExist();
+  }
+
+  @Test
+  public void testExtractAllDoesNotWriteThroughExistingDanglingSymlink() throws IOException {
+    File outsideFile = new File(temporaryFolder.newFolder("outside"), "escaped.txt");
+    ZipParameters zipParameters = new ZipParameters();
+    zipParameters.setFileNameInZip("x");
+    ZipFile zipFile = new ZipFile(generatedZipFile);
+    zipFile.addStream(new ByteArrayInputStream("test".getBytes()), zipParameters);
+    assertThat(outputFolder.mkdirs()).isTrue();
+    Files.createSymbolicLink(new File(outputFolder, "x").toPath(), outsideFile.toPath());
+
+    try {
+      zipFile.extractAll(outputFolder.getPath());
+      fail("Should throw an exception");
+    } catch (ZipException e) {
+      assertThat(e.getMessage()).contains("symbolic link");
+    }
+
+    assertThat(outsideFile).doesNotExist();
   }
 
   @Test

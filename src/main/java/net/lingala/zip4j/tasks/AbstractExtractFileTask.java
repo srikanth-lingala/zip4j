@@ -62,6 +62,7 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     } else if (isSymbolicLink) {
       createSymLink(zipInputStream, fileHeader, outputFile, progressMonitor);
     } else {
+      assertNotSymbolicLink(outputFile, fileHeader);
       checkOutputDirectoryStructure(outputFile);
       unzipFile(zipInputStream, outputFile, progressMonitor, readBuff);
     }
@@ -88,6 +89,15 @@ public abstract class AbstractExtractFileTask<T> extends AsyncZipTask<T> {
     if (!outputFileCanonicalPath.startsWith(outputCanonicalPath)) {
       throw new ZipException("illegal file name that breaks out of the target directory: "
           + fileHeader.getFileName());
+    }
+  }
+
+  private void assertNotSymbolicLink(File outputFile, FileHeader fileHeader) throws ZipException {
+    // A dangling symlink resolves to itself in getCanonicalPath(), so the zip slip check above does not catch it.
+    // Writing to it would follow the link and could create a file outside the target directory.
+    if (Files.isSymbolicLink(outputFile.toPath())) {
+      throw new ZipException("Cannot extract " + fileHeader.getFileName()
+          + ", output file is a symbolic link: " + outputFile);
     }
   }
 
